@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- css bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+	<title>selfedu-django3 - конспект курса</title>
+
+	<style type="text/css">
+		
+		pre{
+			color: black;
+			background: #c6ffe3;
+			margin-right: 30px;
+			margin-left: 15px;
+			margin-bottom: 2px;
+			margin-top: 5px;
+		}
+		
+		.all{
+			background: #2C4352;
+			color: white;
+
+		}
+		
+		body{
+			background: #b7e2ff;
+		}
+		
+		.spec {
+			font-size: 18px;
+			letter-spacing: .2em;
+			font-weight: 500;
+/*			text-transform: uppercase;*/
+			color: #ff7575;
+			margin-top: 15px;
+			margin-bottom: 2px;
+		}
+
+		.title_text {
+			letter-spacing: .1em;
+			font-weight: 500;
+			color: #f2cb71;
+
+		}
+
+	</style>
+
+
+&lt; &lt; &lt;
+</head>
+
+
+<body>
+	<p><a href="https://www.youtube.com/@selfedu_rus">selfedu</a></p>
+	<p><a href="https://www.youtube.com/watch?v=FyTL1bnUx5I&list=PLA0M1Bcd0w8xO_39zZll2u1lz_Q-Mwn1F">Django 3 для Python(плейлист)</a></p>
+
+	<div class="container-md all">
+		<h1 class="title_text">YouTube selfedu</h1>
+		<br>
+		<h4 class="title_text">Django 3 для Python</h4>
+		<br>
+
+		<h4 class="title_text border">[1]. Django - что такое, порядок установки.</h4>
+		<ol>
+			<li>Django - фреймворк, для работы на стороне сервера - backend - на языке программирования - Python</li>
+			<li>Фреймворк - это обвёртка для языка программирования, для упрощения работы</li>
+			<li>Запрос от пользователя --> сервер &lt;-WSGI-> Django --> Модели, функции, БД, Шаблоны--> Django --> Сервер --> ответ пользователю</li>
+			<li>
+				WSGI (Web Server Fateway Interface) - стандарт взаимодействия между Python программой на стороне сервера, и вебсайтом.
+			</li>
+			<li>
+				У Django есть свой отладочный сервер - на localhost = http://127.0.0.1:8000/ - Но в итоге сайты размещаются на ориендуемых сервеах - Хостингах
+			</li>
+			<li>Для того чтобы всё правильно работало - желательно исользовать одни и теже версии продуктов Python и Django - для этого создаётся вируальное окружение для проекта - venv. При этом на ПК можно будет обнавлять версии, и они могут отличатся от версий виртуального окружения</li>
+			<li>
+				<p class="spec">Устанавливаем и проверяем Python на ПК</p>
+				<ol type="A">
+					<li>На оф сайте - скачиваем и устанавливаем последнюю версию</li>
+					<li>Скачиваем и устанавливаем сторонний эмулятор конольного окна Windows - ConEmu - Она удобней встроенной</li>
+					<li>При первом запуске ConEmu - Обязательно в окне выбрать [Shels::cmd(Admin)]</li>
+					<li>
+						Для проверки интерпритаора питона, в cmd пишем:
+						<pre>
+python -V  #Должно вывести текущую версию Python на ПК</pre>
+					</li>
+					<li>
+						Для просмотра всех установленных пакетов на ПК, в сmd:
+						<pre>
+pip list 
+#покажет все установленные пакеты и их версии(Pillow, pip, psycopg2, Django,django-crispy-forms) - если они установлены
+#это пакеты в глобальном окружении - то-есть на ПК
+#В каждом venv - необходиму будет устанавливать дополнительно</pre>
+						pip(менеджер пакетов) - система управления пакетами, которая используется для установки и управления программными пакетами, написанными на Python.
+					</li>
+				</ol><!-- устанавливаем django -->
+			</li><!-- устанавливаем django -->
+
+			<li>
+				<p class="spec">Устанавливаем Глобальное окружение</p>
+				<ol type="A">
+					<li>Создаём папку где будут проекты selfedu/создаём папку где будет проект один из
+						<br>
+						C:\Хранилище\IT\IT Разное\Обучение\YouTube_selfedu\djsite
+					</li>
+					<li>Внутри папки \YouTube_selfedu\djsite - будем устанавливать venv</li>
+					<li>
+						В cmd - переходим в эту папку
+						<pre>
+cd C:\Хранилище\IT\IT Разное\Обучение\YouTube_selfedu\djsite</pre>
+					</li>
+					<li>Создаём окружение (созможно до этого необходимо было установить в глобальном окружении)- но у меня уже было.>
+						<br>В cmd (в итоге создастся папка окружения):
+						<pre>
+python -m venv venv2020
+#где venv2022 - это имя окружения</pre>
+					</li>
+					<li>
+						Заходим в окружение. В cmd - \YouTube_selfedu\djsite:
+						<pre>
+.\venv2022\Scripts\activate</pre>
+						Теперь мы в окружении (venv2022)
+					</li>
+					<li>
+						Проверяем pip list
+						<pre>
+pip list</pre>
+						У нас всего 2 пакета pip и setuptools (в глобальном гораздо больше)
+					</li>
+					<li>
+						Можно обновить pip - внутри окружения в cmd:
+						<pre>
+python.exe -m pip install --upgrade pip</pre>
+					</li>
+					<li>
+						Чтоыбы выйти из окружения достаточно в cmd - (venv2022) .. \YouTube_selfedu\djsite
+						<pre>
+deactivate</pre>
+					</li>
+				</ol><!-- устанавливаем venv -->
+			</li><!-- устанавливаем venv --------------------------------------------------------------->
+			<li>
+				<p class="spec">Устанавливаем Django</p>
+				<ol type="A">
+					<li>Django можно установить и через терминал PyCharm</li>
+					<li>
+						В PyCharm - создаём новый проект
+						<pre>
+Location: C:\Хранилище\IT\IT Разное\Обучение\YouTube_selfedu\djsite
+Previoursly configured iterpretetre: ....\djsite\venv2022\Scripts\python.exe
+						</pre>
+					</li>
+					<li>Жмём терминал - теперь этот проект автоматически будет в виртуальном окружении -(venv2022) C:\Хранилище\IT\IT Разное\Обучение\YouTube_selfedu\djsite></li>
+					<li>Создалась папка .idea - незнаю пригодится ли</li>
+					<li>Можжно вручную открыть venv2022 для этого в PyCharm:
+						<br>File - Settings - Project:djsite - Python Interpritator - venv2022 - там же и будет показыватся все установленные пакеты в venv2022
+					</li>
+					<li>
+						<span class="spec">Размер шрифта в SublimeText:</span>
+						<br>Preferens - Font - Larger/Smaller/Reset
+					</li>
+					<li>
+						Устанавливаем джанго через PyCharm терминал - в 
+						<br>(venv2022) C:\Хранилище\IT\IT Разное\Обучение\YouTube_selfedu\djsite>
+						<pre>
+pip install django #устанавливаем пакет django в venv2022
+#это ядро(пакет) - тоесть проект мы не создавали, никаких файлов не появляется в папке</pre>
+					</li>
+					<li>
+						Список команд Django  - в терминале PyCH
+						<pre>
+django-admin</pre>
+					</li>
+					<li>В терминале так же работает 'cls' - очистить терминал</li>
+					<li>
+						В терминале YouTube_selfedu\djsite> создаём django -проект
+						<pre>
+django-admin startproject coolsite
+#где coolsite - это и есть наш проект</pre>
+					</li>
+					<li>переходим в djsite/coolsite - запускаем сервер
+						<pre>
+python manage.py runserver</pre>
+					</li>
+					<li>
+						Можно проверить работоспособность - в браузере - http://127.0.0.1:8000/
+					</li>
+					<li>Для остановки сервера так же работает ctrl+c</li>
+					<li>
+						Django работает со многими СУБД - PostgreSQL, MySQL, Oracle, SQLite..
+					</li>
+					<li>Можно запустить отладночный сервер на другом порте, например http://127.0.0.1:4000/:
+						<pre>python manage.py runserver 4000</pre>
+					</li>
+				</ol><!-- устанавливаем Django -->
+			</li><!-- устанавливаем Django ------------------------------------------------------>
+			
+			<br><br>
+			
+
+
+			<h4 class="title_text border">[2]. Модель MTV. Маршрутизация. Функции представления</h4>
+			<li><span class="spec">Механизм обработки запроса от пользователя в Django</span>
+				<br>
+				<img src="images\mtv.jpg" class="img-fluid">
+				<br>
+				<p>
+					-От пользователя приходит запрос (url)
+					<br>-В маршрутизаторе идёт поиск url(path) - и ищется первое нужное значение
+				</p>
+			</li>
+			<li>
+				Пути по слагу или индексу:
+				<pre>
+http://127.0.0.1:8000/   -  path('')
+http://127.0.0.1:8000/category/1   -  path('category/&lt;id(число)>')
+http://127.0.0.1:8000/women/madonna   -  path('women/&lt;slug(строка)>')
+				</pre>
+				Если совпадений никаких нк будет - выведет страницу 404
+				
+			</li>
+			<br>
+			<br>
+			<li>
+				<img src="images\madonna.jpg" class="img-fluid">
+				<br>
+				<p>-Приходит запрос от пользователя:					
+					<br>-Функция view - берёт данные из models.py
+					<br>-models.py - берёт данный из Бызы данных
+					<br>-В шаблоне собирается информация
+					<br>-Всё это формируется в views и отправляется пользователю, в виде html страницы
+				</p>
+			</li>
+			<li>
+				<span class="spec">MTV = Models + Templates + Views</span>
+			</li>
+			<li>Кааждая самостоятельная часть сайта, должны быть представленна в виде отдельного приложения (Основное приложение, Форум, Блог, Магазин)
+				<br>Приложения желательно делать максимально независимыми, чтобы можно было воспользоваться в другом проекте например. Как минимум к этому необходимо стремится.
+			</li>
+
+
+			<li>
+				<p class="spec">Создаём приложение django - app</p>
+				<ol type="A">
+					<li>
+						В терминале - djsite\coolsite:
+						<pre>
+python manage.py startapp men
+#где men - название приложения</pre>
+					</li>
+					<li>
+						<span class="spec">Назначение файлов django внутри приложения</span>
+						<br>admin.py - связь приложения с админ панелью
+						<br>apps.py - настройка текущего приложения
+						<br>models.py - для хранения ORM моделей (представление данных из базы данных)
+						<br>test.py - модуль с тестирующими процедурами
+						<br>views.py - хранение представлений (функции)
+					</li>
+				</ol><!-- устанавливаем django - app -->
+			</li>	<!-- устанавливаем django - app ------------------------------------------------------>		
+			<li>
+				<p class="spec">Регистрируем приложение</p>
+				<ol type="A">
+					<li>В coolsite/coolsite/settings.py
+						<br>[INSTALLED_APPS] - добавляем наше приложение
+						<pre>
+INSTALLED_APPS = [...., 'men.apps.MenConfig',]
+#будет обращатся в coolsite/men/apps.py - class MenConfig(AppConfig)
+						</pre>
+					</li>
+				</ol><!-- Регистрируем приложение -->
+			</li>	<!-- Регистрируем приложение ------------------------------------------------------>
+			<li>
+				Далее заходим  в men/views.py  - создаём функцию index
+				<pre>
+def index(request): #request - информация о запросе, сессии, 'куках''
+	return HttpResponse('Страница приложения men') #HttpResponse - ответ</pre>
+			</li>
+			<li>
+				HttpResponse - необходимо имортировать в men/views.py
+				<pre>
+from django.http import HttpResponse #импортировали</pre>
+			</li>
+			<li>
+				В coolsite/urls.py - импортируем нашу функцию
+				<pre>
+from men.views import index 
+# импортировали из men/views.py  - def index</pre>
+			</li>
+			<li>
+				В coolsite/urls.py - добавляем путь (все пути добаляются в список urlpatterns)
+				<pre>
+path('men/', index),
+#где 'men/' - путь url  - localhost/men
+#index - функция из men/views.py</pre>
+			</li>
+			<li>Делаем нашу папку - рабочим каталогом, чтобы ничего личшенего не подчёркивалось
+				<br>В PyCharm - внешнюю папку coolsite - пкм - MarkDirectory - Sourcec Root
+			</li>
+			<li>
+				Запускаем сервер - в браузере http://127.0.0.1:8000/men - всё работает
+				<br>-В views.py можно добавить html теги h1 - чтобы в браузере отображалось как заголовок
+			</li>
+			<li>
+				В men/views.py - добавим ещё одну функцию - категории
+				<pre>
+def categories(request):
+    return HttpResponse('&lt;h1>Статьи по категориям&lt;/h1>')</pre>
+			</li>
+			<li>
+				В coolsite/urls.py - обавим ещё один путь для категорий, перед этим функцию необходимо импортировать 
+				<pre>
+from men.views import index, categories
+
+path('cats/', categories),  # категории</pre>
+			</li>
+			<li>
+				Чтобы импортировать все функции изменяем наш импорт views.
+				<pre>
+from men.views import index, categories   --->   from men.views import *
+# импортировали из men/views.py  - все функции</pre>
+				В браузере проверяем - http://127.0.0.1:8000/cats/ - всё работает
+			</li>
+			<li>
+				В coolsite/urls.py корректируем путь главной страницы
+				<pre>
+path('men/', index),  --> path('', index)</pre>
+				Теперь она будет открываться по пути - http://127.0.0.1:8000/
+			</li>
+			<li><span class="spec">Перенесём пути внутрь приложения</span>
+				<ol type="A">
+					<li>
+						В coolsite/coolsite/urls.py - импортируем функцию include
+						<pre>
+from django.urls import include  # импорт функции include</pre>
+					</li>
+					<li>
+						В coolsite/coolsite/urls.py - убираем все предыдущии пути - кроме админки, и добавляем путь:
+						<pre>
+path('men/', include('men.urls')),  # путь к путям  приложения men
+						</pre>
+					</li>
+					<li>
+						В men(app) - создадим новый файл - urls.py
+					</li>
+					<li>
+						В men/urls.py импортируем функцию path, из текущей папки (men) - импортируем все прдставления (функции)
+						<pre>
+from django.urls import path
+from .views import *</pre>
+					</li>
+					<li>
+						В men/urls.py - созадём свой список urlpatterns = [], и прописываем пути текущего приложения
+						<pre>
+urlpatterns = [
+    path('', index),  # домашняя страницы приложения - !!!путь - http://127.0.0.1:8000/men/
+    path('cats/', categories),  # категории - !!!путь - http://127.0.0.1:8000/men/сats/
+]
+#men - добавляется из главного urls.py - coolsite/urls.py					
+						</pre>
+					</li>
+				</ol>
+			</li>
+
+
+			<br><br>
+			<h4 class="title_text border">[3]. Модель Маршрутизация, обработка исключений запросов, перенаправление</h4>
+			<li>
+				Переходим в главный urls.py (coolsite/urls.py) - меняем путь к приложению men  - чтобы в путях не было дополнительного пути /men/
+				<pre>
+path('men/', include('men.urls')),  --> 	path('', include('men.urls')),</pre>
+			</li>
+			<li>
+				<span class="spec">Добавляем в путь числовой параметр</span>
+				<ol type="A">
+					<li>Для этого, в men/urls.py - корректируем путь категорий
+						<pre>
+path('cats/&lt;int:catid>/', categories),
+# где int - целое число - 1/2/3/4
+# catid - имя числового параметра, придумываем сами</pre>
+					</li>
+					<li>
+						В men/views.py - def categories, добавляем имя числового параметра в двух местах.
+						<pre>
+def categories(request, catid):
+	return HttpResponse(f'&lt;h1>Статьи по категориям&lt;/h1>&lt;p>{catid}&lt;/p>')
+# где f' - это обычная ф-трока питона
+# сatid - наш числовой параметр из пути в urls.py
+# {catid} - вывод нашего числа - на html</pre>
+						Теперь у нас есть пути http://127.0.0.1:8000/cats/1-2-3-4..9999../
+						<br>Но пути http://127.0.0.1:8000/cats/ - больше нет
+					</li>
+				</ol>	
+			</li>
+			<li>
+				<span class="spec">Какие типы данных мы вожем указывать в path (в шаблонах марщритов) - '&lt;int:id>:</span>
+				<br>- str - любая не пустая строка, кроме '/'
+				<br>- int - Любое положительное число, включая 0
+				<br>- slug - слаг - латиница ASCII таблиц, дефис, подчёркивание
+				<br>- uuid - цифры, малые латинские вимволы ASCII, дефис
+				<br>- path - любая не пустая строка, включая '/'
+			</li>
+			<li>
+				<span class="spec">функция re_path</span>'re_path()'
+				<ol type="A">
+					<li>
+						В men/urls.py - Импортируем re_path и добавим путь
+						<pre>
+from django.urls import path, re_path
+
+re_path(r'archive/(?P&lt;year>[0-9]{4})/', archive),
+# &lt;year>[0-9]{4})  -  год должен состоять именно из 4 чисел
+# каждая цифра числа должны бть любой от 0 до 9 включительно</pre>
+					</li>
+					<li>
+						В men/views.py - добавляем функцию
+						<pre>
+def archive(request, year):
+	return HttpResponse(f'&lt;h1>Архив по годам&lt;/h1>&lt;p>{year}&lt;/p>')</pre> 
+					</li>
+					<li>Теперь у нас есть пути:
+						<br>http://127.0.0.1:8000/archive/0001..2022..9999/
+					</li>
+				</ol>
+			</li>
+			<li>
+				<span class="spec">Обработка GET и POST запросов</span>
+				<ul>
+					<li>url запрос - http://127.0.0.1:8000/?name=Alexandr&cart=music
+						<br>name - ключ, Alexandr - значение
+						<br>cart - ключ, music - значение
+					</li>
+					<li>
+						Выделяем ключи из GET запроса
+						<br>В views.py - def categories - добавляем строчку
+						<pre>
+print(request.GET)</pre>
+						В браузере введём:
+						<pre>
+http://127.0.0.1:8000/cats/5/?name=Alexandr&cart=music</pre>
+						В нашем терминале выдаст словарь ключ - значение, ключ значение
+						<pre>
+&lt;QueryDict: {'name': ['Alexandr'], 'cart': ['music']}>
+[17/Nov/2022 19:04:20] "GET /cats/5/?name=Alexandr&cart=music HTTP/1.1" 200 55</pre>
+					</li>
+					<li>
+						В нашей функции, добавим проверку (Есть ли данные в get запросе?):
+						<pre>
+if(request.GET):  # если данные в запросе есть
+	print(request.GET)	# будет выведен словарь {'ключ:['ззначения']}</pre>
+						Если данные будут, тогда в терминале нам покажет словарь
+						<br>Если путь будет без GET - http://127.0.0.1:8000/cats/5/ - то ничего показывать не будет, так как гет данных нет
+					</li>
+					<li>Почти аналогично будет работа с POST запросом (request.POST)<br>POST - запросы обычно работают с формами login/passwod, либо когда отправляют какието изображения на сервер</li>
+				</ul>
+			</li>
+			<li><span class="spec">Обработка исключений при запросах к серверу</span>
+				<ul>
+					<li>Если будет введён запрос - которого не существует, будет выведена страница 404 - c описанием проблемы  - прри DEBUG = True - в settings.py</li>
+					<li>DEBUG = True - обычно только в момент работы над проектом, в итоговом варианте, чтобы пользователи не видели всех ошибок необходимо сделать DEBUG = Fasle/ALLOWED_HOSTS = ['хостинг.ру']
+						<br>Для наглядности, в  settings.py меняем 2 строчки на:
+						<pre>
+DEBUG = False
+ALLOWED_HOSTS = ['127.0.0.1']</pre>
+						Пробуем запустить сервер и ввести несущестующий адрес, получим страничку нет страницы, но без ошибок. Page Not Found - либо что то подобное
+					</li>
+					<li>
+						-Для того чтобы заменить страницу ошибки, заходим в coolsite/urls.py:
+						<pre>
+# handler404 - это спец переменная, pageNotFound - наша функция views.py							
+handler404 = pageNotFound</pre>
+						-В men/views.py - импортируем - HttpResponseNotFound
+						-В men/views.py - пишем функцию этой страницы:
+						<pre>
+from django.http import HttpResponse, HttpResponseNotFound
+
+def pageNotFound(request, exception):
+	# exception - если произошли какието исключения, мы должны их обработать
+    return HttpResponseNotFound('&lt;h1>Страница не найдена&lt;/h1>')</pre>
+    					Теперь при неправильном urle - будет выводится наша страница ошибки
+					</li>
+					<li>
+						Сгенерируем исключение в функции archive - если год будет больше 2022.
+						<br>men/views.py - импортируем Http404
+						<br>men/views.py - def archive - добавим 2 строчки:
+						<pre>
+from django.http import HttpResponse, HttpResponseNotFound, Http404
+
+def archive(request, year):	
+	if int(year) > 2022:  # если год больше 2022
+		raise Http404()  # сгенерируем классом 404
+	return HttpResponse(f'&lth1>Архив по годам&lt/h1>&ltp>{year}&lt/p>')</pre>
+						Если год будет больше 2022 нас отпрявят к функции pageNotFound - та в своё время откроет нашё страницу - 'Страница не найдена'
+					</li>
+					<li>http://127.0.0.1:8000/archive/2023..9999/ - нас перенаправит на "страница не найдена"</li>
+					<li><span class="spec">Выиды исключений (работают при DEBUG = False)</span>
+						<br>-handler404 - страница не найдена (делали выше)
+						<br>-handler403 - доступ запрещён
+						<br>-handler500 - ошибка сервера
+						<br>-handler400 - невозможно обраблтать запрос
+					</li>
+				</ul>
+			</li>
+			<li><span class="spec">Создание 301 и 302 редиректов</span>
+				<ul>
+					<li>
+						301 - страница перемещена на другой постоянный URL-адрес
+						<br>302- страница перемещена временно на другой URL-адрес
+					</li>
+					<li>
+						В views.py  - импортируем функцию redidect
+						<pre>
+from django.shortcuts import render, redirect #рендер был изначально</pre>
+					</li>
+					<li>
+						В views.py - в функции archive, поменяем строчку:
+						<pre>
+raise Http404()  --->  return redirect('/')
+#если год будет больше 2022 - нас перенапривит на главную сраницу
+						</pre>
+						Нас будет направлять на главную страницу
+						<br>В терминале будет 302 - [17/Nov/2022 20:18:38] "GET /archive/2023/ HTTP/1.1" 302 0
+					</li>
+					<li>
+						В той же функции поменяем ту же строчку:
+						<pre>
+return redirect('/', permanent=True)</pre>
+						Произойдёт то же самое только в терминале будет 301
+					</li>
+				</ul>
+				<li>
+					<ul><span class="spec">Задаём параметр name='имя' - пути path</span>
+						<li>
+							В men/urls.py - в пути index - задаём параметр name - и присваиваем имя(любое)
+							<pre>
+path('', index, name='home'),</pre>
+						</li>
+						<li>
+							теперь по имени 'home'- можно ссылкться на домашнюю страницу
+							<br>Например в views.py - поменяем
+							<pre>
+ return redirect('/', permanent=True) --> return redirect('home', permanent=True)</pre>
+						</li>
+						<li>
+							<span class="spec">
+								Название приложения можно поменять 'почти без последствий'
+							</span>
+							<br>Для этого в PyCharm - корневую папку приложения переименовываем (Rafactor/Rename)
+							<br>Со всем соглашаемся - PyCharm исправить имя пости везде сам - автоматически (в функциях, в путях и тд)
+							<br><strong>Проверь class в apps.py и сопоставь в settings.py - INSTALLED_APPS = []</strong>
+						</li>
+					</ul>
+				</li>
+
+		
+
+
+		</ol><!-- общий список -->
+	</div><!-- container-md all -->
+&lt; &lt; &lt; 
+&lt; &lt; &lt;
+&lt; &lt; &lt;
+
+
+<!-- JS Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>git cmd django</title>
+	<style type="text/css">
+		.lessons{
+			background: white ;
+		}
+		body {
+			background: black;
+		}
+	</style>
+</head>
+<body>
+
+	<div class="lessons">
+		<h1>Уроки раздел Vice Versa
+			<br>http://127.0.0.1:8000/les/
+			<br>ПРОСМОТРИ ВЫБЕРИ НУЖНОЕ И ВСЁ В ОДИН ДОКУМЕНТ - ДАННЫЙ ФАЙЛ УДАЛЮ В ИТОГЕ
+		</h1>
+
+		<h5><a href="http://127.0.0.1:8000">Вернутся на домашнюю страницу</a></h5>
+
+		<h4>Установка Django:</h4>
+		<ol>
+			<li>cmd - заходим в командную строку</li>
+			<li>pip3 install django  -  устанавдиваем в винду</li>
+			<li>python.exe -m pip install --upgrade pip  -  обновляем</li>
+			<li>переход в папку проекта (в командной строке) – т.е куда проект установить (админку, manage.py и тд)</li>
+			<li>django-admin startproject myfirstproject - создание нового проекта с названием</li>
+		</ol>
+
+		<h4>Команды командной строки:</h4>
+		<ul>
+			<li>dir – посмотреть что в папке</li>
+			<li>cd – следовать в какую-то папку (cd название папки)</li>
+			<li>cls – очистить консоль</li>
+			<li>ctrl + c – остановить runserver</li>
+			<li>.. - вернутся в дирректорию ниже</li>
+		</ul>
+
+		<h4>Старт проекта Django:</h4>
+		<ol>
+			<li>cmd - заходим в командную строку</li>
+			<li>заходим в корневую папку проекта (в cmd)</li>
+			<li>python manage.py runserver - старт локального сервера
+				<br>http://127.0.0.1:8000/  - это мой свервер.
+			</li>
+			<li>python manage.py help - команды manage.py помощь</li>
+			<li>Ctrl + C  - остановить локальный сервер</li>
+		</ol>
+
+		<h4>GIT</h4>
+		<p>Git - тип системы контроля версии
+			<br>например если редактируем файл, Git помогает отслеживать: что было изменено, кто изменил и зачем..
+		</p>
+
+		<ol>
+			<li>C:\Program Files\Git\git-cmd.exe - cmd git</li>
+			<li>В командной строке переходим в корневую папку проекта</li>
+			<li>git –v  - посмотреть версию git</li>
+			<li>git init – устанавливвем гит в папку проекта</li>
+			<li>git status – смотрим что отслеживает или неотслеживает</li>
+			<li>git add . – добавить чтобы отслеживал всё в папке</li>
+			<li>git config --global user.email elproject220@yandex.ru</li>
+			<li>git config --global user.name "Mello"</li>
+			<li>git commit -m "Имя коммита1"   - создали коммит1</li>
+			<li>git status  - после создания первого коммита изменений не было</li>
+			<li>изменяем что то в проекте</li>
+			<li>git status - указывает что изменилось</li>
+			<li>git add . – опять добавили в гит (все)</li>
+			<li>git commit -m "Имя коммита2"   - создали коммит2</li>
+			<li>Залогинились в гитхаб.ком, создали в репозитории новый проект</li>
+			<li>git remote add origin https://github.com/Mello134/viceversa.git - отправили в  репозиторий гитхаб весь проект</li>
+			<li>git push -u origin main<br>Этот и предыдущий пункт уточняй в самом репозитории в проекте, там есть коды их можно просто скопировать!</li>
+			<li>Чтобы скачать с репозитория. Заходим в cmd в нужную папку, далее <br>git clone https://github.com/Mello134/viceversa.git - скачали commit с своего репозитория (ссылка там)</li>
+		</ol>
+
+
+		<h4>github. Пример как отправить и как скачать с репозитория</h4>
+		<h4>Отправляем в репозиторий</h4>
+		<h4>…or create a new repository on the command line</h4>
+		<p>
+			echo "# myvice" >> README.md
+			<br>git add README.md
+			<br>git commit -m "first commit"
+			<br>git branch -M main
+			<br>git remote add origin https://github.com/Mello134/myvice.git
+			<br>git push -u origin main
+		</p>
+
+		<h4>…or push an existing repository from the command line</h4>
+		<p>
+			git remote add origin https://github.com/Mello134/myvice.git
+			<br>git branch -M main
+			<br>git push -u origin main
+		</p>
+			
+		
+
+
+
+
+
+		<h4>Доп комманды git:</h4>
+		<ul>
+			<li>git log –-oneline - список всех коммитов в папке</li>
+			<li></li>
+			<li></li>
+		</ul>
+
+		<h4>Полезная информация из курса:</h4>
+		<ul>
+			<li>Python: user_text = request.GET['usertext'] #то что получаем от юзера</li>
+			<li>Python: reversersed_text = user_text[::-1] #получаем реверсивный текст</li>
+			<li>Python: return render(request, 'reverse.html', {'usertext':user_text, 'reversedtext':reversersed_text})
+				<br>#возвращаем шаблон(запрос, "страница хтмл", {ключ введённый текст что получили от юзера: значение переменной, ключ реверсивный текст: })</li>
+			<li>HTML: стотри html файлы reverse, home - много полезной информации.</li>
+			<li>В конце работы. Стоп сервер/гит адд ./гит коммит номер.
+				<br>git push -u origin master  - сразу на сервер гит хаб
+			</li>
+			<li>user_text = request.GET['usertext'] -  получение текста от usera</li>
+			<li>для отображения множества пробелов в html  <pre>-pre-    текст  текст -/pre</pre> </li>
+			<li>в свойм файле views.py - from django.http import HttpResponse - функция которая может возвращать ответы на запросы пользователя</li>
+			<li>from django.shortcuts import render - передача данных из шаблонов</li>
+			<li>В settings.py в TEMPLATES = [{ 'DIRS': ['templates'], - мы указали в какой папке django будет искать шаблоны</li>
+			<li>Чтобы домашняя страница открывалась без слеша а стразу на http://127.0.0.1:8000/
+				<br>в urls.py делаем path('', views.home) - тоесть пустые кавычки без home
+			</li>
+			<li><li>Создаём функцию home(запрос):
+				<br>возврат значения - вызов шаблона(запрос, 'имя шаблона' {'Ключ':'значение'}, {'Ключ':'значение'})
+				<pre>def home(request):
+					<br>    return render(request, 'home.html', {'greeting':'Привет!'})
+				</pre>
+			</li>В самом шаблоне ссылаемся на greeting- выдаст Привет! - {{greating}}</li>
+			<li>urls.py - from . import views - из project-root/project - импортируем файл views.py </li>
+			<li>urls.py - path('', views.home) - ссылка на домашнюю страницу, на нач дирректории</li>
+			<li>urls.py - path('reversed/', views.reverse, name = 'reverse') - в html будем ссылаться именно на name.
+				<br>html - -form action="{% url 'reverse' %}">-  - как раз ссылаемся туда. То есть написали что то в форме, и нас переместило на страницу www.ru/reversed
+			</li>
+			<li>html - -textarea rows="10" cols="50" name="usertext"--/textarea- - здесь создали форму записи, после ввода текста он будет отображатся usertext=блаблабла</li>
+			<li>html - -input type="submit" value="Развернуть текст"-  -создали кнопку типа submit, название кнопки - Развернуть текст</li>
+			<li>views.py - from django.shortcuts import render - импортируем функцию render - это передача данных в шаблоны! - </li>
+			<li>views.py - def home(request): - создаём функкию home, параметр разпрос</li>
+			<li>views.py - def - Return render(request, 'имяшаблона.html',
+		{'ключ1':значение1,'ключ2':значение2,'ключ3':значение3})
+		<br>в самом шаблоне html - {{ключ}} - выведется значение
+			</li>
+			<li></li>
+		</ul>
+		
+
+		<p><a href="https://devpractice.ru/git-for-beginners-part-9-how-undo-commit-in-git/#p2">Инструкция по commit git на русском</a></p>
+		<p><a href="https://github.com/Mello134/">Мой git hub</a></p>
+
+	</div>
+
+</body>
+</html>
+
