@@ -57,6 +57,9 @@
 <body>
 	<p><a href="https://www.youtube.com/@selfedu_rus">selfedu</a></p>
 	<p><a href="https://www.youtube.com/watch?v=FyTL1bnUx5I&list=PLA0M1Bcd0w8xO_39zZll2u1lz_Q-Mwn1F">Django 3 для Python(плейлист)</a></p>
+	<p><a href="https://django.fun/ru/articles/tutorials/">Статьи о Django</a></p>
+	<p><a href="https://habr.com/ru/post/514348/">Шесть Python-пакетов, которые рекомендуется использовать в каждом веб-приложении на Django</a></p>
+	<p><a href="https://django.fun/ru/docs/">Документация по фреймворку и библиотекам Django</a></p>
 
 	<div class="container-md all">
 		<h1 class="title_text">YouTube selfedu</h1>
@@ -68,7 +71,12 @@
 		<ol>
 			<li>Django - фреймворк, для работы на стороне сервера - backend - на языке программирования - Python</li>
 			<li>Фреймворк - это обвёртка для языка программирования, для упрощения работы</li>
-			<li>Запрос от пользователя --> сервер &lt;-WSGI-> Django --> Модели, функции, БД, Шаблоны--> Django --> Сервер --> ответ пользователю</li>
+			<li><span class="spec">Взаимодействие Пользоветеля-Сервера-Фреймворка</span>
+				<br>
+				<img src="images\request-render.jpg" class="img-fluid">
+				<br>
+				Запрос от пользователя --> сервер &lt;-WSGI-> Django --> Модели, функции, БД, Шаблоны--> Django --> Сервер --> ответ пользователю
+			</li>
 			<li>
 				WSGI (Web Server Fateway Interface) - стандарт взаимодействия между Python программой на стороне сервера, и вебсайтом.
 			</li>
@@ -210,6 +218,7 @@ python manage.py runserver</pre>
 				<p>
 					-От пользователя приходит запрос (url)
 					<br>-В маршрутизаторе идёт поиск url(path) - и ищется первое нужное значение
+					<br>- . . . . 
 				</p>
 			</li>
 			<li>
@@ -404,7 +413,7 @@ def categories(request, catid):
 				<br>- path - любая не пустая строка, включая '/'
 			</li>
 			<li>
-				<span class="spec">функция re_path</span>'re_path()'
+				<span class="spec">функция re_path()</span>
 				<ol type="A">
 					<li>
 						В men/urls.py - Импортируем re_path и добавим путь
@@ -554,7 +563,431 @@ path('', index, name='home'),</pre>
 						</li>
 					</ul>
 				</li>
+				<li>
+					<span class="spec">Работа с git </span> [добавил от себя]
+					<ul>
+						<li>Скачиваем, уcтанавливаем git</li>
+						<li>При установке - обязательно делаем так чтобы могли работать из cmd Windows</li>
+						<li>Логинимся на <a href="https://github.com/">https://github.com/</a></li>
+						<li>На https://github.com/ - создаём новый репозиторий - обычно название проекта</li>
+						<li>Там появится ссылка - куда будем push-ить</li>
+						<li>В папке, которую хотим установить git - добавляем файл -.gitignore:
+							<br>-Сгенерировать код для django можно на <a href="https://www.toptal.com/developers/gitignore/">https://www.toptal.com/developers/gitignore/</a> можно взять информацию из предыдущих проектов
+							<br>-В sublime добавляем код, сохраняем
+							<br><strong>-Это необходимо сделать до первого запуска сервера и миграций!</strong>
+							</li>
+						<li>
+							В командной строке (cmd Windows или ComEmu или GitBash) - в корневой(внешней) папке проекта:
+							<pre>
+git –v  # посмотреть версию git
+git init  # инициализируем git репозиторикй- папку на pc
+git status  # смотрим какие файлы не отслеживаются на данный момент
+git add .  # добавляем все файлы
+git status  # смотрим что теперь всё отслеживается
+git commit -m "имя коммита(что сделали/стадия)"  # создаём коммит
+git remote add origin  - https://github.com/Mello134/репозиторий.git  # туда будем загружать
+git branch -M main
+git push -u origin main  # отправили на github - в репозитор</pre>
+						</li>
+					</ul>
+				</li>
+			<br><br>
+			<h4 class="title_text border">[4]. Определение моделей. Миграции: создание и выполнение</h4>
+			<li>
+				<p>ORM (Object-Relational Mapping) - объектно-реляционноя приложение</p>
+				<p>WSGI (англ. Web Server Gateway Interface) — стандарт взаимодействия между Python-программой, выполняющейся на стороне сервера, и самим веб-сервером, например Apache.<br>WSGI предоставляет простой и универсальный интерфейс между большинством веб-серверов и веб-приложениями или фреймворками
+				</p>
+				<p>Интерфейс прикладного программирования (API) - это соединение между компьютерами или между компьютерными программами. Это тип программного интерфейса, предлагающий услугу другим частям программного обеспечения. Документ или стандарт, описывающий, как построить или использовать такое соединение или интерфейс, называется спецификацией API.</p>
+				<p>
+					<img src="images\ORM.jpg" class="img-fluid">
+				</p>
+			</li>
+			<li>Простыми словами в django встроен сеханизм взаимодействи с таблицами базы данных через ORM</li>
+			<li>
+				<span class="spec">Подключаемся проект к базе данных postrgeSQL</span>(добавил от себя)
+				<ol type="A">
+					<li>Скачиваем устанавливаем PostreSQL</li>
+					<li>
+						По умолчанию:
+						<br>пароль - blog1234
+						<br>port - 5432
+						<br>Выбираем localhost
+						<br>дополнительно ничего не устанавливал
+					</li>
+					<li>ВХОД В SQL Shell (cmd postgreSQL):
+						<pre>
+Server [localhost]:Enter
+Database [postgres]:Enter
+Port [5432]:Enter
+Username [postgres]:Enter
+Пароль пользователя postgres:blog1234 Enter</pre>
+					</li>
+					<li>СОЗДАЁМ БАЗУ ДАННЫХ ДЛЯ ПРОЕКТА<br>
+						Далее там же в SQL Shell:
+						<pre>
+psql \! chcp 1251  # чтобы кирилица отображалась корректно
+postgres=# \du  # видим всех пользователей
+\password postgres  # смена пароля(если необхоимо)
+\l  # поомотреть список баз данных на PC
+CREATE DATABASE coolsitedb;  #Создали новыую БД(пустую) - для нашего проекта. ';'-обязательно
+#ДОЛЖНО ВЫВЕСТИ  - CREATE DATABASE
 
+\l  # поомотреть создалось ли</pre>
+						SQL Shell -терминал можно закрывать.
+					</li>
+					<li>
+						Настраиваем Django проект. В settings.py. В словаре DATABASES = {}: - удаляем или комментируем строчки
+						<pre>
+'ENGINE': 'django.db.backends.sqlite3',# стандартная DB
+'NAME': BASE_DIR / 'db.sqlite3', #стандартная DB</pre>
+						Там же в settings.py - связываем наш проект с db
+						<br>DATABASES = {} - добавляем код:
+						<pre>
+'ENGINE': 'django.db.backends.postgresql',  # поменяли на postgresql - джижок постгрес
+'NAME': 'coolsitedb',  # поменяли на - имя нашей БД
+'USER': 'postgres',  # пользователь postgres - который создал БД
+'PASSWORD': 'blog1234',  # пароль в PostgreSQL, для пользователя postgres
+'HOST': '127.0.0.1',  # либо просто'localhost'
+'PORT': '5432',  # стандартный порт</pre>
+						Сохраняемся и получаем ошибку - Error loading psycopg2 module: No module named 'psycopg2'
+					</li>
+					<li>Psycopg2 – это база данных PostgreSQL. драйвер, который служит клиентом Python для доступа к серверу PostgreSQL.
+						<br>В терминале внутри виртуального окружения устанавливаем:
+						<pre>
+pip list  # видим что psycopg2 действительно не установлен в окружении
+pip install psycopg2</pre>
+					</li>
+					<li>
+						Можно запустить сервер runserver - и убедится что всё работает!
+					</li>
+					<li>
+						Таблицы баз данных можно смотреть наглядно pdAdmin 4 (есть русский интерфейс)
+					</li>
+				</ol>
+			</li>
+			<li>
+				Будем создавать модель для men по данной структуре (заголовки столбцов):
+				<br>-id: integer, primary key  - идентефикатор записи, номер
+				<br>-title: Varchar - заголовок статьи (строка из определенного числа символов)
+				<br>-content: Text - сама статься - тект
+				<br>-photo: Image - изображение
+				<br>-time_create: DataTime - дата создания
+				<br>-time_update: DataTime - дата обновления
+				<br>-is_publisher: Bolean - опубликовано/неопубликовано True/False
+				<br><br>Нам необходимо будет сделать класс с этими полями и сделать миграцию
+			</li>
+			<li>
+				Создаём класс Men в men/models.py:
+				<pre>
+from django.db import models  # было изначально
+
+class Men(models.Model):  # наследуем все функции для нашего класса Men от Django класса Model
+    # Id прописывать не нужно - Model Это делает автоматически
+    title = models.CharField(max_length=255)  # длина 255 символов
+    content = models.TextField(blank=True)  # текстовое поле без ограничений, blank=True - поле может быть пустым
+    photo = models.ImageField(upload_to='photos/%Y/%m/%d')  # загружать будем в photos/год/месяц/день
+    time_create = models.DateTimeField(auto_now_add=True)  # дата время - создание, auto_now_add=True - создастся единожды
+    time_update = models.DateTimeField(auto_now=True)  # дата время - изменение, auto_now=True - будет менятся с каждым изменением
+    is_publisher = models.BooleanField(default=True)  # default=True</pre>
+			</li>
+			<li>Почитай документацию Models - поле FileField - загрузка файлов(любых) в ней описано как настраивать MEDIA_ROOT, MEDIA_URL</li>
+			<li>
+				После сохранения models.py - выбаёт ошибку - Cannot use ImageField because Pillow is not installed.
+				<p>
+					Pillow - Библиотека изображений Python, или PIL (Python Imaging Library) нужна для обработки графики в Python, в том цисле загрузки изображений в models.py
+				</p>
+				<br>В терминале останавливаем сервер и устанавливаем пакет Pillow (внутри окружения)
+				<pre>
+python -m pip install Pillow  # устанавливаем пакет
+pip list  # убедились что пакет в окружение утсановлен</pre>
+			</li>
+			<li><span class="spec">Настраиваем MEDIA_ROOT, MEDIA_URL</span>
+				<br>В settings.py после static.url добавляем две строчки:
+				<pre>
+MEDIA_ROOT = BASE_DIR / 'media'  # будет загружать медия в папку media
+MEDIA_URL = '/media/'  # добавили url - будет отображатся в браузере</pre>
+			</li>
+			<li><span class="spec">Дополнительно: Настраиваю время МСК и русский язык в админке</span>
+				<br>settings.py - меняем две строчки кода
+				<pre>
+LANGUAGE_CODE = 'ru-Ru'  # русский язык в admin
+TIME_ZONE = 'Europe/Moscow'  # время по МСК</pre>
+			</li>
+			<li>
+				Для эмуляции работы сервер для получения ранее загруженных файлов, и передачи их нашему приложению. Для этого в coolsite/urls.py - импоритуем settings.py и после urlpatterns - добавим 2 строчки кода:
+				<pre>
+from django.conf.urls.static import static  # для DEBUG пути
+from coolsite import settings  # для DEBUG пути
+
+if settings.DEBUG:
+    # к путям добавляем путь к статическим данным, графическим данным
+    # на реальныъ серверах обычно это не используется
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)</pre>
+			</li>
+			<li>
+				В settings.py - DEBUG вернём к зачению True
+				<pre>
+DEBUG = True</pre>
+			</li>
+			<li>
+				<span class="spec">Создаём и выполняем миграции</span>
+				<br>
+				-Миграции Django-это файлы Python, которые помогают добавлять и изменять данные в таблицах базы данных для отражения изменений в моделях Django.
+				<br><br>
+				-При выполнении миграции в Django - в базе данных создаутся новые, или изменяются старые таблицы базы данных нашех моделей(классов) - по этому после измененив в моделях в models.py - необходимо делать миграции.
+				<br><br>
+				-На практике желательно избегать изменения структуры таблиц, и продумывать модели заранее.
+				<ol type="A">
+					<li>
+						В терминале, в вируальном окружении, в корневой папке проекта - coolsite, пишем, для создания миграции:
+						<pre>
+python manage.py makemigrations</pre>
+					</li>
+					<li>
+						В папке migrations - появится новый файл - 0001_initial.py - он служит для того чтобы создавать таблицы в базе данных, информацию можно посмотреть внутри файла
+					</li>
+					<li>
+						Можно посмотреть sql запрос, который будет выполнятся для данной миграции, для этого в терминале пишем:
+						<pre>
+python manage.py sqlmigrate men 0001
+#где men - наша модел Men, 0001 - порадковый номер 0001_initial.py</pre>
+						Терминал покажет нам SQL запрос
+					</li>
+
+
+
+					<li>Далее применяем(выполняем) миграцию, в терминале:
+						<pre>
+python manage.py migrate</pre>
+						Помимо наших миграций, выполнены изначальные миграции для djando - (админка, аутентификация и так далее)
+					</li>
+					<li>
+						Таблмцу нашего класса теперь можно посмотреть с базе данных (она уже там создана)
+						<br>Для этого используем pgAdmin 4:
+						<br>-Servers
+						<br>-PostreSQL
+						<br>-Базы данных
+						<br>-Схемы
+						<br>-public
+						<br>-Таблицы
+						<br>-men_men  # название приложения_название модели(класса)
+						<br>-View Data (значек таблицы)
+						<br><br>Видно что по сути мы создали пустую таблицу,  толко столбцы - заполнять будем далее, через админ панель или например с помощью ORM
+					</li>
+				</ol>
+			</li>
+
+			<br><br>
+			<h4 class="title_text border">[5]. CRUD - основы ORM по работе с моделями</h4>
+			<li>
+				CRUD: Create-создание / Read-чтение / Update-изменение / Delete-удаление
+			</li>	
+			<li>Использование ORM фреймфорка Django - Можно быполнять все вышеуказанные операции. Для большинства проектов (почти всех!), Django - нет необходимости напрямую переходить на SQL-рапросы. ORM django - достаточно мощная штука</li>
+			<li>Каждый экземпляр класса - это по сту строчки в таблице</li>
+			<li>
+				Переход в консоль Django - Для работы с командами ORM. В терминале:
+				<pre>
+python manage.py shell  # вход в консоль django					
+				</pre>
+			</li>
+			<li>
+				Импортируем наш класс в терминал
+				<pre>
+#из men/models.py - импортируем модель(класс) - Men</pre>
+			</li>
+			<li>
+				Добавляем информацию в таблицу. В shell django:
+				<pre>
+Men(title="Том Круз", content="Биография Тома Круза")  # указали данные но они ещё не записаны в БД
+w1 = _  # '_' - сохраняет в себе последние действия, т.е в переменную w1 - мы записали то что писали в предыдущем коде. 
+w1  # &lt;Men: Men object (None)> - вот что теперь в переменной w1. (None) - это id - пока не записали в таблицу
+w1.save()  # теперь мы сохранили данные в нашу таблицу, можно ибудится в pdAdmin 4</pre>
+				Как видим все поля заполнились. title,content -мы заполнили / time_create, time_update, is_publisher - автоматичекм, так как мы это прописывали в создании модели. / photo - на данный момент поле пустое, так как изображения мы не загружали.
+			</li>
+			<li>
+				Можем оперировать всеми значениями нашей запси:
+				<pre>
+w1.id  -->  1
+w1.time_create  -->  datetime.datetime(2022, 11, 18, 15, 46, 39, 456330, tzinfo=datetime.timezone.utc)
+w1.title  -->  'Том Круз'</pre>
+			</li>
+			<li>
+				pk - совпадает со знаечнием id.
+			</li>
+			<li>
+				Посмотрим на SQL запрос который был выполнен для дополнения вышеуказанной записи, там же в django shell:
+				<pre>
+from django.db import connection  # импортировали модуль
+connection.queries  # запрашиваем sql запрос
+
+-->[{'sql': 'INSERT INTO "men_men" ("title", "content", "photo", "time_create", "time_update", "is_publisher") VALUES (\'Том Круз\', \'Биография
+ Тома Круза\', \'\', \'2022-11-18T15:46:39.456330+00:00\'::timestamptz, \'2022-11-18T15:46:39.456330+00:00\'::timestamptz, true) RETURNING "m
+en_men"."id"', 'time': '0.000'}]  # это и есть sql - запрос</pre>
+			</li>
+			<li>
+				Создадим ещё одну запись в таблицу:
+				<pre>
+# здесь сразу присвоили в переменной w2
+w2 = Men(title="Марк Уолберг", content="Биография Марка Уолберга")
+w2.save()  #сохранили в таблице БД</pre>
+			</li>
+			<li>
+				Добавлять данные можно поочерёдно (отдельно title, content):
+				<pre>
+w3 = Men()  # Создали пустую запись
+w3.title = 'Вечаслав Бутусов'  # Добавили заголовок
+w3.content = 'Биография Вечаслава Бутусова'  # Добавили контент
+w3.save()  # занесли в таблицу Базы данных</pre>
+			</li>
+			<li>
+				Каждый класс модели содержит специальный статический объект objects. - Бедётся из базового класса модели Model и представляет собой ссылку на специальный класс Manager (менеджер записей)
+				<pre>
+Men.objects  -->  &lt;django.db.models.manager.Manager object at 0x00000188D081FC90>
+				</pre>
+			</li>
+			<li>
+				Метод добаления записей create()
+				<pre>
+Одной строчкой сделали запист в базу данных
+w4 = Men.objects.create(title="Александр Овечкин", content="Биография Александра Овечкина")
+#можно записать даже без w4 = </pre>
+			</li>
+			<li>
+				Добавим ещё запись:
+				<pre>
+ Men.objects.create(title="Юрий Каспарян", content="Биография Юрия Каспаряна")</pre>
+			</li>
+			<li>
+				Читаем данные из таблицы:
+				<pre>
+Men.objects.all()  # чтение всех записей
+&lt;QuerySet [&lt;Men: Men object (1)>, &lt;Men: Men object (2)>, &lt;Men: Men object (3)>, &lt;Men: Men object (4).......(5)>]></pre>
+				Как видим из этих записей мало что понятно, для изменения этого в модели необходимо прописать метод отображения __str__()
+			</li>
+			<li>
+				Специальные методы __str__ и __repr__ отвечают за строковое представления объекта. При этом используются они в разных местах.
+				<br><br>
+				Прописываем метод __str__ в модели Men (men/models.py class Men) - снизу после всех полей модели(класса):
+				<pre>
+# с помощью метода запись нашего класса будет выводится по её заголовку
+def __str__(self):
+	return self.title</pre>
+				Сохраняем models.py
+			</li>
+			<li>
+				Опять пробуем читать таблицу, перед этим необходимо перезайти в django shell
+				<pre>
+exit() 
+python manage.py shell
+from men.models import Men
+Men.objects.all()
+
+Выведет -->	&lt;QuerySet [&lt;Men: Том Круз>, &lt;Men: Марк Уолберг>, &lt;Men: Вечаслав Бутусов>, &lt;Men: Александр Овечкин>, &lt;Men: Юрий Каспарян>]></pre>
+			</li>
+			<li>
+				Выбираем отдельные элементы списка QuerySet:
+				<pre>
+Men.objects.all()  # посмотрели все записи в списке QuertSet
+w = _  # записали их в переменной w
+w[0]  # 0 индекс --> &lt;Men: Том Круз>
+w[0]  # 4 индекс --> &lt;Men: Юрий Каспарян></pre>
+			</li>
+			<li>
+				Обращаемся к отдельным полям:
+				<pre>
+w[1].title  -->  'Марк Уолберг'
+w[3].content  -->  'Биография Александра Овечкина'</pre>
+			</li>
+			<li>
+				Длинна списка (количество записей):
+				<pre>
+len(w)  -->  5</pre>
+			</li>
+			<li>
+				Перебираем все заголовки нашех записей, циклом for:
+				<pre>
+for wi in w:  # wi это просто переменная
+    print(wi.title)  # выведет просто все заголовки с новой строки
+
+Том Круз
+Марк Уолберг
+Вечаслав Бутусов
+Александр Овечкин
+Юрий Каспарян</pre>
+			</li>
+			<li>
+				<span class="spec">Метод filter()</span>
+				<pre>
+Men.objects.filter(title="Александр Овечкин")  --> &lt;QuerySet [&lt;Men: Александр Овечкин>]></pre>
+				По критерию Алекс Овечкин, выведутся все записи, в нашем случае такая запись одна
+			</li>
+			<li>
+				Посмортим sql запрос.
+				<pre>
+from django.db import connection
+connection.queries</pre>
+			</li>
+			<li>Если мы обратимся методом filter() - и не будет ни одного совпадения, нам выдаст просто пустой список</li>
+			<li>
+				Обращение методом filter() - по id [pk]
+				<pre>
+Men.objects.filter(pk=2)  # обращаемся по pk 2
+&lt;QuerySet [&lt;Men: Марк Уолберг>]></pre>
+			</li>
+			<li>
+				Ряд спецификаторов позволяют найти объекты, свойства которых больше или меньше определенного значения: gt (>), gte (>=), lt (&lt;), lte (&lt;=)
+				<pre>
+Men.objects.filter(pk__gte=2)  # выведет записи у которых id >= 2
+&lt; QuerySet [&lt; Men: Марк Уолберг>, &lt; Men: Вечаслав Бутусов>, &lt; Men: Александр Овечкин>, &lt; Men: Юрий Каспарян>]></pre>
+			</li>
+			<li>
+				<span class="spec">Метод exclude()</span>
+				<br>Работает противоположно методу filter()
+				<pre>
+Men.objects.exclude(pk=2)  # выведет все записи кроме записи с id[pk] 2</pre>
+			</li>
+			<li>
+				<span class="spec">Метод get()</span>
+				<br>Когда нам нужно выбрать строго определённую запись по строго определённому критерию, лучше использовать метод get()  - хотя и тот же filter() также сработает
+				<pre>
+ Men.objects.get(pk=2)  # вывкедет запись по id = 2</pre>
+ 				Метод get() - используется при авторизации пользователя например
+			</li>
+			<li>
+				order_by - сортировка
+				<pre>
+Men.objects.filter(pk__lte=4).order_by('title')
+&lt;QuerySet [&lt;Men: Александр Овечкин>, &lt;Men: Вечаслав Бутусов>, &lt;Men: Марк Уолберг>, &lt;Men: Том Круз>]>					
+#то есть мы выбрали все ключи у которого id	&lt;= 4, и отсортировали по полю title
+# методы можно писать сразу в цепочку</pre>
+			</li>
+			<li>просто отсортируем весь список:
+				<pre>
+Men.objects.order_by('title')</pre>
+				Вместо поля title - можно использывать любое другое поле
+			</li>
+			<li>
+				Изменение записи в таблице:
+				<pre>
+wu = Men.objects.get(pk=1)  # порчитали и записали в переменную по pk=1 (Том Труз)
+wu.title = 'Брэд Питт'  # Изменили заголовок
+wu.content = 'Биография Брэда Питта'  # Изменили контент
+wu.save()  # записали в таблицу БД
+wu  # проверили</pre>
+			</li>
+			<li>
+				<span class="spec">Удаление записей из БД. Метод delete()</span>
+				<pre>
+ wd = Men.objects.filter(pk__gte=4)  # выбрали все записи pk >= 4 (4 и 5)
+ wd  # посмотрели что это за записи
+ wd.delete() -->  (2, {'men.Men': 2})  # означает что удалили 2 записи</pre>
+			</li>
+
+			<br><br>
+			<h4 class="title_text border">[6]. Шаблоны (templates). Начало.</h4>
+			<li>
+				
+			</li>
 		
 
 
