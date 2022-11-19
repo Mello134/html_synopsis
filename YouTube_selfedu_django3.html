@@ -60,6 +60,7 @@
 	<p><a href="https://django.fun/ru/articles/tutorials/">Статьи о Django</a></p>
 	<p><a href="https://habr.com/ru/post/514348/">Шесть Python-пакетов, которые рекомендуется использовать в каждом веб-приложении на Django</a></p>
 	<p><a href="https://django.fun/ru/docs/">Документация по фреймворку и библиотекам Django</a></p>
+	<p><a href="https://translated.turbopages.org/proxy_u/en-ru.ru.5b0ed4c9-6378aa3f-3f4ce05c-74722d776562/https/hackr.io/blog/top-django-interview-questions-and-answers">50 лучших вопросов и ответов для интервью Django на 2022 год</a></p>
 
 	<div class="container-md all">
 		<h1 class="title_text">YouTube selfedu</h1>
@@ -982,6 +983,438 @@ wu  # проверили</pre>
  wd  # посмотрели что это за записи
  wd.delete() -->  (2, {'men.Men': 2})  # означает что удалили 2 записи</pre>
 			</li>
+
+
+			<br><br><br><br>
+			<li><!-- Jinja2 -->
+				<h4 class="title_text border" style="border-color: red; color: rgb(107, 250, 255);">
+				Jinja2 - курс</h4>
+				<p><a href="https://www.youtube.com/watch?v=cFJqMXxVNsI&list=PLA0M1Bcd0w8wfmtElObQrBbZjY6XeA06U&index=1&t=13s" style="color: rgb(107, 250, 255);">You_Tube</a></p>
+				<ul><!-- Jinja2 список начало-->
+					
+					<li>
+						<h6 class="title_text border" style="border-color: red; color: rgb(107, 250, 255);">[1]. О шаблонизаторе, использование</h6>
+						<ul>
+							<li>Jinja2 - Модуль для обработки шаблонов в Python</li>
+							<li>
+								Проверяем установлен ли он, в py документе любом пробуем импортировать:
+								<pre>
+from jinja2 import Template  # импортируем класс шаблоны из джинджи</pre>
+								Если не получается то модуль не установлен
+							</li>
+							<li>
+								Устанавливаем Jinja2 - в терминале (PyCharm или Win):
+								<pre>
+python -m pip install -U Jinja2</pre>
+								Я установил в глобальное окружение, возможно необходимо будет устанавливать и в виртуальные окружения.
+							</li>
+							<li>
+								Пример применения:
+								<pre>
+from jinja2 import Template
+
+first_name = 'Александр'
+
+# создаём экземпляр класса Temp - на основе шаблона ({{}})
+tm = Template("Привет {{ name }}"))
+
+# на выходе render - возвращает нам готовую стоку(шаблон)
+msg = tm.render(name=first_name)
+
+print(tm)  -->  &lt;Template memory:1f1737b3210>
+print(msg)  -->  Привет Александр</pre>
+								Пример очень простой, и в подобных случаях лучше просто использовать f строки:
+								<pre>
+first_name = 'Александр'
+msg2 = f"Привет {first_name}"
+print(msg2)  -->  Привет Александр</pre>
+							</li>
+							<li>
+								<span class="spec">Конструкции внутри шаблонов:</span>
+								<pre>
+{% %} - спецификатор шаблона
+{{ }} - выражение для вставки конструкция Pithon в шаблон
+{# #} - блок комментариев
+# ## - строковый комментарий</pre>
+							</li>
+							<li>
+								Пример с двумя переменными:
+								<pre>
+first_name = 'Александр'
+age = 30
+tm = Template("Мне {{ a }} лет. Меня зовут - {{ n }}")
+msg = tm.render(n = first_name, a = age)
+print(tm)  -->  &lt;Template memory:263d9da1a10>
+print(msg)  -->  Мне 30 лет. Меня зовут - Александр</pre>
+							</li>
+							<li>
+								Внутри скобок можно прописывать конструкции Python, формулы
+								<pre>
+tm = Template("Мне {{ a*2 }} лет. Меня зовут - {{ n.upper() }}")
+msg = tm.render(n = first_name, a = age)
+print(msg)  -->  Мне 60 лет. Меня зовут - АЛЕКСАНДР</pre>
+							</li>
+							<li>
+								Вывод информации из классов:
+								<pre>
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+per = Person("Александр", 30)
+tm = Template("Мне {{ p.age }} лет. Меня зовут - {{ p.name }}")
+msg = tm.render(p=per)
+
+print(msg)</pre>
+							</li>
+							<li>Вывод информации из словаря(по ключам)
+								<pre>
+per = {'name': 'Александр', 'age': 30, }
+tm = Template("Мне {{ p.age }} лет. Меня зовут - {{ p.name }}")
+msg = tm.render(p=per)
+print(msg) -->  Мне 30 лет. Меня зовут - Александр</pre>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<h6 class="title_text border" style="border-color: red; color: rgb(107, 250, 255);">[2]. Экранирование и блоки raw, for, if</h6>
+						<ul>
+							<li>
+								Экранирование {%raw%}...{%endraw%}
+								<br>Всю что будет между ними не будит никак преобразоваваться и будет представлено ровно так, как это записано.
+							</li>
+							<li>
+								Игнорирование - символов &lt; ''' и тд при выводе готового варианта html страницы с помощью 'e'
+								<pre>
+link_1 = ''' бла бла бла &lt;a href=''>ссылка&lt;/a> '''
+tm = Template("{{ link | e }}")
+msg = tm.render(link=link_1)
+print(msg)  -->  бла бла бла &lt;a href=&#39;&#39;&gt;ссылка&lt;/a&gt;</pre>
+								То есть на выходе из браузера, мы получим полноценный html текст, такое же как пишем в редакторе.
+							</li>
+							<li>
+								Предыдущий код можно выполнить гораздо проще с помошью метода escape
+								<pre>
+from markupsafe import escape  # markupsafe кстанавливается в месте с jinja
+link_1 = ''' бла бла бла &lt;a href=''>ссылка&lt;/a> '''
+msg = escape(link_1)
+print(msg)</pre>
+								На выходе то же самое что и предыдущий код
+							</li>
+							<li><span class="spec">{% Выражение for %}</span>
+								<pre>
+{%for-варажение-%}									
+повт. фрагмент
+{%endfor%}</pre>
+							</li>
+							<li>
+								Пример использования for в шаблоне:
+								<pre>
+cityes = [
+    {'id': 1, 'city': 'Волгоград'},
+    {'id': 5, 'city': 'Москва'},
+    {'id': 7, 'city': 'Тверь'},
+    {'id': 8, 'city': 'Смоленск'},
+    {'id': 11, 'city': 'Калуга'},
+]
+
+link = '''&lt;select name="cityes">
+{% for c in cityes %}
+    &lt;option value="{{c['id']}}">{{c['city']}}&lt;/option>
+{% endfor %}
+&lt;/select>'''
+
+tm = Template(link)
+msg = tm.render(cityes=cityes)
+print(msg)
+
+----------------->
+
+&lt;select name="cityes">
+
+    &lt;option value="1">Волгоград&lt;/option>
+
+    &lt;option value="5">Москва&lt;/option>
+
+    &lt;option value="7">Тверь&lt;/option>
+
+    &lt;option value="8">Смоленск&lt;/option>
+
+    &lt;option value="11">Калуга&lt;/option>
+
+&lt;/select></pre>
+							</li>
+							<li>
+								Добавив - уберутся переносы строк
+								<pre>
+{% for c in cityes -%}
+код
+{% endfor -%}</pre>
+							</li>
+							<li>
+								<span class="spec">{% Выражение if %}</span>
+								<pre>
+{%if-варажение-%}
+фрагмент - при истинности условий
+{%endif%}</pre>
+							</li>
+							<li>
+								Пример блока if в шаблоне:
+								<pre>
+link = '''&lt;select name="cityes">
+{% for c in cityes -%}
+{% if c.id > 7 -%}  # минусы расставляем чтобы не получалось пустых строк
+    &lt;option value="{{c['id']}}">{{c['city']}}&lt;/option>
+{% endif -%}
+{% endfor -%}
+&lt;/select>'''
+
+tm = Template(link)
+msg = tm.render(cityes=cityes)
+print(msg)  -->  Выведет только Смоленск и Калуга</pre>
+								Так же в блоке можно добовлять конструкцию elif, else - всё по правилам Python.
+							</li>
+						</ul>
+					</li>
+
+					<li>
+						<h6 class="title_text border" style="border-color: red; color: rgb(107, 250, 255);">[3]. Фильтры и макросы macro, call</h6>
+						<ul>
+							<li>
+								Сумма по атрибуту из списка словарей в шаблоне:
+								<pre>
+cars = [
+    {'price': 23000, 'model': 'Ауди'},
+    {'price': 17300, 'model': 'Шкода'},
+    {'price': 44300, 'model': 'Вольво'},
+    {'price': 21300, 'model': 'Фольксваген'},
+]
+tpl = "Суммарная цена автомобилей {{ cs | sum(attribute='price') }}"
+# sum(attribute='price') - сложит все цены из списка
+
+tm = Template(tpl)
+msg = tm.render(cs=cars)
+print(msg)  -->  Суммарная цена автомобилей 105900</pre>
+							</li>
+							<li>
+								Сумма чисел из элементов числового списка в шаблоне:
+								<pre>
+digs = [1, 2, 3, 4, 5]
+tpl = "Сумма чисел списка - digs: {{ digit | sum }}"
+tm = Template(tpl)
+msg = tm.render(digit=digs)
+print(msg) -->  Сумма чисел списка - digs: 15</pre>
+							</li>
+							<li>
+								sum(inereble,attribute=None, start=0)
+								<br>Если чего то не нужно в конкретном случсе, то поля не обязательны
+							</li>
+							<li>
+								Максимальная цена из списка автомобилей:
+								<pre>
+cars = [
+    {'price': 23000, 'model': 'Ауди'},
+    {'price': 17300, 'model': 'Шкода'},
+    {'price': 44300, 'model': 'Вольво'},
+    {'price': 21300, 'model': 'Фольксваген'},
+]
+tpl = "Максимальная цена из списка автомобилей {{ cs | max(attribute='price') }}"
+tm = Template(tpl)
+msg = tm.render(cs=cars)
+print(msg) -->  Максимальная цена из списка автомобилей {'price': 44300, 'model': 'Вольво'}</pre>
+							</li>
+							<li>
+								Если нужно вывести только марку автомобяля с максимальной ценой:
+								<pre>
+cars = [
+    {'price': 23000, 'model': 'Ауди'},
+    {'price': 17300, 'model': 'Шкода'},
+    {'price': 44300, 'model': 'Вольво'},
+    {'price': 21300, 'model': 'Фольксваген'},
+]
+tpl = "Самый дорогой автомобиль в списке: {{ (cs | max(attribute='price')).model }}"
+tm = Template(tpl)
+msg = tm.render(cs=cars)
+print(msg) -->  Самый дорогой автомобиль в списке: Вольво</pre>
+								Аналогично работает фильтр min
+							</li>
+							<li>
+								Фильтр random - выберет случайный элемент списка
+								<pre>
+tpl = "Случайный авто в виде словаря: {{ cs | random }}"
+tm = Template(tpl)
+msg = tm.render(cs=cars)
+print(msg)
+-->  Случайный авто в виде словаря: {'price': 44300, 'model': 'Вольво'}
+-->  Каждое выполненние программы будет менять вывод</pre>
+							</li>
+							<li>
+								Заменяем символы, например о на (.):
+								<pre>
+tpl = "Случайный авто в виде словаря: {{ cs | replace('о','(.)') }}"
+tm = Template(tpl)
+msg = tm.render(cs=cars)
+print(msg)  -->  [{....{'price': 17300, 'model': 'Шк(.)да'}, {'pr....}]
+								</pre>
+							</li>
+							<li>
+								<span class="spec">{% filter..%}</span>
+								Применение фильтров непосредственно внутри шаблонов
+								<pre>
+{% filter-название фильтра-%}
+-фрагмент для применения вильтра-
+{% endfilter -%}
+								</pre>
+							</li>
+							<li>
+								Пример. Сделаем все буквы в именах в верхнем регистре:
+								<pre>
+men = [
+    {'name': 'Алексей', 'old': 18, 'weight': 78.5},
+    {'name': 'Николай', 'old': 28, 'weight': 82.3},
+    {'name': 'Иван', 'old': 33, 'weight': 94},
+]
+tpl = '''
+{%- for u in users -%}
+{% filter upper %}{{ u.name }}{% endfilter %}
+{% endfor -%}
+'''
+tm = Template(tpl)
+msg = tm.render(users=men)
+print(msg)
+------------->
+АЛЕКСЕЙ
+НИКОЛАЙ
+ИВАН</pre>
+							</li>
+							<li>
+								Макроопределения - для издегания повторяемых определений
+								Прописываем значения в тегах html - python кодом
+								<br>{% macro %}  - {% endmacro %}
+							</li>
+							<li>
+								{% call %}  - {% endcall %} - вложенные макросы
+							</li>
+						</ul>
+					</li>
+
+					<li>
+						<h6 class="title_text border" style="border-color: red; color: rgb(107, 250, 255);">[4]. Загрузчики шаблонов - FileSystemLoader, PackageLoader, DictLoader, FunctionLoader</h6>	
+						<ul>
+							<li>
+								Кратно - загрузка html кода из html страницы (шаблона):
+								<br>tpl - находится внутри html в body - там конструкция for
+								<pre>
+from jinja2 import Environment, FileSystemLoader
+# FileSystemLoader - Это загрузчик который работает с нашим SSD
+
+men = [
+    {'name': 'Алексей', 'old': 18, 'weight': 78.5},
+    {'name': 'Николай', 'old': 28, 'weight': 82.3},
+    {'name': 'Иван', 'old': 33, 'weight': 94},
+]
+
+file_loader = FileSystemLoader('templates')  # из какого подкоталога будем брать шаблоны
+#('templates') - путь (папка_где_мы_находимся/templates)
+#('') - если бы необходимо было брать из корневого подкоталога
+
+env = Environment(loader=file_loader)
+# Environment - это класс, через который как раз и идёт работа с API
+
+tm = env.get_template('main.html')
+# формируем класс Template - на основе main.html
+
+msg = tm.render(users=men)
+# получение на выходе текстовой строки уже преобразованного шаблона
+
+print(msg)
+
+								</pre>
+							</li>
+							<li>
+								Стандартные загрузчики в пакете Jinja:
+								<br>-FileSystemLoader - берёт шаблоны из фаловой системы нашего устройства(жусткий диск)
+								<br>-PackegeLoader - для загрузки пакета из шаблона
+								<br>-DictLoader - Для загрузки шаблонов из словаря
+								<br>-FunctionLoader - для загрузки на основе функции
+								<br>-PrefixLoader - загрузчик, использующий словарь для построения подкаталогов
+								<br>-CholeLoader - загрузчик, содержащий список других загрузчиков (если один не сработает выбирается слудующий)
+								<br>-ModeuleLoader - загрузчик для скомпилированных шаблонов
+						</ul>
+					</li>
+					
+
+					<li>
+						<h6 class="title_text border" style="border-color: red; color: rgb(107, 250, 255);">[5]. Конструкции include и import</h6>
+						<ul>
+							<li>
+								Разделение шаблонов на заголовок(навбар например) - контент страницы - футер страницы.
+								<br>заголовки и футеры обычно одинаковые для всех страниц сайта
+								<br>Для того чтобы не писать футер и заголовок каждый раз, с помощью include можно сократить работу
+								<br><br>
+								Предположим у нас есть 3 html страницы = navbar.html/content.html/footer.html. Внутри контента чтобы не дублировать постоянно можно сделать так:
+								<pre>
+{% include 'navbar.html' %}
+&lt;p> основной контент &lt;/p>
+{% include 'footer.html' %}</pre>
+							</li>
+							<li>
+								Если вдруг программан не найдёт файл navbar.html - чтобы не возникало ошибок, а шаблон сформировался без навбара добавим ignore missing
+								<pre>
+{% include 'navbar222.html' ignore missing %}
+&lt;p> основной контент &lt;/p>
+{% include 'footer.html' %}</pre>
+							</li>
+							<li>
+								Конструкция import - при импорте файл не добавляется но мы можем использовать функционал этого файла (например - макрос)
+							</li>
+						</ul>
+					</li>
+
+					<li>
+						<h6 class="title_text border" style="border-color: red; color: rgb(107, 250, 255);">[6]. Наследование расширение шаблонов</h6>
+						<ul>
+							<li>
+								{% block title %} заголовок {% endblock %}
+								<br>{% block content %} контент {% endblock %}
+							</li>
+							<li>
+								<pre>
+{% extends 'base.html' %} # имя базового шаблона на основе которого будет и строится страцица
+{% block title %} название страницы {% endblock %}
+
+{% block content %}
+основной контент
+{% endblock %}</pre>
+							<li>
+								{{self.title()}}
+								<pre>
+{% extends 'base.html' %}
+{% block title %} название страницы {% endblock %}
+
+{% block content %}
+{{self.title()}}  # обращаемся к блоку title  - напишет название страницы
+основной контент
+{% endblock %}</pre>
+							</li>
+							<li>
+								{{ super() }} 
+							</li>
+							<li>
+								<img src="images\base_tpl.jpg" class="img-fluid">
+								<br><br>
+								<br>base.tpl - содержит какойто шаблон (ex_main)
+								<br>child1 - расширяет base.tpl
+								<br>child2 - расширяет child1
+							</li>
+						</ul>
+					</li>
+				
+				</ul><!-- Jinja2 список конец-->
+			</li><!-- Jinja2 всё -->
+			<br><br>
+
 
 			<br><br>
 			<h4 class="title_text border">[6]. Шаблоны (templates). Начало.</h4>
