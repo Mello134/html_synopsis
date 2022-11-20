@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1419,7 +1419,318 @@ print(msg)
 			<br><br>
 			<h4 class="title_text border">[6]. Шаблоны (templates). Начало.</h4>
 			<li>
-				
+				Во views.py изначаньно импортирована функция render.
+				<br><span class="spec">render - встроенный шаблонизатор Django</span>
+				<br>Функкия render - производит обработку наших шаблонов
+			</li>
+			<li>
+				<span class="spec">Шаблон - это по сути html страница</span>
+			</li>
+			<li>
+				В качестве главной страницы отабразим шаблон в файле index.html (создадим позже), аналогично about.html
+				<ol type="A">
+					<li>
+						В men/views.py - проверяем, импортирован ли встроенный шобланизатор (функция render)
+						<pre>
+from django.shortcuts import render</pre>
+					</li>
+					<li>
+						В men/views.py - изменяем функцию index
+						<pre>
+def index(request):  # главная страница
+    return render(request, '')  # (request, 'путь к шаблону') - путь укажем позже</pre>
+					</li>
+					<li>
+						В men - создаём директорию - 'templates', а в папке templates - необходимо создать ещё один подкоталог c названием приложения.
+						<br>То есть получилось coolsite/men/templates/men - Это делается потому что приложений может быть множество, и в каждом может быть templstes, а название шаблонов может совпадать (home.html, index.html и тд)
+						<br>В случае если название шаблонов будет совпадать, django выберет шаблон, первый попавшийся - для этого в templates каждого приложения и делают ещё один подкатолог с названием приложения
+					</li>
+					<li>
+						В templates/men - создадим index.html, При работе с Pithon или Django - в meta charset - всегда необходимо делать UTF 8 
+					</li>
+					<li>
+						Добавляем путь к нашему шаблону. В men/views.py - def index
+						<pre>
+return render(request, 'men/index.html')  # (request, 'путь к шаблону')</pre>
+					</li>
+					<li>
+						Место где django будет искать шаблоны прописаны в settings.py. TEMPLATED - 'APP_DIRS': True - то есть будет искать в папках приложения, в каталогах с именем templates
+					</li>
+					<li>
+						Создадим ещё html файл - в templates/men - about.html
+					</li>
+					<li>
+						В men/views.py - пропишем функкцию для отображения about.html
+						<pre>
+def about(request):  # главная страница
+    return render(request, 'men/about.html')  # (request, 'men/templates/men/about.html')</pre>
+					</li>
+					<li>
+						В men/urls.py - в путях можно убрать пути к категориям и архивам, и юдобавляем путь для страницы 127.0.0.1:8000/about
+						<pre>
+path('cats/&lt;int:catid>/', categories), - удаляем
+re_path(r'archive/(?P&lt;year>[0-9]{4})/', archive), -удаляем
+
+ # путь('url/', функция, name='имя для пути'),
+ path('about/', about, name='about'),</pre>
+					</li>
+				</ol>
+			</li>
+			<li>
+				Передаём параметры с помощью {{}} - {%for%}
+			<ol type="A">
+
+					<li>
+						Отображаем title - автоматически, с помощью {{}}
+						<br>В Заголовках html (about.html index.html) добавляем конструкцию шаблона {{}}
+						<pre>
+&lt;title>{{ title }}&lt;/title></pre>
+						<br>Добавим в viewp.py - параметры, в виде словаря которые в виде шаблонов будем передавать в html {{ title }}
+						<br>Дополняем функции index и about
+						<pre>
+# (request, 'путь к шаблону', передаваемый параметр - словарь)
+return render(request, 'men/index.html', {'title': 'Главная страница'})
+
+# (request, 'men/templates/men/about.html', {'ключ':'значение'})
+return render(request, 'men/about.html', {'title': 'О сайте'})</pre>
+					</li>
+					<li>
+						Усложняем функуию индекс, и будеи передавать несколько параметров (список и title).
+						<br>В men/views.py - до функции добавим список, внутри функции добавим передаваемый в будущем параметр(этот список):
+						<pre>
+menu = ['О сайте', 'Добавить статью', 'Обратная связь', 'Войти']
+
+def index(request):  # главная страница
+    # (request, 'путь к шаблону', передаваемые параметры параметры)
+    return render(request, 'men/index.html', {'menu': menu, 'title': 'Главная страница'})</pre>
+    					<br>В свою уочередь в index.html - передаём пареметр menu - с помощью цикла for:
+    					<pre>
+    &lt;h1>Главная страница</h1>
+    &lt;ul>
+    {% for m in menu %}
+        &lt;li>{{m}}&lt;/li>
+    {% endfor %}
+    &lt;/ul></pre>
+    					На выходе у у нас Получится ul оформленный список, из жлементов списка menu
+					</li>
+					<li>
+						В about.html - передаём тот же список, изменяя функцию about и саму страницу about.html
+					</li>
+
+				</ol>
+			</li>
+			<li>
+				Наследование шаблонов! Чтобы не повторять одинковый код - например navbar, footer
+				<ol type="A">
+					<li>
+						Создаём базовый шаблон, шаблон в котором будет одинаковай html код для всех страниц нашего сайта.
+						<br>В templates/men - создаём base.html
+					</li>
+					<li>
+						Пишем код base.html:
+						<pre>
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+    &lt;meta charset="utf-8">  # проверяй utf-8
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1">
+    &lt;!-- css bootstrap 5 -->  # добавляй css ссылку 
+    &lt;title>{{ title }}&lt;/title> # автоматом будет менятся название страниц
+&lt;/head>
+&lt;body>
+    {% block mainmenu %}  # по сути блок навбара
+    &lt;ul>
+        {% for m in menu %} # список навбара через for
+        &lt;li>{{m}}&lt;/li> # элементы списка
+        {% endfor %} 
+    &lt;/ul>
+    {% endblock mainmenu %} # конец навбара
+
+    {% block content %}  # индивидуальный контент для каждой страницы
+    {% endblock %}  # конец индивид контента
+
+
+
+&lt;!-- JS Bootstrap 5 -->  # добавь JS скрипты bootstrap
+&lt;/body>
+&lt;/html></pre>
+						!Лично мне с html - гораздо удобнее работать в Sublime Text!
+					</li>
+					<li>
+						Изменяем  - наследуемся в index/about.html от base.html
+						<br>Пример index.html - about.html - аналогично:
+						<pre>
+{% extends 'men/base.html' %}  # наследуемся от base.html
+
+{% block content %}  # начало индивидуального контента
+&lt;h1>{{ title }}&lt;/h1>  # сам контент
+&lt;p>О&lt;сновной индивидуальный контент&lt;/p> # сам контент
+{% endblock %} # конец индивидуального контента</pre>
+					</li>
+				</ol>
+			</li>
+
+			<li>
+				<span class="spec">Чтение данных таблицы нашей модели(класса Men) в шаблонах:</span>
+				<ol type="A">
+					<li>
+						В men/views.py - импортируем все модели
+						<pre>
+from .models import *  # импортируем все модели из men/models.py</pre>
+					</li>
+					<li>
+						В men/views.py - в функциу представления для главной страницы - index. Возьмём все запси из таблицы, сохраним ссылку на них в переменной(post), Передадим post - в качестве параметра, чтобы было возможно отобразить их на html странице.
+						<pre>
+def index(request):  # главная страница
+    # Берем все записис модели, помещаем в переменную
+    posts = Men.objects.all()
+    # (request, 'путь к шаблону', передаваемые параметры параметры)
+    return render(request, 'men/index.html', {'posts': posts, 'menu': menu, 'title': 'Главная страница'})</pre>
+					</li>
+					<li>
+						Отображаем наши записи в index.html:
+						<pre>
+{% block content %}
+&lt;h1>{{ title }}&lt;/h1>
+&lt;ul>
+    {% for p in posts %}
+    &lt;li>
+        &lt;h2>{{ p.title }}&lt;/h2>
+        &lt;p>{{ p.content }}&lt;/p>
+        &lt;hr>  # линия снизу
+    &lt;/li>
+    {% endfor %}
+&lt;/ul>
+{% endblock %}</pre>
+				</ol>
+			</li>
+
+
+			<br><br>
+			<h4 class="title_text border">[7].  Подключение статических файлов. Фильтры шаблонов.</h4>
+			<li>
+				Во время отладки django ищет статические файлы во всех подкоталогах static(их может быть несколько)
+				<br>
+				Но в режиме экслплуатации - на реальном веб сервере - статические файлы будут браться из одной главной папки статический файлов (djsite/coolsite/scatic) - расположенной в каталоге всего проекта
+			</li>
+			<li>
+				Для того чтобы собрать все статические файлы в этот главный поткаталог, в терминале необходимо все статические файлы собрать.
+				<pre>
+Python manage.py collectstatic</pre>
+				<br><strong>Но для корректрой работы необходимо прописать настройки в settings.py для:</strong>
+				<br>-STATIC_URL - префикс URL-адреса
+				<br>-STATIC_ROOT - путь к общей статической папке, используемый реальым веб-сервером
+				<br>-STATICFILES_DIRS - список дополнительных(нестандартных) путей к статическим файлам, используемых для сбора и для рещима отладки
+			</li>
+			<li>
+				Прописываем все константы STATIC в settings.py - после STATIC_URL (его оставляем стандартно)
+				<pre>
+STATIC_URL = 'static/'  # стандартно
+
+# STATIC_ROOT добавили, в эту папку при collectstatic - django перемещает все статические файлы
+# путь djsite/coolsite - из этой папке, статический файлы будут пользоватся в режиме эксплуатации сайта на сервере
+STATIC_ROOT = BASE_DIR / 'static'
+
+# добавили пустой список, список нестандартных путей, пока у нас нет, оставим пустым
+STATICFILES_DIRS = []</pre>
+			</li>
+			<li>
+				-Создадим в men - папку static
+				<br>-В static - папку men (аналогично с templete)
+				<br>-В men/static/men - папку css
+				<br>-В men/static/men - папку js
+				<br>-В men/static/men - папку imsges
+			</li>
+			<li>
+				В папке css - создадим styles.css
+				<br>Что бы не терять время беру с гитхаба создателя курса - этот файл, там ничего сложного стандартные css стили.
+			</li>
+			<li>
+				Аналогично, копирую c github-a - images - в men/static/men/images - картинки которые будем использовать в шаблоне
+			</li>
+			<li>
+				Подгружаем наши статические файлы в base.html - в самом верху страницы - до html кода
+				<pre>
+{% load static %}</pre>
+				-Добавляем путь для нашего style.css - в head - base.html
+				<pre>
+&lt;link rel="stylesheet" type="text/css" href="{% static 'men/css/styles.css' %}" /></pre>
+				Можно обнавлять сттраницу, если изменений нет попробуй Mozilla - В Хроме сохраняется кэш, и изменения стилей иногда срабатывают с опозданием, возможно сработают только после перезапуска праузера или даже пк.
+			</li>
+			<li>
+				Верстаем наши страницы все, приводим вид в порядок, используем styles.css. Не Буду подробно описывать процесс
+				<ul>
+					<li>
+						В base.html:
+						<br>Загружаем иконку
+						<pre>
+&lt;!-- загружаем иконку для отоброжения в браузере где titte-->
+&lt;link rel="shortcut icon" href="{% static 'men/images/main.ico' %}" type="image/x-icon"/></pre>
+						И так далее. Очень много писать, но всё просто.
+					</li>
+					<li>
+						Напоминалка по тегам таблицы html
+						<pre>
+table - таблица
+thead - голова таблицы
+tr - строка
+td - столбец
+th - заголовок в таблице
+&lt;th colspan="4> - заголовок будет растянут на столбца</pre>
+					</li>
+					<li>
+						index.html
+						<pre>
+{% extends 'men/base.html' %}
+
+{% block content %}
+&lt;ul class="list-articles">
+    {% for p in posts %}
+    &lt;li>
+        &lt;h2>{{ p.title }}&lt;/h2>
+        &lt;p>{{ p.content }}&lt;/p>
+        &lt;div class="clear">&lt;/div>
+        &lt;p&lt; class="link-read-post">&lt;a href="#">Читать пост&lt;/a>&lt;/p>
+        &lt;hr>
+    &lt;/li>
+    {% endfor %}
+&lt;/ul>
+{% endblock %}</pre>
+					</li>
+					<li>
+						about.html
+						<pre>
+{% extends 'men/base.html' %}
+
+{% block content %}
+&lt;h1>{{ title }}&lt;/h1>
+&lt;p>здесь будет информация о сайте&lt;/p>
+{% endblock %}</pre>
+					</li>
+				</ul><!-- Верстаем -->
+			</li><!-- Верстаем -->
+
+			<li>
+				<span class="spec">Использование фильтров при работе с шаблонами</span>
+				<br><span class="spec">{{ переменная | фильтр: 'значение' }}</span>
+				<br>Фильтров много, просмотри и изучи официальную документацию по встроенными фильтрам джанго.
+			</li>
+			<li>
+				Разбиваем текст по абзацам (в index.html):
+				<pre>
+&lt;p>{{ p.content }}&lt;/p>  -->  &lt;p>{{ p.content|linebreaks }}&lt;/p></pre>
+			</li>
+			<li>
+				Отображаем на главной странице только первые 50слов статьи.
+				в index.html - добавляем фильтр:
+				<pre>
+&lt;p>{{ p.content|linebreaks }}&lt;/p> -->  &lt;p>{{ p.content|linebreaks|truncatewords:50 }}&lt;/p></pre>
+			</li>
+			<li>{% autoescape off %} # 'выключить экранирование, по умолчанию включено.
+				<pre>
+{% autoescape off %}  # выключить экранирование
+	{{p.content|linebreaks|truncatewords:50}}
+{% endautoescape %}  # конец зоны выключения экранирования</pre>
 			</li>
 		
 
