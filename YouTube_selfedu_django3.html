@@ -1732,7 +1732,360 @@ th - заголовок в таблице
 	{{p.content|linebreaks|truncatewords:50}}
 {% endautoescape %}  # конец зоны выключения экранирования</pre>
 			</li>
-		
+
+			<br><br>
+			<h4 class="title_text border">[8].  Формирование URL-адресов в шаблонах.</h4>
+			<li>
+				<span class="spec">{% url 'URL-адрес/имя маршутра' [параметры ссылки] %}</span>
+			</li>
+			<li>
+				Делаем ссылку для главной страницы (в base.html) - в навбаре, на лого сайта
+				<pre>
+href="/" #самый простой вариант для главной страницы - но так делать не стоит!</pre>
+				Этот вариант лучше не делать, так как для главной страницы может быть изменен, путь, тогда придётся в каждом шаблоне менять путь
+			</li> 
+			<li>
+				Лучше всего использовать имена маршрутов, которые прописываем в name - в path - urlpatterns
+				<br>И так путь к домашней странице будем указывать
+				<pre>
+&lt;a href="{% url 'home' %}"></pre>
+			</li>
+			<li>
+				Меняем структуру списка menu - это список в навбаре (сделаем словарь)
+				<br>В men/views.py - узменяем menu:
+				<pre>
+# список - для navbar
+menu = [{'title': 'О сайте', 'url_name': 'about'},
+        {'title': 'Добавить статью', 'url_name': 'add_page'},
+        {'title': 'Обратная связь', 'url_name': 'contact'},
+        {'title': 'Войти', 'url_name': 'login'},
+]</pre>
+			</li>
+			<li>
+				Добавляем пути для Добавить статью, Контакты, Войти
+				<br>В men/urls.py:
+				<pre>
+path('addpage/', addpage, name='add_page'),
+path('contact/', contact, name='contact'),
+path('login/', login, name='login'),</pre>
+			</li>
+			<li>
+				В men/views.py - создаём функции представления страницы
+				<br>addpage, contact, login
+				<pre>
+def addpage(request):
+    return HttpResponse('&lt;h1>Страница создания статьи&lt;/h1>')
+
+def contact(request):
+    return HttpResponse('&lt;h1>Страница Обратной связи&lt;/h1>')
+
+def login(request):
+    return HttpResponse('&lt;h1>Авторизация&lt;/h1>')</pre>
+			</li>
+			<li>
+				Изменим функуию index. Так как передаём слишком много ключей, лучше ключи поместить в отдельный словарь, и в передаваемый параметр - передать этот словарь.
+				<br>В men/views.py - def index:
+				<pre>
+def index(request):  # функция отображения главной страница
+    # Берем все записи из модели, помещаем в переменную
+    posts = Men.objects.all()
+    # context - словарь передаваемых параметров
+    context = {
+        'posts': posts,  # все записи модели Men - title, content, photo...
+        'menu': menu,  # navbar - title, url_name
+        'title': 'Главная страница',  # название страницы
+    }
+    return render(request, 'men/index.html', context=context)</pre>
+			</li>
+			<li>
+				Прописываем пути в navbar -  в шаблоне base.html.
+				<br>Перебираем всп m(элементы списка меню) - обращаемся к ключу url.mane
+				<br><strong>Когда обращаемся к имени url нужны ковычки, когда к прописаноому в словаре имени пути по ключу, в шаблоне кавычки не нужны</strong> 
+				<pre>
+{% for m in menu %}
+
+	{% if not forloop.last %}
+	&lt;li>&lt;a href="{% url m.url_name %}">{{m.title}}&lt;/a>&lt;/li>
+	{% else %}
+	&lt;li class="last">&lt;a href="{% url m.url_name %}">{{m.title}}&lt;/a>&lt;/li>
+	{% endif %} 
+
+{% for m in menu %}</pre>
+			</li>
+			<li>
+				Добавляем пути для для отдельных статей, по id
+				<br><span class="spec">path('post/&lt;int:post_id>/'</span>
+				<br>В men/urls/py
+				<pre>
+path('post/&lt;int:post_id>/', show_post, name='post'),</pre>
+			</li>
+			<li>
+				Делаем функцию для отображения страницы отдельной статьи - show_post
+				<br>В men/views.py:
+				<pre>
+def show_post(request, post_id):  # обязательно добавь доп параметр post_id
+    return HttpResponse(f'Отображение статьи с id = {post_id}')</pre>
+			</li>
+			<li>
+				Добавляем саму ссылку, для статьи в шаблон - index.html
+				<pre>
+<span class="spec">В1 - {% url 'post' p.pk %}</span>
+href="{% url 'post' p.pk %}"  
+- Варинт 1 - обращаемся по имени пути 'post' 
+- далее к объекту цикла p  из списка posts (posts=Men.objects.all())
+- по ключу pk то есть id в базе данных</pre>
+			</li>
+			<li>
+				<span class="spec">В2 - {{ p.get_absolute_url }}</span>
+				<br>В2 - отображение ссылки по pk, более предрочтительный!
+				<br>Но для этого в models.py - необходимо прописать функцию - внутри класса Men а затем уже отобразить в ссылку в самом шаблоне:
+				<ol type="A">
+					<li>
+						В models.py импортируем функцию reverse
+						<pre>
+from django.urls import reverse</pre>
+					</li>
+					<li>
+						В моделе Men дописываем функцию(метод) - которая будет формировать нам нужный маршрут  - def get_absolute_url:
+						<pre>
+def get_absolute_url(self):  # функция формирования маршрута к ссылке
+    return reverse('post', kwargs={'post_id': self.pk})</pre>
+					</li>
+					<li>
+						Указываем ссылку непосредственно в шаблоне - index.html
+						<pre>
+{% for p in posts %}
+....							
+	href="{{ p.get_absolute_url }}
+....
+{% endfor %}
+
+# p - это экземпляр(строка) таблицы
+# get_absolute_url - обращаемся непосредственно к функции внутри класса</pre>
+						Способ В2 - предпочтительнее делать если мы обращаемся к элементам модели.
+						<br>Способ В1 - когда мы просто обращаемся к списку, например к ссылкам в navbar
+					</li>
+				</ol>
+			</li>
+
+			<br><br>
+			<h4 class="title_text border">[9].  Создание связей между моделями через класс ForeignKey.</h4>
+			<li>
+				Будем создавать новую модель категории с двумя столбцами (id-автоматом, name - название категории)
+				<br>Две модели необходимо будет связать, прописав связь класса мен и категории (в модел Men - добавим cat_id)
+			</li>
+			<li>
+				В Django - есть три типа сввязи:
+				<br>-ForeingKey - поля отношений один ко многим. Для связи Many to One. В нашем случае к одной категории Спортсмены, может относится множество разных спортсменов
+				<br>-ManyToManyField - многие ко многим. Many to Many.
+				<br>-OneToOneField - Один к одному (One to One)
+			</li>
+			<li>Первичная мадель в нашем случаее - Категории, Вторичная - отдельные личности модел Men</li>
+			<li>
+				Класс ForeingKey(ссылка на первичную модель, on_delete=ограничения при удалении)
+				<br>on_delete - если например удалили модель спортсены, необходимо решить что делать с параметром cat_id - для спортсменов
+			</li>
+			<li>
+				<span class="spec">on_delete:</span>
+				<br>-models.CASCADE - удалили категорию - удаляются все записи связанные с этой категорией
+				<br>-models.PROTECT - запрещает удаление категории, если на неё есть ссылка в модели Men
+				<br>-models.SET_NULL - при удалении категории, устанавливает щначение foreign key NULL
+				<br>-models.SET_DEFAULT - то же самое что и NULL - только вместо NULL - устанавливает значение по умолчанию, которое должно быть определено через класс ForeingKey
+				<br>-models.SET() - то же самое, только устанавливает пользовательское значение
+				<br>-models.DO_NOTHING - удаление категории - никак не повлияет на записи в Men
+			</li>
+			<li>
+				Создаём модель категории, в нём одно поле name, id будет автоматом.
+				<br>-максимальная длина символов 100
+				<br>Сразу в этом клессе пропишем метод __str__()
+				<pre>
+class Category(models.Model):
+    # db_index - для того чтобы поле было индексированным, поиск по небу будет происходить быстрей
+    name = models.CharField(max_length=100, db_index=True)
+
+    # будем обращатся к категории по полю name
+    def __str__(self):
+        return self.name</pre>
+			</li>
+			<li>
+				В модели Men - добавим поле cat. Это поле и будет модель отношений ForeingKey
+				<pre>
+cat = models.ForeignKey('Category', on_delete=models.PROTECT)
+#models.PROTECT - категорию нельзя будет удалить пока это прописано в модели Men
+# cat_ig - id добавится автоматом4</pre>
+			</li>
+			<li>
+				Формируем новую миграцию, так как изменили и добавили модели, теперь все эти изменения необходимо добавить в Базу данных, в терминале:
+				<pre>
+python manage.py makemigrations</pre>
+				У Django встал вопрос, что теперь делать с записями Men, так как к ним добавилось поле cat - и это поле пустое. У нас в Category даже записей никаких нет, то есть нет никаких категорий (спортмсены, музыканты и так далее)
+				<br>На данный момент, в терминале выберем второй вариант
+				<br>А саму строчку отношений, на данный момент сделаем необязательным в модели Men
+				<pre>
+ cat = models.ForeignKey('Category', on_delete=models.PROTECT, null=True)</pre>
+
+			</li>
+			<li>
+				Сохраняем models.py.
+				Снова создаём миграции makemigrations - в корневой папке каталога:
+				<pre>
+python manage.py makemigrations</pre>
+				В папке миграций появился новый файл миграций									
+			</li>
+			<li>
+				Выполняем эти миграции, то есть отправляем в базу данных
+				<pre>
+python manage.py migrate</pre>
+			</li>
+			<li>
+				Можно посотреть наглядно на наши таблицы в pdAdmin 4 
+			</li>
+			<li>
+				Желательно сдела на реальный проектах не вносить изменения в структуру таблиц, и продумывать модели заранее.
+			</li>
+			<li>
+				Добавляем 2 категории  - через python sell
+				<pre>
+python manage.py shell  # Запускаем командную строку питона
+from men.models import *  # Импортируем все модели из models.py
+Category.objects.create(name='Актёры')  # добавляем категорию - Актёры 
+Category.objects.create(name='Музыканты')  # добавляем категорию - Музыканты</pre>
+			</li>
+			<li>
+				Теперь во всех записях Men присвоим значение в столбце cat_id
+				<pre>
+w_list = Men.objects.all()  # в переменную заносим все записи Men
+w_list.update(cat_id=1)  # во всех записях поменяли cat_id на 1</pre>
+			</li>
+			<li>
+				Делаем отображение списка категорий
+				Для этого в base.html - меняем структуры ссылок в Sidebar
+				<br>Опять же будеи использовать цикл for.
+				<br>Так же будем использовать конструкцию if - для того в каком виде отобразить категорию (если выбрана - то как строку, если не выбрано - как ссылку)
+				<br><br>Изменения структурры ссылок Sidebar в base.html:
+				<pre>
+# еслы ссылка выбрана (то есть не выбрана категория никакая) 
+тогда "все категории" отобразатся не как ссылка, а просто надписью
+иначе, если будет выбрана какаято категория, то "все категории" - будет ссылкой
+{% if cat_selected == 0 %}
+    &lt;li class="selected">Все категории&lt;/li>
+{% else %}
+    &lt;li>&lt;a href="{% url 'home' %}">Все категории&lt;/a>&lt;/li>
+{% endif %}
+
+
+# далее цикл: перебираем записи c в модели cats
+# cats = Category.objects.all() - в def index
+# проверка если ключ pk == выбранной категории cat_selected
+будет показывать как простую  строку (выделенную как выбраная)
+если не совпадают будут показывать как ссылку
+{% for c in cats %}
+    {% if c.pk == cat_selected %} 
+        &lt;li class="selected">{{ c.name }}&lt;/li>
+    {% else %}
+        &lt;li>&lt;a href="{{ c.get_absolute_url }}">{{ c.name }}&lt;/a><&lt;li>
+    {% end&lt;if %}
+{% endfor %}</pre>
+			</li>
+			<li>
+				Прописываем метод формирования маршрута к ссылке -  get_absolute_url - Для модели Category - в men/models.py
+				<pre>
+# функция формирования маршрута к ссылке
+def get_absolute_url(self):
+    return reverse('category', kwargs={'cat_id': self.pk})</pre>
+			</li>
+			<li>
+				Добавляем путь для категорий - в men/urls.py
+				<pre>
+path('category/&lt;int:cat_id>/', show_category, name='category'),</pre>
+			</li>
+			<li>
+				Ранее писали def categories/archive - их можно удалить, писали в целях обучения
+			</li>
+			<li>
+				Добавляем метод отображения страниц категорий - def show_category - в men/views.py
+				<pre>
+def show_category(request, cat_id):  # обязательно добавь доп параметр cat_id
+    return HttpResponse(f'Отображение категории с id = {cat_id}')</pre>
+			</li>
+			<li>
+				В параметры функции index - необходимо доаввить передаваемый параметр записей модели категории. Поместим её в переменную cats - в шаблоне base.html - мы к этой переменной уже обращались в цикле for.
+				<br>Так же необходимо добавить переменную cat_selected - к ней уже обращались в шаблоне base.html в конструкции if - для отображения категорий ссылкой или строкой
+				<br><br>
+				Кратнко все манипуляции в def index:
+				<br>cats = Category.objects.all()
+				<br>context = {...,'cats': cats,...} добавили, в список передаваемых параметров
+				<br>context = {...,'cat_selected': 0, } добавили, в список передаваемых параметров
+				<br><br>Метод отображения домашней страницы - def index - целиком:
+				<pre>
+def index(request):  # функция отображения главной страница
+    # Берем все записи из модели Men, помещаем в переменную
+    posts = Men.objects.all()
+    # Берем все записи из модели категории, помещаем в переменную
+    cats = Category.objects.all()
+
+    # context - словарь передаваемых параметров
+    context = {
+        'posts': posts,  # все записи модели Men - title, content, photo...
+        'cats': cats,  # все записи модели категории
+        'menu': menu,  # navbar - title, url_name
+        'title': 'Главная страница',  # название страницы
+        'cat_selected': 0,  # будут отображаться все записи
+    }
+    return render(request, 'men/index.html', context=context)</pre>
+			</li>
+			<li>
+				Меняем функцию show_category - за основу можно взять функцию index:
+				<pre>
+def show_category(request, cat_id):  # обязательно добавь доп параметр cat_id
+    # Берем только cat_id (номер категории)
+    posts = Men.objects.filter(cat_id=cat_id)
+    # Берем все записи из модели категории, помещаем в переменную
+    cats = Category.objects.all()
+
+    # context - словарь передаваемых параметров
+    context = {
+        'posts': posts,  # cat_id - к какой категории принадлежит запись в таблице Men
+        'cats': cats,  # все записи модели категории
+        'menu': menu,  # navbar - title, url_name
+        'title': 'Отображение по рубрикам',  # название страницы
+        'cat_selected': cat_id,  # cat_selected - принимает значение cat_id записи Men
+    }
+    # Шаблон домашней страницы, несмотря на то что это категории
+    return render(request, 'men/index.html', context=context)</pre>
+			</li>
+			<li>
+				Добавим условие в show_category, для того чтобы когда категоряи окажется пустой, либо её вообще не сушествует - отобразалась страница 404 - def pageNotFound
+				<pre>
+ len(posts) == 0:  # Если количество постов 0
+    raise Http404()  # отобразится страница 404 - def pageNotFound(если DEBUG = False)
+    # если DEBUG = True - нам покажет обычную страницу ошибки, с причиной ошибки</pre>
+			</li>
+			<li>
+				Отобразим категорию и время обновления статью в indrx.html.
+				<br><strong>В категории обращаемся к p.cat = Men.cat, cat обращается к записи Category, и помощью def __str__ в Category - нам и выведет название категории (Актеры, Музыканты и тд)</strong>
+				<br>Дата к time_update - там всё понятно, так же сразу применили фильтр отображения день-месяц-Год Часы:минуты:секунды [18-11-2022 19:17:34]
+				<br><br>
+				Добавили в index.html - внутри цикла for сверзу, вразрыв до h2 тегов - добавили div
+				<pre>
+&lt;div class="article-panel">
+    &lt;p class="first">
+        Категория: {{ p.cat }}
+    &lt;/p>
+    &lt;p class="last">
+        Дата обнавления: {{ p.time_update|date:'d-m-Y H:i:s' }}
+    &lt;/p>
+&lt;/div></pre>
+			</li>
+
+
+			<br><br>
+			<h4 class="title_text border">[10].  Начинаем работу с админ-панелью.</h4>
+			<li>
+				
+			</li>
+
+
 
 
 		</ol><!-- общий список -->
