@@ -57,6 +57,7 @@
 <body>
 	<p><a href="https://www.youtube.com/@selfedu_rus">selfedu</a></p>
 	<p><a href="https://www.youtube.com/watch?v=FyTL1bnUx5I&list=PLA0M1Bcd0w8xO_39zZll2u1lz_Q-Mwn1F">Django 3 для Python(плейлист)</a></p>
+	<p><a href="https://proproprogs.ru/django">https://proproprogs.ru/django</a></p>
 	<p><a href="https://django.fun/ru/articles/tutorials/">Статьи о Django</a></p>
 	<p><a href="https://habr.com/ru/post/514348/">Шесть Python-пакетов, которые рекомендуется использовать в каждом веб-приложении на Django</a></p>
 	<p><a href="https://django.fun/ru/docs/">Документация по фреймворку и библиотекам Django</a></p>
@@ -2721,18 +2722,268 @@ def get_absolute_url(self):
 			<br><br>
 			<h4 class="title_text border">[13]. Использование форм, не связанных с моделями.</h4>
 			<li>
-				
+				Форма - например форма для авторизации
+				<br>Форма в html в тегах &lt;form>..&lt;/form>
+				<br>Форма связанная с моделью  - авторизация и тп
+				<br>Форма не связанная с моделью  - отправка письма и тп
 			</li>
+			<li>
+				Будем добавлять форму по ссылке навбара - Добавить страницу
+				<br>В men/vievf.py - правим функцию представления страницы add_page - сейчас она стоит заглушкой
+				<pre>
+def addpage(request):
+    return render(request, 'men/addpage.html', {'title': 'О сайте'})</pre>
+			</li>
+			<li>
+				в men/templates/men - создаём шаблон addpage.html, расширяемся от base.html - добавляем индивидуальный блок контент
+				<pre>
+{% extends 'men/base.html' %}  # наследуемся от base.html
+
+{% block content %}  # начало собственного контента
+&lt;h&lt;1>{{ title }}&lt;/h1>
+&lt;p>это будет форма добавления статьи&lt;/p>
+{% endblock %}  # конец собственного контента</pre>
+			</li>
+			<li>
+				Необходимо будет создавать специальный класс django - формы.
+				<br>Для этого в men(app) - создаём новый файл forms.py
+			</li>
+			<li>
+				В forms.py импортируем из джанго модуль forms и все наши модели из models.py
+				<pre>
+from django import forms  # модуль forms
+from .models import *  # все модели models.py</pre>
+			</li>
+			<li>
+				В forms.py - прописываем форму модели
+				<pre>
+# Форма загрузки статьи
+# аттрибуты(поля) совпадают с полями в Men
+class AddPostForm(forms.Form):
+    title = forms.CharField(max_length=255)
+    slug = forms.SlugField(max_length=255)
+    content = forms.CharField(widget=forms.Textarea(attrs={'cools': 60, 'rows': 10}))
+    is_published = forms.BooleanField()
+    cat = forms.ModelChoiceField(queryset=Category.objects.all())
+    # time_create , time_update - автоматически будут менятся в классе Men</pre>
+			</li>
+			<li>
+				Используем форму в функции представления def addpage, перед этим импортировав наш forms.py - всё во views.py
+				<pre>
+from .forms import *  # из forms.py импортируем все классы форм
+
+def addpage(request):
+    form = AddPostForm()  # создаём экземпляр класса AddPostForm
+    # передаём в form - в качестве передоваемого параметра в шаблон addpage.html
+    return render(request, 'men/addpage.html', {'form': form, 'title': 'Добавление статьи'})</pre>
+			</li>
+			<li>
+				Отображаем форму непосредственно в шаблоне addpage.html
+				<pre>
+# url_page = path(..name='url_page') 
+# post-передача данных/логин пароль/изображений и тд
+&lt;form action="{%  url 'add_page' %}" method="post">
+	# csrf_token - для защиты от csrf атак-->
+	# form.as_p - функция as_p() - отображает все поля формы
+	{% csrf_token %}
+	{{ form.as_p }}
+	&lt;button type="submit">  # кнопка отправить
+		Добавить
+	&lt;/button>
+&lt;/form></pre>
+				Можно проверять в браузере - форма уже отобразилась
+			</li>
+			<li>
+				В men/views.py - имзеняем функцию представления страницы add_page
+				<br>При первом запуске форма будет пустой
+				<br>После того как уже попробывали отправить (но заполнили неправильно, записи в полях будуи сохранятся
+				<br>Для этого и делаем конструкцию if в функции def addpage:
+				<pre>
+def addpage(request):
+    # 2) если уже была какая-то отправка
+    if request.method == 'POST':  # если уже что то пытались отправить
+        form = AddPostForm(request.POST)  # ?создаём экземпляр класса AddPostForm
+        if form.is_valid():  # если заполнено правильно
+            # принт это временно, чтобы понять что отобразится (в терминале)
+            print(form.cleaned_data)
+    # 1) при первом открывании формы
+    else:
+        form = AddPostForm()  # пустая форма
+    return render(request, 'men/addpage.html', {'form': form, 'title': 'Добавление статьи'})</pre>
+    			<br>Проверяем в браузере, заполняем -нажимаем добавить:
+    			<br>В терминале print(form.cleaned_data):
+    			<pre>
+{'title': 'Арнольд Швартснеггер', 'slug': 'arny', 'content': 'Качок из LA', 'is_published': True, 'cat': &lt;Category: Актёры>}</pre>
+				<br>Попробуем допустить ошибки - например slug русскими буквами
+				<pre>
+В браузере:
+  -Значение должно состоять только из латинских букв, цифр, знаков подчеркивания или дефиса.</pre>
+			</li>
+			<li>
+				Приводим вид форму в порядок, для начала название полей формы сделаем на нашем языке, для этого в forms.py - в наш class AddPostForm - в каждом поле добавим параметр label='Имя отображаемого поля в браузере'
+				<pre>
+# Форма загрузки статьи
+# аттрибуты(поля) совпадают с полями в Men
+class AddPostForm(forms.Form):
+    title = forms.CharField(max_length=255, label='Заголовок')
+    slug = forms.SlugField(max_length=255, label='URL')
+    content = forms.CharField(widget=forms.Textarea(attrs={'cools': 60, 'rows': 10}), label='Текст статьи')
+    is_published = forms.BooleanField(label='Публикация')
+    cat = forms.ModelChoiceField(queryset=Category.objects.all(), label='Категория')
+    # time_create , time_update - автоматически будут менятся в классе Men</pre>
+    			Обновняем браузер - проверяем
+			</li>
+			<li>
+				Сделаем поле - is_published - необязательным
+				<br>forms.py - class AddPostForm
+				<pre>
+is_published = forms.BooleanField(label='Публикация', required=False)  # required=False необязательное поле</pre>
+				<br>Поле cat - вместо ---- будет отображать категория не выбрана
+				<pre>
+cat = forms.ModelChoiceField(queryset=Category.objects.all(), label='Категория', empty_label='Категория не выбрана')</pre>
+				<br>Опять поле is_published - сделаем так что в поле изначально будет галочка
+				<pre>
+# required=False необязательное поле, initial=True изначально галочка стоит
+    is_published = forms.BooleanField(label='Публикация', required=False, initial=True)</pre>
+			</li>
+			<li>
+				Улучшаем внешний вид - непосредственно в шаблоне - addpage.html
+				<pre>
+{{ form.as_p }} 
+
+заменяем на
+
+&lt;p>
+	# for= - уникальный идентификатор, для title при помощи св-ва (id_for_label - встр в django)
+	&lt;label class="form-label" for="{{ form.title.id_for_label }}">
+		# отображаем 'заголовок' поля
+		{{ form.title.label }}:
+	&lt;/label>
+	# отображаем поле для ввода заголовка
+	{{ form.title }}
+&lt;/p>
+
+&lt;div class="form-error">
+	# возможные ошибки при вводе заголовка (встр в django)
+	{{ form.title.errors }}
+&lt;/div></pre>
+				В данном случае будет отображон только заголовок и кнопка добавить
+			</li>
+			<li>
+				Добавляем в шаблон все оставшиеся поля
+				<br>-slug
+				<br>див еррор slug
+				<br>-content
+				<br>див еррор content
+				<br>-is_published
+				<br>див еррор is_published
+				<br>-cat
+				<br>див еррор cat
+				<pre>
+#поле slug
+&lt;p>&lt;label class="form-label" for="{{ form.slug.id_for_label }}">{{ form.slug.label }}:&lt;/label>{{ form.slug }}&lt;/p>
+&lt;div class="form-error">{{ form.slug.errors }}&lt;/div>
+#поле content
+&lt;p>&lt;label class="form-label" for="{{ form.content.id_for_label }}">{{ form.content.label }}:&lt;/label>{{ form.content }}&lt;/p>
+&lt;div class="form-error">{{ form.content.errors }}&lt;/div>
+#поле is_published
+&lt;p>&lt;label class="form-label" for="{{ form.is_published.id_for_label }}">{{ form.is_published.label }}:&lt;/label>{{ form.is_published }}&lt;/p>
+&lt;div class="form-error">{{ form.is_published.errors }}&lt;/div>
+#поле cat
+&lt;p>&lt;label class="form-label" for="{{ form.cat.id_for_label }}">{{ form.cat.label }}:&lt;/label>{{ form.cat }}&lt;/p>
+&lt;div class="form-error">{{ form.cat.errors }}&lt;/div></pre>
+			</li>
+			<li>
+				Предыдущий код можно сократить с помощью цикла for, буквально в 2 строчки
+				<pre>
+# перебираем все поля title/slug/content/is_published/cat -->
+# f = form.title/form.slug/from.content .. -->
+{% for f in form %}
+
+# for= - уникальный идентификатор, для title/slug и тд при помощи св-ва (id_for_label - встр в django) -->
+# отображаем 'заголовок/url/Текст статьи/Публикация/Категория' поля -->
+# отображаем поле для ввода заголовка/урла/статьи/публикации/категории -->
+&lt;p>&lt;label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}:&lt;/label>{{ f }}&lt;/p>
+
+# возможные ошибки при вводе заголовка (встр в django) -->
+&lt;div class="form-error">{{ f.errors }}&lt;/div>
+
+{% endfor %}</pre>
+			</li>
+			<li>
+				Настройку каждого поля можно сделать отдельно непосредственно внутри описания поля в forms.py. То есть джанго будет автоматически вставлять в тегги html classы!
+				<br>Для примера сделаем поле title - добавим параметр widget
+				<pre>
+title = forms.CharField(max_length=255, label='Заголовок', widget=forms.TextInput(attrs={'class': 'form-input'}))
+				
+то есть для поля title в html получилось так:
+&lt;p>
+	&lt;label>....&lt;/label>
+	&lt;input type="text" name="title" class="form-input" maxlength="255" required id="id_title">
+&lt;	{{ form.title }}
+&lt;/p></pre>
+			</li>
+			<li>
+				Форма готова к использованию, теперьнеобходимо записывать информацию вместо того чтобы просто отображать её в терминале
+				<br>Для этого в men/views.py - def addpage(request):
+				<pre>
+# print(form.cleaned_data)  #комментируем строку, вместо неё:
+
+try:  # патаемся
+    Men.objects.create(**form.cleaned_data)  # добавляем запись в базу данных Men
+    return redirect('home')  # если добавление прошло, то возвращает path = name='home'
+except:  # исключение (если не получилось добавить
+    # общая ошибка на странице формы
+    # чтобы её отобразить в шаблоне необходимо добавить
+    form.add_error(None, 'Ошибка добавления поста')  # общая ошибка на странице формы</pre>
+			</li>
+			<li>
+				def addpage - полностью:
+				<pre>
+def addpage(request):
+    # 2) если уже была какая-то отправка
+    if request.method == 'POST':  # если уже что то пытались отправить
+        form = AddPostForm(request.POST)  # ?создаём экземпляр класса AddPostForm
+        if form.is_valid():  # если заполнено правильно
+            # принт это временно, чтобы понять что отобразится (в терминале)
+            # print(form.cleaned_data)
+            #
+            try:  # патаемся
+                Men.objects.create(**form.cleaned_data)  # добавляем запись в базу данных Men
+                return redirect('home')  # если добавление прошло, то возвращает path = name='home'
+            except:  # исключение (если не получилось добавить
+                # общая ошибка на странице формы
+                # чтобы её отобразить в шаблоне необходимо добавить
+                form.add_error(None, 'Ошибка добавления поста')  # общая ошибка на странице формы
+    # 1) при первом открывании формы
+    else:
+        form = AddPostForm()  # пустая форма
+    return render(request, 'men/addpage.html', {'form': form, 'title': 'Добавление статьи'})</pre>
+
+			</li>
+			<li>
+				Отображение общей ошибки на странице формы. В шаблоне  addpage.html сразу после csrf - добавляем div
+				<pre>
+# это из vievs.py - def addpage - except - form.add_errors
+&lt;div class="form-error">{{ form.non_field_errors }}&lt;/div></pre>
+			</li>
+			<li>
+				<span class="spec">
+					Назавние полей в КЛАССАХ формы и модели (AddPostForm и Men) - должны полностью совпадать, иначе при добавление записи в Бау данных будет ошибка!
+				</span>
+					<br>Было is_published в форме - is_publisher в модели
+			</li>
+
 
 
 
 		</ol><!-- общий список -->
 	</div><!-- container-md all -->
- &lt; &lt; 
+&lt; &lt; 
 &lt; &lt; &lt;
 &lt; &lt; &lt;
 
-
+ Ctrl + Alt + L Ctrl + Alt + L Ctrl + Alt + L
 <!-- JS Bootstrap 5 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
 
