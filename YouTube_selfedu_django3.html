@@ -2977,13 +2977,148 @@ def addpage(request):
 
 
 
+			<br><br>
+			<h4 class="title_text border">[14]. Формы, связанные с моделями. Пользовательские валидаторы.</h4>
+			<li>
+				Когда ворма связана с моделью, лучше напрямую их связать. В прошлом уроке этого не сделали, из за этого получилось дублирование кода, а так же возможные ошибки
+			</li>
+			<li>
+				Для этого в mne/forms.py - изменяем структуру нашей формы - AddPostForm.
+				<br>(forms.Form)  --> (forms.ModelForm)
+				<br>Убираем все поля и добавляем класс Meta
+				<pre>
+# Форма загрузки статьи
+class AddPostForm(forms.ModelForm):
+    class Meta:
+        model = Men  # связь с моделью Men
+        fields = '__all__'  # отображаем все поля модели Men (кроме тек что заполняются автоматически)</pre>
+			</li>
+			<li>
+				Но на практике , рекомендуется вместо всех полей указывать конктертыне поля
+				<br> __all__ - заменяем на:
+				<pre>
+# Форма загрузки статьи
+class AddPostForm(forms.ModelForm):
+    class Meta:
+        model = Men  # связь с моделью Men
+        # отображаем  поля модели Men (кроме тек что заполняются автоматически)
+        # вместо списка можно сделать '__all__' - но не рекомендуется
+        fields = ['title', 'slug', 'content', 'is_publisher', 'cat']</pre>
+			</li>
+			<li>
+				прописываем свои стили оформления для полей<br>
+				В forms.py - class AddPostForm - дочерний класс Meta, добавляем атрибут widgets:
+				<pre>
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input'}),
+            'content': forms.Textarea(attrs={'cols': 60, 'rows': 10}),
+        }</pre>
+			</li>
+			<li>
+				Для отображения 'Категория не выбрана вместо '------'<br>
+				Необходимо прописать конструктор внутри класса AddPostForm:
+				<pre>
+# Форма загрузки статьи
+class AddPostForm(forms.ModelForm):  # создаётся экземпляр формы (когда отображается пустая форма в браузере)
+    def __init__(self, *args, **kwargs):  # вызывается конструктор
+        super().__init__(*args, **kwargs)  # вызывается конструктор базового класса Men
+        self.fields['cat'].empty_label = 'Категория не выбрана'  # для поля cat меняем свойство - emply_label
+
+
+    class Meta:
+        model = Men  # связь с моделью Men
+        # отображаем  поля модели Men (кроме тек что заполняются автоматически)
+        # вместо списка можно сделать '__all__' - но не рекомендуется
+        fields = ['title', 'slug', 'content', 'is_publisher', 'cat']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input'}),
+            'content': forms.Textarea(attrs={'cols': 60, 'rows': 10}),
+        }</pre>
+			</li>
+			<li>
+				В men/views.py - def addpage - в конструкции try - меняем одну строчку
+				<br>
+				<pre>
+Men.objects.create(**form.cleaned_data)  -->  form.save()</pre>
+				Делаем проверку, сначало вводим неверно (например сушествующий slug/URL)
+				<br>Всё работает отлично
+			</li>
+			<li>
+				<span class="spec">form.save()</span><br>
+				Сам делает все проверкти и конструкцию try можно убрать!
+				<pre>
+form.save()  # добавляем запись в базу данных Men - заменяет всю конструкцию try-except
+return redirect('home')  # если добавление прошло, то возвращает path = name='home'</pre>
+				<br>Полная функция представления addpage
+				<pre>
+def addpage(request):
+    # 2) если уже была какая-то отправка
+    if request.method == 'POST':  # если уже что то пытались отправить
+        form = AddPostForm(request.POST)  # ?создаём экземпляр класса AddPostForm
+        if form.is_valid():  # если заполнено правильно
+            # print(form.cleaned_data)  - проверка в терминале
+            form.save()  # добавляем запись в базу данных Men - заменяет всю конструкцию try-except
+            return redirect('home')  # если добавление прошло, то возвращает path = name='home'
+    # 1) при первом открывании формы
+    else:
+        form = AddPostForm()  # пустая форма
+    return render(request, 'men/addpage.html', {'form': form, 'title': 'Добавление статьи'})</pre>
+			</li>
+			<li>
+				Теперь отобразим поле фото в форме - это сделать проще всего с формами связанными с моделями - как у нас сейчас
+				<br>1. Для этого в forms.py - AddPostForm - fields - добавляем поле photo
+				<pre>fields = ['title', 'slug', 'content', 'photo', 'is_publisher', 'cat']</pre>
+				<br>2. В views.py - def addpage - form  - добавляем (.., request.FILES )
+				<pre> form = AddPostForm(request.POST, request.FILES)</pre>
+				<br>3. В шаблоне - addpage.html - добавляем атрибут enctype='multipart/form-data' (внутри тега form)
+				<pre>
+# enctype="multipart/form-data"  -  случае получение файлов из формы обязательно!
+&lt;form action="{%  url 'add_page' %}" method="post" enctype="multipart/form-data"></pre>
+				<br><br>Сохраняем - проверяем
+			</li>
+			<li>
+				Валидация - дополнительная,  на уровне формы. Механизм работы:
+				<img src="images\valid_form.jpg" class="img-fluid">
+				<br><br>
+				-Стандартные - в базовой модели
+				<br>-Пользовательские - в форме
+			</li>
+			<li>
+				Делаем валидацию для title<br>
+				В forms.py - class AddPostForm - в самом низу:
+				<pre>
+# валидация - title
+def clean_title(self):
+    title = self.cleaned_data['title']  # получаем данные по заголовку
+    if len(title) > 200:  # если больше 200 символов
+        # генерируется исключение - выводит сообщение об ошибке
+        raise ValidationError('Длина превышает 200 символов')</pre>
+				<br>обязательно сделать импорт
+				<pre>
+from django.core.exceptions import ValidationError</pre>
+				<br>Проверяем - при превышении в 200 символов браузер выдаст - Длина превышает 200 символов
+			</li>
+
+
+
+
+			<br><br>
+			<h4 class="title_text border">[15]. Классы представлений: ListView, DetailView, CreateView.</h4>
+			<li>
+				
+			</li>
+
+
+
+
+
 		</ol><!-- общий список -->
 	</div><!-- container-md all -->
 &lt; &lt; 
 &lt; &lt; &lt;
 &lt; &lt; &lt;
 
- Ctrl + Alt + L Ctrl + Alt + L Ctrl + Alt + L
+ Ctrl + Alt + L 
 <!-- JS Bootstrap 5 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
 
