@@ -3104,9 +3104,384 @@ from django.core.exceptions import ValidationError</pre>
 
 			<br><br>
 			<h4 class="title_text border">[15]. Классы представлений: ListView, DetailView, CreateView.</h4>
+			
 			<li>
-				
+				<span class="spec">CBV - Class Based Views</span>
 			</li>
+			<li>
+				Использование классаов представлений вместо функцияй
+			</li>
+			<li>
+				Например наша функция index - отображает список статей - её можно представить через класс ListView. Класс ListView - созадёт список чего то
+			</li>
+			<li>
+				По умолчанию class ListView будет искать шаблон - по маршруту
+				<pre>
+[имя приложения]/[имя модели]_list.html</pre>
+				В таком случае наь необходимо было разместить шаблон в - templates/men/men_list.html
+				<br>Но мы так сейчас не делаем
+			</li>
+			<li>
+				В men/views.py - импортируем ListView; И создаём класс MenHome - который будет отвечать за домашнюю страницу нашего сайта:
+				<pre>
+from django.views.generic import ListView  # класс функции представления</pre>
+				<br>создаём класс представления
+				<pre>
+# класс - функция представления домашней страницы
+class MenHome(ListView):
+    model = Men  # связываемся с моделью Men (будет отображать список статей)</pre>
+			</li>
+			<li>
+				Редактируем path name='home' в men/urls.py
+				<pre>
+# MenHome - ссылаемся на класс представления as_view()-вызываем функцию представления!
+    path('', MenHome.as_view(), name='home'),</pre>
+    			Пробуем запустить сервер, и получаем ошибку, о том что не находит men/men_list  - это стандартный путь и имя в django - но у нас уже есть свой шаблон под именем index.html
+			</li>
+			<li>
+				Указываем имя шаблона idex.html - в  men/views.py - class MenHome(ListView): - добавляем атрибут template_name
+				<pre>
+# класс - функция представления домашней страницы
+class MenHome(ListView):
+    model = Men  # связываемся с моделью Men (будет отображать список статей)
+    template_name = 'men/index.html'</pre>
+    			Сохраняю, обновляю - но сайт пустой - то есть по сути есть только sidebar и navbar, то что прописывали в base.html  - в сё потому что у нас в шаблоне идёт цикл p in posts  - который прописывали в def index [posts = Men.objects.all() ]
+			</li>
+			<li>
+				Обращение к записям из модели в шаблоне через функцию представления
+				<br><span class="spec">object_list</span>
+				<br>В шаблоне Index.html меняем одну строчку
+				<pre>
+{% for p in posts %}
+на
+# object_list по сути равно Men.object.all()
+{% for p in object_list %}					
+				</pre>
+			</li>
+			<li>
+				Изменяем имя object_list - на любое которое нам необходимо
+				<br>men/views.py - class MenHome - добавляем ещё один атрибут - context_object_name
+				<br>
+				<pre>
+class MenHome(ListView):
+    model = Men  # связываемся с моделью Men (будет отображать список статей)
+    template_name = 'men/index.html'
+    # Все записи в модели Men те. object_list или Men.objects.all()
+    context_object_name = 'posts'  # к object_list можно обращаться как к posts</pre>
+    			В шаблоне теперь можно обращаться как к object_list, так и к posts
+			</li>
+			<li>
+				Необходимо указать заголовок title (также предавали ранее в def index)
+				class MenHome(ListView): - добавляем атрибут
+				<pre>
+extra_context = {'title': 'Главная страница'} # передаваемый параметр в шаблон title</pre>
+				через extra_context нельзя передавать изменяемые параметры (например списки), можно передавать строки, можно передавать числа.
+			</li>
+			<li>
+				Так как menu  я сделал через вложенный тег, в целях обучени в views.py - сделал рандомный список заголовков
+				<pre>
+side = [{'title': 'Все категории', 'url_name': 'home'},
+        {'title': 'О сайте', 'url_name': 'about'},
+        {'title': 'Добавить статью', 'url_name': 'add_page'},
+        {'title': 'Домашняя страницы', 'url_name': 'home'},
+        ]</pre>
+			</li>
+			<li>
+				Чтобы передать этот список параметров в шаблон  - добавляем функцию def get_context_data - в самом низу нашего класса представления - MenHome
+				<br>Полностью функция представления
+				<pre>
+# класс - функция представления домашней страницы
+class MenHome(ListView):
+    model = Men  # связываемся с моделью Men (будет отображать список статей)
+    template_name = 'men/index.html'
+    # Все записи в модели Men те. object_list или Men.objects.all()
+    context_object_name = 'posts'  # к object_list можно обращаться как к posts
+    extra_context = {'title': 'Главная страница'}  # передаваемый параметр в шаблон title
+
+    # Передаём параметры в шаблон (функция формирует и динамический и статический контекст)
+    def get_context_data(self, *, object_list=None, **kwargs):
+
+        # берём уже существующий контекст get_context_data =  ('posts' 'title')
+        # **kwargs - распаковываем словарь kwargs
+        context = super().get_context_data(**kwargs)  # на жтом моменте у нас уже есть posts+title
+        context['side'] = side  # добавим в словарь context - список side и даём ему имя side
+        return context  # передаём все параметры в шаблон posts+title+side</pre>
+			</li>
+			<li>
+				В шаблоне обратимся к side - Для проверки
+				<pre>
+&lt;div style="color: red;">
+    &lt;h2>side from vies.py&lt;/h2>
+
+    {% for s in side %}
+    &lt;li>&lt;a href="{% url s.url_name %}">{{s.title}}&lt;/a>&lt;/li>
+    {% endfor %}
+&lt;/div></pre>
+				На главной странице будет список ссылок из side - всё работает отлично - вышеуказанный код можно удалить в итоге, ровно как и side
+			</li>
+			<li>
+				Можно немного измениить функцию представления, 
+				<br>extra_context - убрав сверху
+				<br>context['title'] - добавив снизу
+				<pre>
+# класс - функция представления домашней страницы
+class MenHome(ListView):
+    model = Men  # связываемся с моделью Men (будет отображать список статей)
+    template_name = 'men/index.html'
+    # Все записи в модели Men те. object_list или Men.objects.all()
+    context_object_name = 'posts'  # к object_list можно обращаться как к posts
+
+    # Передаём параметры в шаблон (функция формирует и динамический и статический контекст)
+    def get_context_data(self, *, object_list=None, **kwargs):
+
+        # берём уже существующий контекст get_context_data =  ('posts')
+        # **kwargs - распаковываем словарь kwargs
+        context = super().get_context_data(**kwargs)  # на этом моменте у нас уже есть posts
+        context['side'] = side  # добавим в словарь context - список side и даём ему имя side
+        context['title'] = 'Главная страница'  # добавим в словарь передаваемых параметров title
+        return context  # передаём все параметры в шаблон posts+title+side</pre>
+			</li>
+			<li>
+				Ещё не зватает вункции cat_selected (чтобы все категории подсвечивались)
+				ниже внутри def get_context_data - добавляем:
+				<pre>
+context['cat_selected'] = 0</pre>
+			</li>
+			<li>
+				Сейчас - на главной странице отображаются все статьи не важно стоит галочка публикации или нет - сделаем так чтобы было видно только опубликованные на сайт статьи - добавляем метод в самом низу в class MenHome
+				<pre>
+    def get_queryset(self):
+        # возвращаем то какие записи должны быть прочитаны из модели Men
+        # будут прочитаны и отображены только с галочкой
+        return Men.objects.filter(is_publisher=True)</pre>
+        		Проверяю что метод работает, в админке убираю галочки с пару записей и обновляю - всё работает
+			</li>
+			<li>
+				Итоговый вариант функции представления домашней странице MenHome
+				<pre>
+# класс - функция представления домашней страницы
+class MenHome(ListView):  # ListView - класс представление / наш дочерний класс MenHome от класса ListView / 
+    model = Men  # связываемся с моделью Men (будет отображать список статей)
+    template_name = 'men/index.html'
+    # Все записи в модели Men те. object_list или Men.objects.all()
+    context_object_name = 'posts'  # к object_list можно обращаться как к posts
+
+    # Передаём параметры в шаблон (функция формирует и динамический и статический контекст)
+    def get_context_data(self, *, object_list=None, **kwargs):
+
+        # берём уже существующий контекст get_context_data =  ('posts')
+        # **kwargs - распаковываем словарь kwargs
+        context = super().get_context_data(**kwargs)  # на этом моменте у нас уже есть posts
+        context['side'] = side  # добавим в словарь context - список side и даём ему имя side
+        context['title'] = 'Главная страница'  # добавим в словарь передаваемых параметров title
+        context['cat_selected'] = 0
+        return context  # передаём все параметры в шаблон posts+title+side
+
+    def get_queryset(self):
+        # возвращаем то какие записи должны быть прочитаны из модели Men
+        # будут прочитаны и отображены только с галочкой
+        return Men.objects.filter(is_publisher=True)</pre>
+			</li>
+			<li>
+				Аналогично пишем функцию представления для отображения категорий (вмессто функции  - def show_category - её можно закомментировать)
+			</li>
+			<li>
+				Создаём функцию представления
+				<br>Во views.py:
+				<pre>
+					# функция представления домашней страницы категорий(музыканты актёры)
+# функция представления домашней страницы категорий(музыканты актёры)
+class MenCategory(ListView):  # ListView - класс представление / наш дочерний класс MenCategory от класса ListView /
+    model = Men  # связываемся с моделью Men (будет отображать список статей)
+    template_name = 'men/index.html'
+    # Все записи в модели Men те. object_list или Men.objects.all()
+    context_object_name = 'posts'  # к object_list можно обращаться как к posts
+
+    # когда будет формироваться экземпляр запроса MenCategory, то через ссылку self
+    def get_queryset(self):
+        # Записи по фильтру 1 - self обращаемся к словарю kwargs, берём параметр маршрута из path - cat_slug,
+        # is_publisher = True - только опубликованные
+        # cat__slug - через cat из Men, ссылаемся уже в Category - и обращаемся к Category -полю slug
+        return Men.objects.filter(cat__slug=self.kwargs['cat_slug'], is_publisher=True)</pre>
+			</li>
+			<li>
+				Далее необходимо скорректировать путь в men/urls.py (path name='category'):
+				<br>То есть в место функции def show_category - ссылаться на функцию представления class MenCategory
+				<pre>
+path('category/&lt;slug:cat_slug>/', show_category, name='category'),
+	меняем на
+path('category/&lt;slug:cat_slug>/', MenCategory.as_view(), name='category'),</pre>
+				Почти всё должно работать, но есть ньюансы
+				На данный момент мы не отображаем title - не отображаем cat_selected
+			</li>
+			<li>
+				Дополняем вышеуказанные параметры через метод внутри функции представления -  метод: get_context_data
+				<pre>
+    # Передаём параметры в шаблон (функция формирует и динамический и статический контекст)
+    def get_context_data(self, *, object_list=None, **kwargs):
+        # берём уже существующий контекст get_context_data =  ('posts')
+        # **kwargs - распаковываем словарь kwargs
+        context = super().get_context_data(**kwargs)  # на этом моменте у нас уже есть posts
+        context['side'] = side  # добавим в словарь context - список side и даём ему имя side
+        # Добавим в словарь передаваемых параметров title
+        # posts - object_list или Men.objects.all() - но с фильтром по слагу категории
+        # str(context['posts'][0].cat) - обращаемся к первой записи из post, по параметру cat
+        # - тот в свою очередь обращается в нужную категорию, а категория отображается по своему имени
+        # - из-за get absolut. В итоге - выводится просто имя категории.
+        context['title'] = 'Категория - ' + str(context['posts'][0].cat)
+        # context['posts'][0].cat_id - аналогично с title - только будет выводится id категории
+        context['cat_selected'] = context['posts'][0].cat_id
+        return context  # передаём все параметры в шаблон posts+title+side</pre>
+        		Всё работает, но если мы в url сами введём несуществующий - например ..../muzykanty3/  - то будет ошибка
+			</li>
+			<li>
+				Для исправления ошибки - нам нет необходимости даже писать понструкцию if - для отображения 404, достаточно в функции представления добавить один  атрибут - allow_empty = False
+			</li>
+			<li>
+				Полная функция представления категории
+				<pre>
+# функция представления домашней страницы категорий(музыканты актёры)
+class MenCategory(ListView):  # ListView - класс представление / наш дочерний класс MenCategory от класса ListView /
+    model = Men  # связываемся с моделью Men (будет отображать список статей)
+    template_name = 'men/index.html'
+    # Все записи в модели Men те. object_list или Men.objects.all()
+    context_object_name = 'posts'  # к object_list можно обращаться как к posts
+    allow_empty = False
+
+    # когда будет формироваться экземпляр запроса MenCategory, то через ссылку self
+    def get_queryset(self):
+        # Записи по фильтру 1 - self обращаемся к словарю kwargs, берём параметр маршрута из path - cat_slug,
+        # is_publisher = True - только опубликованные
+        # cat__slug - через cat из Men, ссылаемся уже в Category - и обращаемся к Category -полю slug
+        return Men.objects.filter(cat__slug=self.kwargs['cat_slug'], is_publisher=True)
+
+    # Передаём параметры в шаблон (функция формирует и динамический и статический контекст)
+    def get_context_data(self, *, object_list=None, **kwargs):
+        # берём уже существующий контекст get_context_data =  ('posts')
+        # **kwargs - распаковываем словарь kwargs
+        context = super().get_context_data(**kwargs)  # на этом моменте у нас уже есть posts
+        context['side'] = side  # добавим в словарь context - список side и даём ему имя side
+        # Добавим в словарь передаваемых параметров title
+        # posts - object_list или Men.objects.all() - но с фильтром по слагу категории
+        # str(context['posts'][0].cat) - обращаемся к первой записи из post, по параметру cat
+        # - тот в свою очередь обращается в нужную категорию, а категория отображается по своему имени
+        # - из-за get absolut. В итоге - выводится просто имя категории.
+        context['title'] = 'Категория - ' + str(context['posts'][0].cat)
+        # context['posts'][0].cat_id - аналогично с title - только будет выводится id категории
+        context['cat_selected'] = context['posts'][0].cat_id
+        return context  # передаём все параметры в шаблон posts+title+side</pre>
+			</li>
+			<li>
+				<span class="spec">DetailView</span>
+				Его можно использовать например для отображения какого-нибудь поста.
+				<br>Для начала импортируем DetailView внутри views.py
+				<pre>
+from django.views.generic import ListView, DetailView  # функции представления</pre>
+			</li>
+			<li>
+				Комментируем  def show_post и создаём класс представления DetailView - class ShowPost. Всё во views.py
+				<pre>
+class ShowPost(DetailView):  # создаём класс ShowPost, наследуемся от DetailView
+    model = Men  # связываемся с моделью Men
+    template_name = 'men/post.html'  # ссылка на шаблон</pre>
+
+			</li>
+			<li>
+				В men/urls.py - path name='post' - вместо обращения к функции show_post - обращаемся к функции представления - ShowPost
+				<pre>
+path('post/&lt;slug:post_slug>/', ShowPost.as_view(), name='post'),</pre>
+				Будет ошибка, сейчас - django обращается  не к post_slug, а просто к slug(это стандартно)
+			</li>
+			<li>
+				Для решение проблемы в ShowPost - добавляем аттрибут slug_url_kwarg
+				<pre>
+# отображение поста - функция представления
+class ShowPost(DetailView):  # создаём класс ShowPost, наследуемся от DetailView
+    model = Men  # связываемся с моделью Men
+    template_name = 'men/post.html'  # ссылка на шаблон
+    slug_url_kwarg = 'post_slug'  # чтобы post/&lt;slug:post_slug>/ - стандартно искал бы post/&lt;slug:slug>/
+    # pk_url_kwarg = 'post_pk' -  аналогично если бы хотели пользоваться id вместо слага в url</pre>
+			</li>
+			<li>
+				В ShowPost добалвяем context_object_name
+				<pre>
+context_object_name = 'post'</pre>
+			</li>
+			<li>
+				Добавляем get_context_data - для передачи title и side(для примера) в ShowPost
+				<pre>
+# Передаём параметры в шаблон (функция формирует и динамический и статический контекст)
+def get_context_data(self, *, object_list=None, **kwargs):
+    # берём уже существующий контекст get_context_data =  ('posts')
+    # **kwargs - распаковываем словарь kwargs
+    context = super().get_context_data(**kwargs)  # на этом моменте у нас уже есть posts
+    context['side'] = side  # добавим в словарь context - список side и даём ему имя side
+    context['title'] = context['post']  # Имя поста в title
+    # context['cat_selected'] = object_list.cat_id # НЕРАБОТАЕТ - ДОБАВЬ ПОТОМ
+    return context  # передаём все параметры в шаблон posts+title+side</pre>
+			</li>
+			<li>
+				<span class="spec">CreateView</span>
+				<br>Например - для добовлении нового поста
+				<br>Импортируем в men/views.py
+				<pre>
+from django.views.generic import ListView, DetailView, CreateView  # функции представления</pre>
+			</li>
+			<li>
+				Вместо функции def addpage - создаём функцию представления
+				<pre>
+# Функция представления страницы формы добавления поста
+class AddPage(CreateView):
+    form_class = AddPostForm  # связываемся с встроенным классом формы AddPostForm
+    template_name = 'men/addpage.html'  # ссылка на шаблон</pre>
+			</li>
+			<li>
+				Корректируем path name='add_page' (в men/urls.py)
+				<pre>
+path('addpage/', AddPage.as_view(), name='add_page'),</pre>
+				После этого в целом всё уже работает, только нехватает заголовка title
+			</li>
+			<li>
+				Добавляем get_conytext_menu - для передачи в шаблон (title и side(для примера)).
+				В men/views.py - class AddPage(CreateView):
+				<pre>
+    # Передаём параметры в шаблон (функция формирует и динамический и статический контекст)
+    def get_context_data(self, *, object_list=None, **kwargs):
+        # берём уже существующий контекст get_context_data =  ('posts')
+        # **kwargs - распаковываем словарь kwargs
+        context = super().get_context_data(**kwargs)  # на этом моменте у нас уже есть posts
+        context['side'] = side  # добавим в словарь context - список side и даём ему имя side
+        context['title'] = 'Добавление статьи'  # добавим в словарь передаваемых параметров title
+        return context  # передаём все параметры в шаблон posts+title+side</pre>
+
+			</li>
+			<li>Сохраняем пост - и нам сразу же открывает страницу поста<br>
+				Откуда django узнал что необходимо делать в AddPage? куда переправлять:
+				<br>-Он обратился к модели Men
+				<br>-В Men - добавил новую запись
+				<br>-Воспользовался get - абсолют url
+				<br>-который и вернул адресс - return reverse('post', kwargs={'post_slug': self.slug})
+			</li>
+			<li>
+				Если у нас не было бы прописано get_absolut_url в Men, нам бы необходимо было указать атрибут / success_url = reverse_lazy('home')
+				<pre>success_url = reverse_lazy('home')  # после добавления формы, перенаправит по пути path name='home'</pre>
+				<br>Обязательно необходим import reverse_lazy во views.py
+				<pre>from django.urls import reverse_lazy</pre>
+			</li>
+			<li>
+				<span class="spec">reverse reverse_lazy</span>
+				<br>функция reverse - строит маршрут
+				<br>функция reverse_lazy - строит маршрут только в момент когда он понадобится
+			</li>
+
+			<br><br>
+			<h4 class="title_text border">[16]. Основы ORM.</h4>
+			
+			<li>
+				Основы ORM - API модели
+			</li>
+
+
 
 
 
