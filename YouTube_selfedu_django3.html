@@ -3479,7 +3479,366 @@ path('addpage/', AddPage.as_view(), name='add_page'),</pre>
 			
 			<li>
 				Основы ORM - API модели
-			</li>
+				<br>В ORM-джанго очень богатый функционал - настолько что врятли когдато пригодится переходить на уровень SQL запросов
+				<ul>
+			
+					<li>
+						Будем работать в терминале django - (PyCharm) - чтобы запустить термина. В PyCharm терминал - в termonal - пишем команду
+						<pre>python manage.py shell</pre>
+					</li>
+					<li>
+						Загружамем все модели в термина
+						<pre>from men.models import *</pre>
+					</li>
+					<li>
+						Посмотреть все записи модели
+						<pre>Men.objects.all()</pre>
+						<pre>&lt;QuerySet [&lt;Men: Сергей Бодров>, &lt;Men: Марк Уолберг>, &lt;Men: Брэд Питт>, &lt;Men: Вячеслав Бутусов>, &lt;Men: Юрий Шевчук>, &lt;Men: Кеша Кешевич>]&lt;</pre>
+						Записи будут отсортированы согласно спец классу Meta - в models.py
+					</li>
+					<li>
+						Указать первые 2 записи
+						<pre>Men.objects.all()[:2]</pre>
+					</li>
+					<li>
+						просмотреть SQL запрос
+						<pre>
+from django.db import connection
+
+connection.queries</pre>
+					</li>
+					<li>
+						Посмотреть записи со второй по 4
+						<pre>Men.objects.all()[2:5]</pre>
+					</li>
+					<li>
+						Сортировка по pk или id
+						<pre>Men.objects.order_by('pk')</pre>
+					</li>
+					<li>
+						Сортировка по pk или id в обратном порядке
+						<pre>Men.objects.order_by('-pk')</pre>
+						ИЛИ
+						<pre>Men.objects.reverse()</pre>
+					</li>
+					<li>
+						Выбрать все записи у который первичный ключ меньше либо равен 2
+						<pre>Men.objects.filter(pk__lte=2)</pre>
+					</li>
+					<li>
+						Выбрать одну запись - метод <strong>get</strong>, так же выбирается 1 параметр по которому будет выбор обычно это pk или slug
+						<pre>Men.objects.get(pk=2)</pre>
+					</li>
+					<li>
+						При использовании фильтра filter - возвращается коллекция -QuerySet-
+						<br>При использовании get - возвращается экземпляр класса (одна запись)
+					</li>
+					<li>
+						Обработка связанных данных, обработка тсвязанныых таблиц
+						<br>Для начала возьмум одну запись и присовим переменненнцю w.
+						<pre>
+							 w=Men.objects.get(pk=1)</pre>
+							 <br>Теперь мы можем обращаться по следующим свойствам:
+							 <br>-w.title/w.content...w.is_publisher (поля таблицы модели)
+							 <br>-w.pk/w.ig - первичный ключ или id
+							 <br>-w.cat_id - идентефикатор рубрики (id категории) - то есть это уже другая модель Category, но в модели Men мы сделали поле cat - отношение к категории
+							 <br>-w.cat - объект класса Category, хранищий данные записи с id = cat_id
+					</li>
+					<li>
+						Обращаемся к категории (из объекта Men)
+						<pre>w.cat  -->  &lt;Category: Актёры></pre>
+						Мы получаем 'Актёры' из за нашего метода __str__ - в models.py Category - этот метод возвращает имя категории - как мы и прописывали
+					</li>
+					<li>
+						Обращаемся к полю Category через объект Men
+						<pre>w.cat.name --> 'Актёры'</pre>
+					</li>
+					<li>Если идёт обращение к какому то полю к которому ранее не обращались, то для получения его значения джанго генерирует sql запрос</li>
+					<li>
+						-вторичная модель-_set
+						<br>Используем первичную модель Category - для получения всех связанных с ней постов (по записи из категоррии актуры - выберем все записи из Men - которые относятся к актёрам)
+					</li>
+					<li>
+						Для начала выберем одну запись из таблицы Category
+						<pre>c=Category.objects.get(pk=1) --> &lt;Category: Актёры></pre>
+					</li>
+					<li>
+						Теперь прочитаем все записи из Men - обращаясь через запись из Category
+						<pre>c.men_set </pre>
+						нам вернётся объект RelatedManager object at 0x000001878E15B0D0
+					</li>
+					<li>
+						Выберем свех Актёров из Men
+						<pre>c.men_set.all()
+QuerySet [&lt;Men: Сергей Бодров>, &lt;Men: Марк Уолберг>, &lt;Men: Брэд Питт>]></pre>
+
+					</li>
+					<li>
+						<strong>Фильтры полей</strong>
+						<br>-имя атрибута-_gt/gte/lt/lte (gt (>), gte (>=), lt (<), lte (<=))
+					</li>
+					<li>
+						Выбрать записи у которых в заголовке есть фрагмент 'че'
+						<pre>Men.objects.filter(title__contains='че')</pre>
+						Не важно где 'че' находится - в начале/середине/конце строки - найдёт всё
+					</li>
+					<li>
+						Аналогичный поиск без учёта регистра
+						<br><strong>!SQLite Не поддерживает учёт регистра для русских символов</strong>
+						<br>В postgresql всё ок
+						<pre>Men.objects.filter(title__icontains='ВЯ') --> QuerySet - Men - Вячеслав Бутусов></pre>
+					</li>
+					<li>
+						Выбор записей по значениям - pk
+						<pre>Men.objects.filter(pk__in=[2, 5, 11])</pre>
+					</li>
+					<li>
+						Выбор записей по двум фильтрам
+						<pre>Men.objects.filter(pk__in=[1,3,4], is_publisher=True)</pre>
+						Т.е выберет только те что совпадают по двем параметрам одновременно.
+						<br>То есть  pk=... and is_publisher = True
+					</li>
+					<li>
+						Обращения к записям по внешнему ключу (по категории актёры и музыканты)
+						<pre>Men.objects.filter(cat__in=[1,2])</pre>
+
+					</li>
+					<li>
+						<strong>Класс Q</strong> при использовании с операторами:
+						<br>-& - Логичесое И (приоритет 2)
+						<br>-| - логическое ИЛИ (приоритет 3)
+						<br>-~ - логическое НЕ (приоритет 1)
+					</li>
+					<li>
+						Импортируем класс Q
+						<pre>from django.db.models import Q</pre>
+					</li>
+					<li>
+						ИЛИ в фильтрах - класс Q
+						<pre>Men.objects.filter(Q(pk__lt=5) | Q(cat_id=2))</pre>
+						pk <= 5 ИЛИ категория =2(музыканты)
+					</li>
+					<li>
+						И в фильтрах - класс Q
+						<pre>Men.objects.filter(Q(pk__lt=5) &  Q(cat_id=2))</pre>
+						pk <= 5 И категория =2(музыканты)
+					</li>
+					<li>
+						НЕ в фильтрах - класс Q
+						<pre>Men.objects.filter(~Q(pk__lt=5) | Q(cat_id=2)) </pre>
+						pk (<= 5) - ~ НЕ - т.е превратилось в  >= 5
+						<br>ИЛИ категория =2(музыканты)
+					</li>
+					<li>
+						Взять перыую запись из выборки (метод first())
+						<pre>Men.objects.first()</pre>
+						Он возьмёт первую запись в соответстии с сортировкой (сортировку прописывали в models.py)
+					</li>
+					<li>
+						Берём первую запись отсортированную по pk
+						<pre>Men.objects.order_by('pk').first()</pre>
+					</li>
+					<li>
+						Берём последнюю запись из выборки (last())
+						<pre>
+Men.objects.last()</pre>
+					</li>
+					<li>
+						Взять запись с самой поздней датой обновления (то есть обноалялвсь недавнее всех)
+						<pre>Men.objects.latest('time_update')</pre>
+					</li>
+					<li>
+						Взять запись с самой ранней датой обновления (то есть обноалялвсь давнее всех)
+						<pre>Men.objects.earliest('time_update')</pre>
+					</li>
+					<li>
+						Выбрать предыдущую или следующую запись относительно какойто
+						<pre>
+w = Men.objects.get(pk=5)  # выбираем 1 запись
+w.get_previous_by_time_update()  # предыдущая запись (по времени обновления)
+w.get_next_by_time_update()  # следущая запись относительно w (по времени обновления)</pre>
+					</li>
+					<li>
+						Слудещая запись относительно w по времени обновления у которой id выше 3
+						<pre>
+w.get_next_by_time_update(pk__gt=3)</pre>
+					</li>
+					<li>
+						exist() - проверка существования<br>
+
+						count() - получение количества записей
+					</li>
+					<li>
+						Добавление в таблицу Category ещё одной рубрики(записи)
+						<pre>
+Category.objects.create(name='Спортсмены', slug='sportsmens')</pre>
+					</li>
+					<li>
+						Проверка наличии записи в Men - что соответствуют категории спортсмены
+						<pre>
+c3 = Category.objects.get(pk=3)  # выбрали запись спортсмены, в модели Category
+c3.men_set.exists() --> False  # это означает что в модели Men - нет записей свызанных с категорие Спортсмены.</pre>
+					</li>
+					<li>
+						Количество записей в Men, связанныъ с Category-спортсмены
+						<pre>c3.men_set.count()  -->  записей 0</pre>
+					</li>
+					<li>
+						Считаем количество записей в Men, у которых pk > 4
+						<pre>Men.objects.filter(pk__gt=4).count()</pre>
+					</li>
+					<li>
+						Выберем записи в Men - относящийся к Категории - по слагу Categort
+						<pre>Men.objects.filter(cat__slug='aktyory')</pre>
+						Здесь идёт вормирование <имя первичной модели>__<название поля первичной модели>
+						<br>В нашем случае 1-мы обратились к нашему полю Men = cat.  2 - Это поле обратилось к конкретной категории. 3 - из за метода __str__ self.name - внутри Category - нам выдало поле name класса Category
+						<br>slug -  это поле slug в Category
+						<br><br>Повторюсь Category - Это первичная модель, Men - это вторичная модель
+					</li>
+					<li>
+						Аналогично - обращаемся к категории, через запись в Men , по id - категории. - и получаем все записи Men, по категории id = 1
+						<pre>Men.objects.filter(cat__in=[1])</pre>
+					</li>
+					<li>
+						Выберем все записи Men - по имени категории 'Музыканты' (Через поля Men = cat __ Category = name)
+						<pre>Men.objects.filter(cat__name='Музыканты')</pre>
+						Всё это обращение к полю первичной модели, начиная от поля cat - вторичной модели
+					</li>
+					<li>
+						В обращении к полю первичной модели, с дополнительным вильтром.
+						<pre>Men.objects.filter(cat__name__contains='к')</pre>
+						Покажет все записи Men, категорий = А-К-тёры, Музы-К-анты
+					</li>
+					<li>
+						Выбрать все категории (первичная модель Category), которые связаны с записями вторичной модели Men
+						<pre>
+Category.objects.filter(men__title__contains='че')
+-->  &lt;QuerySet [&lt;Category: Музыканты>]</pre>
+						То есть мы выбрали все категории, которые связаны с записями из модели (таблицы) Men, в которых к заголовке (поле title Men) - присутствует отрывок 'че'  - В нашем случае это была запись Вячеслав Бутусов - которая относится к категории Музыканты, и соответственно нам выдаст всю категорию Музыканты - и отобразит 
+					</li>
+					<li>
+						<pre>
+Category.objects.filter(men__title__contains='е')
+--> &lt;QuerySet [&lt;Category: Актёры>, <Category: Актёры>, <Category: Музыканты>, <Category: Музыканты>, &lt;Category: Музыканты>]></pre>
+						длинный список и повторяющийся получился потому, что будет вывводится категория всякиц раз, когда в Men бузет находится объект в tittle которого будет 'е' - Сергей Бодров - Сузыканты, Марк Уолберг - Актёры, Вечеслав Бутосов - Музыканты, Брий Шевчук - Музыканты, Кеша Кешович - Музыканты.
+					</li>
+					<li>
+						Что бы не было посторения, необходимо выбрать только уникальные категории, то есть отобразятся 1 раз если даже будет совпадение более одного раза
+						<pre>
+Category.objects.filter(men__title__contains='е').distinct()
+--> &lt&ltQuerySet [&ltCategory: Актёры>, &ltCategory: Музыканты>]></pre>
+					</li>
+					<li>
+						Функции агрегации Count, Min, Max, Sum
+					</li>
+					<li>
+						Импортируем все функции из django.db.models
+						<pre>from django.db.models import *</pre>
+					</li>
+					<li>
+						Минимальный cat_id  - id категории в таблице Men
+						<pre>
+Men.objects.aggregate(Min('cat_id')) -->  {'cat_id__min': 1}
+Men.objects.aggregate(Max('cat_id')) -->  {'cat_id__max': 2} (потому что в спортсменах id=3 - сейчас нет записей в Men)
+Men.objects.aggregate(Max('pk')) -->  {'pk__max': 11}
+Men.objects.aggregate(Min('pk')) -->  {'pk__min': 1}</pre>
+					</li>
+					<li>
+						Получение сразу нескольких значений cat_id - в виде словаря
+						<pre>
+Men.objects.aggregate(Min('cat_id'),Max('cat_id'))
+--> {'cat_id__min': 1, 'cat_id__max': 2}</pre>
+					</li>
+					<li>
+						Если мы хотим переименовать ключи
+						<pre>
+Men.objects.aggregate(minimal_catid=Min('cat_id'), maximal_idcat=Max('cat_id'))
+--> {'minimal_catid': 1, 'maximal_idcat': 2}</pre>
+					</li>
+					<li>
+						С агрегирующими функциями можно выполнять математические операции
+						<pre>
+Men.objects.aggregate(result=Sum('cat_id')- Count('cat_id'))
+--> {'result': 3}</pre>
+						Из суммы cat_id вычли количество cat_id
+						<br>result = (1+1+1+2+2+2) - 6(записей)
+					</li>
+					<li>
+						Среднее арифметическое pk - записей Men
+						<pre>
+Men.objects.aggregate(sred_arifm=Avg('pk'))
+--> {'sred_arifm': 4.333333333333333}</pre>
+						sred_arifm = (1+2+3+4+5+11) / 6
+					</li>
+					<li>
+						Возьмём среднее арифметическое cat_id только у записей у которых pk >=5
+						<pre>
+Men.objects.filter(pk__gte=5).aggregate(sred_arifm=Avg('cat_id'))
+--> = 	{'sred_arifm': 2.0}</pre>
+					</li>
+					<li>
+						Выбор записи и их конкретных полей
+						<br>метод values()
+					</li>
+					<li>
+						Возьмём одну из запись у которой pk -1, только два поля title slug и cut_id
+						<pre>
+Men.objects.values('title', 'slug', 'cat_id').get(pk=1)
+--> {'title': 'Сергей Бодров', 'slug': 'sergej-bodrov', 'cat_id': 1}</pre>
+					</li>
+					<li>
+						Получение имя Сategory из записи Men по pk записи Men = 11
+						<pre>Men.objects.get(pk=11).cat.name</pre>
+					</li>
+					<li>
+						Выберем:
+						<br>-поле title - из Men
+						<br>-поле name - из Category
+						<br>-По ключу из Men
+						<pre>
+Men.objects.values('title','cat__name').get(pk=4)
+-->	{'title': 'Вячеслав Бутусов', 'cat__name': 'Музыканты'}</pre>
+					</li>
+					<li>
+						Выбрать все записи из таблицы Men, только Поля:
+						<br>-title - из Men
+						<br>-name - из Category
+						<pre>Men.objects.values('title','cat__name')</pre>
+					</li>
+					<li>
+						Выведем все записи по вышеуказанным параметрам - через цикл for
+						<pre>
+spisok_po_parametram = Men.objects.values('title','cat__name')
+for zapis in spisok_po_parametram:
+     print(zapis['title'], zapis['cat__name'])
+
+-->
+Сергей Бодров Актёры 
+Марк Уолберг Актёры
+Брэд Питт Актёры
+Вячеслав Бутусов Музыканты
+Юрий Шевчук Музыканты
+Кеша Кешевич Музыканты</pre>
+					</li>
+					<li>
+						<span class="spec">
+							Если не понимаешь как получить какоето значение, какуюто переменную:
+							<br>-запусти django shell в терминале - python manage.py shell
+							<br>-в sell импортирую всё что нужно (модели, Q, функции Min, Max, Count,)
+							<br>-Эксперементируй, в получении необходимых данных с помощью get(), filter(), values(), Category.men__set.all, cat__name, cat__slug и тд
+						</span>
+					</li>
+					<br><br><br><li>16. 42:05</li>
+
+
+
+
+
+
+
+
+				</ul><!-- орм -->
+			</li><!-- орм -->
 
 
 
