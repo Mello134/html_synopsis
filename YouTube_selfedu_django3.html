@@ -3828,17 +3828,167 @@ for zapis in spisok_po_parametram:
 							<br>-Эксперементируй, в получении необходимых данных с помощью get(), filter(), values(), Category.men__set.all, cat__name, cat__slug и тд
 						</span>
 					</li>
-					<br><br><br><li>16. 42:05</li>
+					<li>
+						Группировка записей и агрегирование с помощью метода annotate
+					</li>
+					<li>
+						Сгруппировать записси по cat_id (выбрать записи для первой категории и для второй категории) - то есть получим две независимые группы записей - а затем к каждой группе применить агрегацию и получить искомые значения
+						<pre>
+Men.objects.values('cat_id').annotate(Count('id'))
+-->
+&lt;QuerySet [{'&lt;cat_id': 2, 'id__count': 3}, {'cat_id': 1, 'id__count': 3}]>	
+						</pre>
+						Метод - values - говорит что смотрим только поле cat_id. И в сочеттании с annotate - на уровне SQL запроса будет давать как - группировка по cat_id
+						<br>Затем Count('id') - будет считать колиество записей в каждой категории
+						<br>Получилось [{категория=2 количество записей=3},{категория=1 количество записей=3}]
+					</li>
+					<li>
+						Количество записей в категории
+						<pre>
+c = Category.objects.annotate(Count('men'))
+c --> &lt;QuerySet [&lt;Category: Актёры>, &lt;Category: Музыканты>, &lt;Category: Спортсмены>]>
+c[0].men__count --> 3  # количество записей в Category: Актёры
+c[1].men__count --> 3  # количество записей в Category: Музыканты
+c[2].men__count --> 0  # количество записей в Category: Спортсмены</pre>
+					</li>
+					<li>
+						Количество записей в категории через переменную
+						<pre>
+c = Category.objects.annotate(total=Count('men'))
+c --> &lt;QuerySet [&lt;Category: Актёры>, &lt;Category: Музыканты>, &lt;Category: Спортсмены>]>
+c[0].total --> 3  # количество записей в Category: Актёры
+c[1].total --> 3  # количество записей в Category: Музыканты
+c[2].total --> 0  # количество записей в Category: Спортсмены</pre>
+					</li>
+					<li>
+						Количество записей (рубрик) в Сategory - (т.е Актёры, Музыканты, Спортсмены)
+						<pre>
+c = Category.objects.annotate(total=Count('men'))
+len(c) --> 3</pre>
+					</li>
+					<li>
+						Количество рубрик, у которых количество записей больше 0 (т.е количество актёров, количество музыкантов)
+						<pre>
+c = Category.objects.annotate(total=Count('men')).filter(total__gt=0)
+c --> 	&lt;QuerySet [&lt;Category: Музыканты>, &lt;Category: Актёры>]>	
+len(c) --> 	2</pre>
+					</li>
+					<li>
+						<span class="spec">class F</span>
+						<pre>
+from django.db.models import F  # необходим импорт
 
+Men.objects.filter(pk__gt=F('cat_id'))
+# т.е  pk > cat_id ?? - покажет все записи Men кроме первой
+# Эта операция искуственный пример - её врятли когдато придётся вызывать, очень нелогичный запрос.</pre>
+					</li>
+					<li>
+						F можно использывать например для подсчёта числа просмотров, отдельного поста 
+						<pre>
+# views  # предположим в нашей модели Men есть поле views(количество просмотров)
+Men.objects.filter(slig='bitusov').update(views=F('views')+1)
+#При просмотре страницы бутусова, views будет обнавлятся как = views + 1</pre>
+					</li>
+					<li>
+						Увеличение числа просмотров - другой вариант
+						<pre>
+w = Men.objects.get(pk=1)  # получаем запись с pk=1
+w.views = F('views')+1  # добавляем количество просмотров
+w.save()  # сохраняем запись (все изменения полей записи)</pre>
+					</li>
+					<li>
+						В django - есть набор функций который позволяет делать вычисления на стороне СУБД
+					</li>
+					<li>
+						Вычисляем длину строки
+						<pre>
+from django.db.models.functions import Length  # необходим импорт
 
+ps = Men.objects.annotate(len=Length('content'))
+ps -->  &lt;QuerySet [&lt;Men: Сергей Бодров>, &lt;Men: Марк Уолберг>, &lt;Men: Брэд Питт>, &lt;Men: Вячеслав Бутусов>, &lt;Men: Юрий Шевчук>, &lt;Men: Кеша Кешевич>]>
+ps[0].len --> 1724  # Длина строки(количество символов) в поле контент, для записи Сергей Бодров
+ps[5].len --> 4  # Длина строки(количество символов) в поле контент, для записи Кеша Кешевич</pre>
+					</li>
+					<li>
+						Количество символов для каждой записи c помощью for:
+						<pre>
+ps = Men.objects.annotate(len=Length('content'))
+# ps - получится список из всех записей, по порядку	, переменной len - присваемаем len(content)
+>>> for p in ps: 
+...     print('В записи', p, p.len, 'символов.') 
+-->
 
+В записи Сергей Бодров 1724 символов. 
+В записи Марк Уолберг 3346 символов.
+В записи Брэд Питт 2993 символов.
+В записи Вячеслав Бутусов 812 символов.
+В записи Юрий Шевчук 3638 символов.
+В записи Кеша Кешевич 4 символов.</pre>
 
-
-
-
-
+					</li>
+					<li>
+						raw SQL запросы - запросы не на уровне ORM Django - а на уровне SQL в чистом виде - необходимости в этом в 95% случаев нету
+						<br>
+						Manager.raw(< SQL Запрос >)
+						<pre>
+Men.objects.raw('SELECT * FROM men_men')  # это SQL запрос
+-->	&lt;RawQuerySet: SELECT * FROM men_men>
+w = _ --> сохроним в переменную w - то что возвратил SQL
+for p in w:                              
+    print(p.pk, p.title)                 
+--> 
+2 Марк Уолберг 
+4 Вячеслав Бутусов
+5 Юрий Шевчук
+3 Брэд Питт
+1 Сергей Бодров
+11 Кеша Кешевич</pre>
+					</li>
+					<li>
+						Очистить список SQL запросов
+						<pre>
+from django.db import reset_queries 
+reset_queries() # очищаем список SQL запросов
+connection.queries # смотрим список запросов
+--> []  # список пуст</pre>
+					</li>
+					<li>
+						Делаем SQL запрос и читаем:
+						<pre>
+w = Men.objects.raw('SELECT * FROM men_men')
+connection.queries  --> [] # запрос пуст!</pre>
+						<strong>До тех пор пока мы не пытались что то прочитать из переменной w, никакого SQL запроса выполнено не будет!</strong>
+						<br>Читаем
+						<pre>
+w[0] -->  &lt;Men: Марк Уолберг>  # прочитали
+connection.queries  --> смотрим SQL запрос
+--> [{'sql': 'SELECT * FROM men_men', 'time': '0.000'}]  # это и есть SQL Запрос</pre>
+					</li>
+					<li>
+						* - это все поля в SQL, но если обращатся не ко всем полям а к каомуто определенному полю - в запросе обязательно должно фигурировать поле id
+						<pre>
+w = Men.objects.raw('SELECT id, title FROM men_men')</pre>
+					</li>
+					<li>
+						Передаём параметр в SQL запрос
+						<pre>
+#выбираем запись (заголовок) по слагу kesha
+Men.objects.raw("SELECT id, title FROM men_men WHERE slug='kesha'")
+# Этот запрос небезопасен, лучше сделать так как ниже
+# безопасный путь
+slug = 'kesha'
+Men.objects.raw("SELECT id, title FROM men_men WHERE slug='%s'", [slug])</pre>
+					</li>
 				</ul><!-- орм -->
 			</li><!-- орм -->
+
+
+			<br><br>
+			<h4 class="title_text border">[17]. Mixins - убираем дублирование кода.</h4>
+			<li>
+				Mixins - убираем дублирование кода
+			</li>
+
 
 
 
