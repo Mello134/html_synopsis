@@ -3979,6 +3979,10 @@ Men.objects.raw("SELECT id, title FROM men_men WHERE slug='kesha'")
 slug = 'kesha'
 Men.objects.raw("SELECT id, title FROM men_men WHERE slug='%s'", [slug])</pre>
 					</li>
+					<li>
+						Выходим из python shell
+						<pre>exit()</pre>
+					</li>
 				</ul><!-- орм -->
 			</li><!-- орм -->
 
@@ -3987,7 +3991,256 @@ Men.objects.raw("SELECT id, title FROM men_men WHERE slug='%s'", [slug])</pre>
 			<h4 class="title_text border">[17]. Mixins - убираем дублирование кода.</h4>
 			<li>
 				Mixins - убираем дублирование кода
+				<br>Будем выночить общий код из классов представления - MenHome, MenCategory, AddPage - в отдельный класс - Mixin (англ. - примесь)
+				<br>
+				<img src="images\mixin.jpg" class="img-fluid">
+				<br>
 			</li>
+			<li>
+				Когда объявляем класс MenHome(DataMixin, ListView):  - DataMixin - это общий класс который мы создадим, его необходимо указывать первым чтобы Django  обраба его петывал его первым. (В Python - тот класс который записан первым - первым и будет обрабатываться)
+			</li>
+			<li>
+				Для дополнительных и вспомогательных классов необходим отдельный файл - В men создаём utils.py
+			</li>
+			<li>
+				Можно везде удалить side - из views.py, из шаблонов index.html
+			</li>
+			<li>
+				В men/utils.py - переносим menu - это список названий и url_name - в navbar
+				<pre>
+menu = [{'title': 'О сайте', 'url_name': 'about'},
+	{'title': 'Добавить статью', 'url_name': 'add_page'},
+	{'title': 'Обратная связь', 'url_name': 'contact'},
+	{'title': 'Войти', 'url_name': 'login'},
+]</pre>
+			</li>
+			<li>
+				В men/utils.py - прописываем новый вспомогательный класс - называем его DataMixin.
+				<pre>
+class DataMixin:
+    # метод будет создавать context (передаваемые параметры) - для шаблонов
+    def get_user_context(self, **kwargs):
+        # формируем начальный словарь context - из именованных параметров переданной методу g_u_c
+        context = kwargs
+        cats = Category.objects.all()  # формируем список категорий
+        context['menu'] = menu  # {'menu':menu}, {'ключ':'значение'}
+        context['cats'] = cats
+        if 'cat_selected' not in context:  # если cat_selected нету в context
+            context['cat_selected'] = 0  # создаём cat_selected и присваиваем значение 0
+        return context  # вернём словарь context(словарь передаваемых параметры в шаблоны)</pre>
+				<br>
+				Там же необходимо импортировать нашу модель Category (я сразу импортировал все)
+				<pre>from men.models import *</pre>
+			</li>
+			<li>
+				Из base.html - убираемм ссылку на наш вложенный тег - def show_categories(sort=None, cat_selected = 0)
+				<pre>
+{% show_categories 'name' cat_selected %}  -  удаляем</pre>
+			</li>
+			<li>
+				В место этого копируем вывод категорий из шаблона list_categories
+				<pre>
+<!-- # cats = Category.objects.all() из utils.py/ class DataMixin -->
+{% for c in cats %}
+    {% if c.pk == cat_selected %} 
+        &lt;li class="selected">{{ c.name }}&lt;/li>
+    {% else %}
+        &lt;li>&lt;a href="{{ c.get_absolute_url }}">{{ c.name }}&lt;/a>&lt;/li>
+    {% endif %}
+{% endfor %}</pre>
+				По сути так было изначально - теперь мы не ссылаемся на наш вложенный тег def show_categories из men_tags.py
+				<br>Мы будем ссылаться на class DataMixin - который вормирует все категории в context (то есть словарь передаваемых параметров в контексте)
+			</li>
+			<li>
+				В men/views.py - импортируем наш файл - utils.py
+				<pre>from .utils import *</pre>
+			</li>
+			<li>
+				Изменяем class MenHome:
+				<pre>
+class MenHome(ListView): --> class MenHome(DataMixin, ListView):
+
+-delet-delet-delet-delet-delet-delet-delet-delet-delet-
+context['side'] = side  
+context['title'] = 'Главная страница'
+context['cat_selected'] = 0
+-delet-delet-delet-delet-delet-delet-delet-delet-delet-
+
+в место удалённого кода 1 строки:
+# берём context = menu, cat_selected, cats из DataMixin, добавляем в context - title='Главная страница'
+# через self - мы обращаемся к DataMixin
+с_def = self.get_user_context(title='Главная страница')
+# плюсуем то что было раньше в context(post) - и context из DataMixin + title
+context = dict(list(context.items()) + list(c_def.items()))
+
+
+return context
+-->
+# плюсуем то что было раньше в context(те post) - и context из DataMixin + title
+# и передаём все параметры в шаблон posts+title+menu+cat_selected+cats
+return dict(list(context.items()) + list(c_def.items()))</pre>
+			</li>
+			<li>
+				из base.html - уберём ссылку на наш вложенный show_menu()
+				<pre>
+<!-- меню навбара вложенный тег -->
+{% show_menu %}	  --> УДАЛЯЕМ</pre>
+				<br>
+				Вместо удалённого добавляем наш навбар из list_menu, то есть как было изначально - теперь мы будем ссылаться не на вложенный тег list_menu - а просто на передаваемые пораметры context - из функция представлений (в нашем лусучае классов представлений)  context которых равен, то что прописано в самих классах представления и в классе Datamixn
+				<pre>
+# Навбар -->
+{% block mainmenu %}
+    &lt;div class="header">
+        &lt;ul  id="mainmenu" class="mainmenu">
+            # Это лого внутри навбар -->
+            &lt;li class="logo">&lt;a href="{% url 'home' %}">&lt;div class="logo">&lt;/div>&lt;/a>&lt;/li>
+            # перебираем все в списке меню (men/views.py) -->
+            {% for m in menu %}
+
+                # если не последний -->
+                {% if not forloop.last %}
+                &lt;li>&lt;a href="{% url m.url_name %}">{{m.title}}&lt;/a>&lt;/li>
+                {% else %}
+                &lt;li class="last">&lt;a href="{% url m.url_name %}">{{m.title}}&lt;/a>&lt;/li>
+                {% endif %}                                
+            
+            {% endfor %}
+        &lt;/ul>
+        &lt;div class="clear">&lt;/div>
+    &lt;/div> # &lt;div class="header"> -->
+# Конец Навбар -->
+{% endblock mainmenu %}</pre>
+			</li>
+			<li>
+				Во views.py полностью избавляемся от side (ctrl+f) - меняем на menu - везде. side - был в целях обучения
+			</li>
+			<li>
+				Меняем класс представления  AddPage
+				<pre>
+class AddPage(ListView): -->  class AddPage(DataMixin, CreateView):
+
+убираем дублирование кода
+-delet-delet-delet-delet-delet-delet-delet-delet-delet-
+context['menu'] = menu
+context['title'] = 'Добавление статьи'
+-delet-delet-delet-delet-delet-delet-delet-delet-delet-
+-->
+c_def = self.get_user_context(title='Добавление статьи')
+
+return context
+-->
+# posts + cats + cat_selected + menu + title
+return dict(list(context.items()) + list(c_def.items()))</pre>
+			</li>
+			<li>
+				Аналогично делаем тоже самое в ShowPost:
+				<br>-Добавлеям DataMixim
+				<br>-Убираем дублирование кода - вставляем c_def
+				<br>-Суммируем context из функции представления и класса DataMixin
+				<br>Здесь тольк один ньюанс формирование заголовка на основе get_context_data - то есть название поста
+				<pre>c_def = self.get_user_context(title=context['post'])</pre>
+			</li>
+			<li>
+				Меняем class MenCategory(функция представления)
+				<pre>
+class MenCategory(DataMixin, ListView):</pre>
+				<pre>
+-delet-delet-delet-delet-delet-delet-
+context['menu'] = menu
+context['title'] = 'Категория - ' + str(context['posts'][0].cat)
+context['cat_selected'] = context['posts'][0].cat_id
+-delet-delet-delet-delet-delet-delet-
+-->
+c_def = self.get_user_context(title='Категория - ' + str(context['posts'][0].cat),
+                                      cat_selected=context['posts'][0].cat_id)
+
+return dict(list(context.items()) + list(c_def.items()))</pre>
+			</li>
+			<li>
+				Теперь все классы представления  - ссылкаются на DataMixit - то есть главная страница, страница отдельного поста, страница, страница категории, страница добавления записи
+			</li>
+			<li>
+				Есть стандартные микмины, например LoginRequeriedMixin - он будет запрещать смотреть страницы незарегестрированным пользователям
+			</li>
+			<li>
+				Импортируем стандартный миксин LoginRequeriedMixin - во views.py
+				<pre>from django.contrib.auth.mixins import LoginRequiredMixin</pre>
+			</li>
+			<li>
+				Добавим в класс представления AddPage - миксин LoginRequiredMixin, чтобы запрещать просматривать эту страницу не авторизованным пользователям
+				<pre>
+class AddPage(LoginRequiredMixin, DataMixin, CreateView):</pre>
+				Всё работает, теперь чтобы зайти на страницу, на данном этапе, необходимо авторизоватся из админки, потом перейти на сайт (позже будем добавлять и других пользователей)
+				<br>Если в админке выйдем из аккаунта - попробуем зайти на страницу добавить статью - будет 404
+			</li>
+			<li>
+				Добавим в AddPage - перенаправление на авторизацию (пока только с админки) - если полльзователь не авторизован.
+				<br>Для этого во views.py - class AddPage добавим аттрибут - login_url
+				<pre>login_url = '/admin/'</pre>
+				<br>можно в место этого просто перенаправлять на домашнюю страницу
+				<pre>login_url = reverse_lazy('home')</pre>
+			</li>
+			<li>
+				Генерировать страницу 403 - доступ запрещён
+			</li>
+			<li>
+				LoginRequiredMixin - работает только с классами представления, если мы хотим запрещать в функции представления, необходимо использовать декоратор
+			</li>
+			<li>
+				ограничиваем доступ def about - с помошью декоратора
+				<pre>
+from django.contrib.auth.decorators import login_required  # запрет на функцию представления
+
+@login_required
+def about(request):  # о странице
+    # (request, 'men/templates/men/about.html', {'ключ':'значение'})
+    return render(request, 'men/about.html', {'menu': menu, 'title': 'О сайте'})</pre>
+    			Будет страница 404
+    			<br><strong>Убираем @login_required - он нам не нужен, показал просто для демонстрации</strong>
+			</li>
+			<li>
+				Сделаем так, чтобы пункт в navbar - вообще не показывался бы в navbar если пользователь не авторизован
+				<br>Для этого в utils.py - class DataMixin: меняем:
+				<pre>
+context['menu'] = menu - удаляем
+-->
+# копируем всё меню в новую переменную (когда будет вызываться метод get_user_context)
+user_menu = menu.copy()
+if not self.request.user.is_authenticated:  # если не авторизован:
+    user_menu.pop(1)  # удаляем 'Добавить Меню' строчку полностью с URLom
+context['menu'] = user_menu  # {'menu':'user_menu'} / {'ключ':'значение'}</pre>
+				Всё работает как планировали
+			</li>
+			<li>
+				Сделаем так, что если у рубрики нет не одного поста (в данном случае Спортсмены), эту рубрику не отображать в sidebar вовсе, пока там не появится хотябы отдной записи
+				<br>Для этого - опять в DataMixin (из utils.py)
+				<pre>
+from django.db.models import Count  # импортируем count в utils.py
+
+cats = Category.objects.all()  # формируем список категорий
+---> меняем на --> 
+ cats = Category.objects.annotate(Count('men'))  # количество постов в каждой рубрике</pre>
+			</li>
+			<li>
+				В шаблоне base.html - добавляем ещё одну конструкцию if - в месте где отображаем категории
+				<pre>
+for c in cats без изменений					
+{% if c.men__count > 0 %}
+без изменений
+{% endif %}
+эндфор</pre>
+			</li>
+			<li>
+
+
+
+
+			<br><br>
+			<h4 class="title_text border">[18]. Постраничная навигация (пагинация).</h4>
+			<li>
+				
+			</li>
+
 
 
 
