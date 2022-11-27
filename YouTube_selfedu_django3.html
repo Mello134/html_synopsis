@@ -4480,8 +4480,148 @@ class DataMixin:
 			<br><br>
 			<h4 class="title_text border">[19]. Регистрация пользователей на сайте | Django уроки.</h4>
 			<li>
-				Регистрация
+				Будем добалять регистрацию пользователей на сайт
 			</li>
+			<li>
+				Для начала отобразим ссылку - 'войти' -  в base.html  - ввнутри block mainmenu - меняем конструкцию ссылок
+				<pre>
+<!-- перебираем все в списке меню (men/views.py) -->
+{% for m in menu %}
+
+&lt;li>&lt;a href="{% url m.url_name %}">{{m.title}}&lt;/a>&lt;/li>
+
+{% endfor %}
+
+&lt;li class="last">&lt;a href="{% url 'register' %}">Регистрация&lt;/a> | &lt;a href="{% url 'login' %}">Войти&lt;/a>&lt;/li></pre>
+			</li>
+			<li>
+				В utils.py - уберём из списка menu  - строку для - 'Войти'
+			</li>
+			<li>
+				В men/urls.py - добавим пути login и register (login уже быыл)
+				<pre>
+path('login/', login, name='login'),
+path('register/', RegisterUser.as_view(), name='register'),
+# RegisterUser.as_view() - класс представления - будем создавать</pre>
+			</li>
+			<li>
+				Во views.py - прописываем class RegisterUser:
+				<pre>
+from django.contrib.auth.forms import UserCreationForm  # необходим импорт
+
+# представление регистрации
+class RegisterUser(DataMixin, CreateView):
+    form_class = UserCreationForm  # UserCreationForm - стандартная форма регистрации django
+    template_name = 'men/register.html'  # ссылка на шаблон
+    success_url = reverse_lazy('login')  # при успешной регистрации - будем перенаправляться в path - login
+
+    # формируем context (список передаваемых словарей в шаблон)
+    def get_context_data(self, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)  # form_class - на данный момент
+        c_def = self.get_user_context(title='Регистрация')
+        # form_class + cats + cat_selected + menu + title
+        return dict(list(context.items()) + list(c_def.items()))</pre>
+			</li>
+			<li>
+				Создаём шаблон register.html - в men/templetes/men
+				<br>В шаблоне наследуемся от base.html  - и внутри block content - добавляем форму
+				<pre>
+{% extends 'men/base.html' %}
+{% block content %}
+&lt;h1>{{ title }}&lt;/h1>
+&lt;form method="post">
+	{% csrf_token %}
+	{{ form.as_p }}
+	&lt;button type="submit">
+		Регистрация
+	&lt;/button>
+&lt;/form>
+{% endblock %}</pre>
+				Форма в целом уже работает - но выглядит так себе, нет никакого выравнивания
+			</li>
+			<li>
+				Изменяем вид в форме - внутри forms.py - лобавляем новый class
+				<pre>
+from django.contrib.auth.forms import UserCreationForm  # импорт класса формы
+from django.contrib.auth.models import User  # импортируем модель User
+
+# Форма регистрации
+class RegisterUserForm(UserCreationForm):  # создаём экземпляр формы регистрации пользователя на базе UserCreationForm
+    class Meta:
+        model = User  # связь с моделью User (стандартная)
+        # отображаем поля модели User
+        # название полей - в админке - посмотреть код страницы - name
+        fields = ('username', 'password1', 'password2')
+        # оформление всех полей
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-input'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-input'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-input'}),
+            }</pre>
+            В views.py - class RegisterUser - form_class - меняем на нашу форму RegisterUserForm
+            <pre>form_class = RegisterUserForm  # RegisterUserForm - наша форма из forms.py</pre>
+            В итоге вид формы по сути не изменился.. В Django - почемуто не работает widgets - для полей формы регистрации
+			</li>
+			<li>
+				Для исправления вышеуказанного прописываем поля в class RegisterUserForm - до class Meta - в forms.py, сразу добавим поле email
+				<br>class RegisterUserForm - полностью:
+				<pre>
+# Форма регистрации
+class RegisterUserForm(UserCreationForm):  # создаём экземпляр формы регистрации пользователя на базе UserCreationForm
+    username = forms.CharField(label='Логин', widget=forms.TextInput(attrs={'class': 'form-input'}))
+    email = forms.EmailField(label='Email', widget=forms.EmailInput(attrs={'class': 'form-input'}))
+    password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput(attrs={'class': 'form-input'}))
+    password2 = forms.CharField(label='Повтор пароля', widget=forms.PasswordInput(attrs={'class': 'form-input'}))
+
+    class Meta:
+        model = User  # связь с моделью User (стандартная)
+        # отображаем поля модели User
+        # название полей - в админке - посмотреть код страницы - name
+        fields = ('username', 'email', 'password1', 'password2')</pre>
+        		Проверяем, вроде всё ок
+			</li>
+			<li>
+				Улучшаем вид формы в шаблоне register.html, вместо вывода формы одной командой, выведем отдельные поля через цикл форм - чтобы вручную присвоить атрибуты внутри тегов
+				<pre>
+{{ form.as_p }} --> Удаляем
+-->	
+{% for f in form %}
+&lt;p>
+	&lt;label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: &lt;/label>{{ f }}
+&lt;/p>
+&lt;div class="fo&lt;rm-error">{{ f.errors }}&lt;/div>
+{% endfor %}</pre>
+			</li>
+			<li>
+				Создадим - нового пользователя
+				<br>Пароли для всех будут blog1234 - чтобы не запутаться
+				Всё работает
+			</li>
+			<li>
+				Тестируем ошибки - создадим ещё одного пользователя user1, с таким же emailom, пароли и проверка пароли разные
+				<pre>
+Пользователь с таким именем уже существует.
+Введенные пароли не совпадают.</pre>
+				Всё работает
+			</li>
+			<li>
+				Создадим ещё одного пользователя user2
+				<br>Просмотрим на них а админ панеле - пользователи
+			</li>
+			<li>
+				<span class="spec">В документации изучить - как расширять стандартные модели User</span>
+			</li>
+
+
+
+
+			<br><br>
+			<h4 class="title_text border">[20]. Делаем авторизацию пользователей на сайте.</h4>
+			<li>
+				Авторизация пользователей
+			</li>
+
+
 
 
 
