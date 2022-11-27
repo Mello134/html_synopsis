@@ -4238,13 +4238,250 @@ for c in cats без изменений
 			<br><br>
 			<h4 class="title_text border">[18]. Постраничная навигация (пагинация).</h4>
 			<li>
-				
+				Пагинация (пот лат. pagina - страница)
+				<br>Например - когда у нас есть длинная страницы, и чтобы не отображать её сразу всю, снизу сделать цифры, которые и будут переключать
+			</li>
+			<li>
+				class Paginator - отдельное использование
+				<br>Можно использовать в ListView - встроеная функция
+				<br>Пагинация в шаблоне
+			</li>
+			<li>
+				Заходим в Python Console
+				<br>PyDev console: starting.
+				<br>В консоль импортируем Paginator
+				<pre>
+from django.core.paginator import Paginator</pre>
+			</li>
+			<li>
+				Пишем какойто список из базы даееых например
+				<pre>men = ['Сергей Бодров', 'Марк Уолберг', 'Брэд Питт', 'Вячеслав Бутусов', 'Юрий Шевчук', 'Кеша Кешевич', 'Кеша', 'Ксюша', 'Лексус', 'Симба', 'Кузя']</pre>
+			</li>
+			<li>
+				Далее зоздаём экземпляр paginatora
+				<pre>
+p = Paginator(men, 3)
+# где Paginator - это класс Paginatot
+# men - список, который указывали ранее
+# 3 - сколько элементов списка отображать на каждой странице (максимум)</pre>
+			</li>
+			<li>
+				Узнаём количество элементов в списке
+				<pre>p.count --> 10</pre><br>
+				Узнаём количество страниц
+				<pre>p.num_pages --> 4</pre><br>
+				Писла по номерам наших страниц
+				<pre>p.page_range --> range(1, 5)  # 1 2 3 4</pre><br>
+				Получаем список для первой страницы, или для работы на первой странице
+				<pre>
+p1 = p.page(1)  # в переменную p1 - записали элементы списка первой страницы
+p1.object_list  # посмотрели список элементов первой страницы
+p1.has_next() --> True  # после этой страницы 1 существует страница 2
+p1.has_previous() --> False  # До этой страницы нету страниц
+p1.has_other_pages() --> True  # существует ли вообще разбивка по страницам --> Да
+p1.next_page_number() --> 2  # Номер следующей страницы
+p1.previous_page_number() --> ошиька  # Так как номера предудыщей строницы существовать не может</pre>
+			</li>
+			<li>
+				Использование пагинации в классе представления MenHome - класс представления ListView - пагинация встроена в него!
+				<br>Во views.py - class MenHome - добавляем спец атрибут пагинации - paginate_by = количество элементов списка на одной странице
+				<pre>paginate_by = 2  # Количество отображаемых элементов на странице (пагинация)</pre>
+			</li>
+			<li>
+				Использование пагинации в функции представления
+				<br>Добавим код в def about во views.py
+				<pre>
+from django.core.paginator import Paginator  # необходим импорт class Paginator (во views.py)
+
+def about(request):  # о странице
+    contact_list = Men.objects.all()  # читаем список записей модели
+    paginator = Paginator(contact_list, 3)  # создаём экземпляр Paginator, 3 - количество элементов на странице
+    page_number = request.GET.get('page')  # получаем номер текущей страницы
+    page_obj = paginator.get_page(page_number)  # содержит список элементов текущей страницы
+    # (request, 'men/templates/men/about.html', {'ключ':'значение'})
+    # передаём page_obj, menu, title в шаблон
+    return render(request, 'men/about.html', {'menu': menu, 'title': 'О сайте', 'page_obj': page_obj})</pre>
+			</li>
+			<li>
+				В самом шаблоне about.html отображаем список, через циклы for
+				<pre>
+{% for contact in page_obj %}
+	<p>{{ contact }}</p>
+{% endfor %}</pre>
+				Проверяем, всё работает на - http://127.0.0.1:8000/about/
+				<br>Чтобы отобразить следующие элементы списка в url необходимо доьавить - http://127.0.0.1:8000/about/?page=2
+			</li>
+			<li>
+				Добавим ссылки снизу, для отображение url-s для отображения страницы
+				<br>В about.html - добавляем:
+				<pre>
+&lt;nav>
+	&lt;ul>
+		#  page_obj - ссылка на конкр страницу пагинатора
+		#  paginator - ссылка на сам класс пагинатор
+		#  page_range - формирует range (от,до) - номера страниц
+		#  p - по сути просто номер страницы
+		{% for p in page_obj.paginator.page_range %}
+		&lt;li>
+			&lt;a href="?page={{ p }}">{{ p }}&lt;/a>
+		&lt;/li>&lt;
+		{% endfor %}
+	&lt;/ul>
+&lt;/nav></pre>
+			</li>
+			<li>
+				Обновлю style.css - в static/men/css  - он обновлялся, чтобы не терять время, возьму в github - у зоздателя курса
+			</li>
+			<li>
+				Добавим список номеров страниц в base.html - После block content/ endblock
+				<pre>
+# для пагинации -->
+&lt;nav class="list-pages">
+    &lt;ul>
+   #  page_obj - ссылка на конкр страницу пагинатора
+        #  paginator - ссылка на сам класс пагинатор
+        #  page_range - формирует range (от,до) - номера страниц
+        #  p - по сути просто номер страницы -->
+        {% for p in page_obj.paginator.page_range %}
+        &lt;li class="page-num">
+            &lt;a href="?page={{ p }}">{{ p }}&lt;/a>
+        &lt;/li>
+        {% endfor %}
+    &lt;/ul>
+&lt;/nav># для пагинации --></pre>
+				<strong>Сделали это в base.html (а не в index.html) - на будующее, чтобы не дублировать код</strong>
+			</li>
+			<li>
+				Улучшим кнопки страниц (чтобы они отображались как выделенный текс, а не как выделенная страница) в Base.html - в тот же цикл for - добавим проверку if
+				<br>base.html - полный код для ссылок страницы - пагинации
+				<pre>
+<!-- для пагинации -->
+&lt;nav class="list-pages">
+    &lt;ul>
+   		#  page_obj - ссылка на конкр страницу пагинатора
+        #  paginator - ссылка на сам класс пагинатор
+        #  page_range - формирует range (от,до) - номера страниц
+        #  p - по сути просто номер страницы -->
+        {% for p in page_obj.paginator.page_range %}
+        {% if page_obj.number == p %}
+        &lt;li class="page-num page-num-selected">{{ p }}&lt;/li>
+        {% else %}
+        &lt;li class="page-num">
+            &lt;a href="?page={{ p }}">{{ p }}&lt;/a>
+        &lt;/li>
+        {% endif %}
+        {% endfor %}
+    &lt;/ul>
+&lt;/nav># для пагинации --></pre>
+			</li>
+			<li>
+				Добавим пагинацию в класс представления - MenCategory - отображение статей по категориям
+				<br>Можно было бы сделать точно так же добавив paginate_by - Но тогда мы будим дублировать код
+				<br>По этому из class MenHome - удалим paginate_by - И перенесём его в class DataMixin: - из utils.py  - в самом верху - внутри класса
+				<pre>
+class DataMixin:
+    paginate_by = 2  # Количество отображаемых элементов на странице (пагинация)</pre>
+			</li>
+			<li>
+				Всё работает как надо - пагинация есть при отображении всех постов, при отображении постов по категориям
+				<br>Но если пагинацию сделать большой (то есть отображать по 30записей например) - а у нас записей меньше 30, то внизу будет отображатся '1', По хорошему её необходимо убрать и не отображать
+				<br>Для этого в base.html - Добавим проверку конструкцией if - сверху над nav
+				<pre>
+# если есть разбивка по страницам -->
+{% if page_obj.has_other_pages %}
+&lt;nav class="list-pages">
+......
+&lt;/nav># для пагинации -->
+{% endif %}</pre>
+			</li>
+			<li>
+				Если у пагинации будет очень много страниц, то это будет не очень практично
+				<br>
+				<img src="images\paginator.jpg" class="img-fluid">
+				<br>
+				Будем менять интервал страниц которые будут показываться 
+				<br>base.html - добавим elif - Вместо else
+				<pre>{% elif p >= page_obj.number|add:-2 and p <= page_obj.number|add:2 %}</pre>
+			</li>
+			<li>
+				Добавим ещё кнопки - предыдущая и слудующая страница
+				<br>В base.html - до цикла for добавляем проверку - и делаем кнопку предыдущей страницы
+				<pre>
+# существует ли предыдущая страница
+{% if page_obj.has_previous %}
+&lt;li class="page-num">
+    # предыдущая страница
+    &lt;a href="?page={{ page_obj.previous_page_number }}">&lt;&lt;/a>
+&lt;/li>
+{% endif %}</pre>
+			</li>
+			<li>
+				Добавляем кнопку для слудующей страницы - аналогично - после цикла for
+				<pre>
+# существует ли следующая страница -->
+{% if page_obj.has_next %}
+&lt;li class="page-num">
+    # кнопка предыдущая страница -->
+    &lt;a href="?page={{ page_obj.next_page_number }}">&gt;&lt;/a>
+&lt;/li>
+{% endif %}</pre>
+			</li>
+			<li>
+				<strong>Для пагинации желательно сортировать списки - ordering - в Модели - class Meta</strong>
+			</li>
+			<li>
+				Итоговый кусок кода для пагинации (кнопок-ссылок) внутри шаблона base.html
+				<pre>
+# для пагинации -->
+
+# если есть разбивка по страницам -->
+{% if page_obj.has_other_pages %}
+&lt;nav class="list-pages">
+    &lt;ul>
+        # существует ли предыдущая страница -->
+        {% if page_obj.has_previous %}
+        &lt;li class="page-num">
+            # кнопка предыдущая страница -->
+            &lt;a href="?page={{ page_obj.previous_page_number }}">&lt;&lt;/a>
+        &lt;/li>
+        {% endif %}
+
+
+   		#  page_obj - ссылка на конкр страницу пагинатора
+        #  paginator - ссылка на сам класс пагинатор
+        #  page_range - формирует range (от,до) - номера страниц
+        #  p - по сути просто номер страницы -->
+        {% for p in page_obj.paginator.page_range %}
+        {% if page_obj.number == p %}
+        &lt;li class="page-num page-num-selected">{{ p }}&lt;/li>
+        {% elif p >= page_obj.number|add:-2 and p <= page_obj.number|add:2 %}
+        &lt;li class="page-num">
+            &lt;a href="?page={{ p }}">{{ p }}&lt;/a>
+        &lt;/li>
+        {% endif %}
+        {% endfor %}
+
+        # существует ли следующая страница -->
+        {% if page_obj.has_next %}
+        &lt;li class="page-num">
+            # кнопка слудующая страница -->
+            &lt;a href="?page={{ page_obj.next_page_number }}">&gt;&lt;/a>
+        &lt;/li>
+        {% endif %}
+
+    &lt;/ul>
+&lt;/nav># для пагинации -->
+{% endif %}</pre>
 			</li>
 
 
 
 
-
+			<br><br>
+			<h4 class="title_text border">[19]. Регистрация пользователей на сайте | Django уроки.</h4>
+			<li>
+				Регистрация
+			</li>
 
 
 
