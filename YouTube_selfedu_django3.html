@@ -4761,9 +4761,106 @@ def form_valid(self, form):
 			<br><br>
 			<h4 class="title_text border">[21]. Оптимизация сайта с Django Debug Toolba</h4>
 			<li>
-				
+				Критери работы web - приложения:
+				<br>-скорость работы приложения
+				<br>-нагрузка на СУБД (частоту и сложность запросов)
+				<br>-корректность возвращаемых пользователю данных.
+			</li>
+			<li>
+				Django Debug Toolbar - инструмент для анализа работы Web приложения
+			</li>
+			<li>
+				Переходим <a href="https://pypi.org/">pypi.org</a>
+				<br>В поиске вбиваем - django debug toolbar, открываем последнюю версию, и копируем команду для установки в терминале
 			</li>
 
+			<li>
+				В терминале заходим в виртуальное окружение
+				<pre>(venv2022) PS C:\Хранилище\IT\IT Разное\Обучение\YouTube_selfedu\djsite\coolsite> </pre>
+				Устанавливаем инструмент
+				<pre>pip install django-debug-toolbar</pre>
+			</li>
+			<li>
+				'Прикручиваем' инструмент к нашему приложению  - для этого необходимо действовать по инструкции.
+				<br>В settings.py - добавляем наше приложение - INSTALLED_APPS =[...] - после "django.contrib.staticfiles",
+				<pre>
+"debug_toolbar",  # добавили debug-toolbar</pre>
+			</li>
+			<li>
+				В settings.py - TEMPLATES - APP_DIRS - проверим, должно стоять в положении True
+				<pre>
+'APP_DIRS': True,</pre>
+			</li>
+			<li>
+				В settings.py - MIDDLEWARE - необходимо добавить строчку
+				<pre>"debug_toolbar.middleware.DebugToolbarMiddleware",  # добавили debug-toolbar</pre>
+			</li>
+			<li>
+				В settings.py - в конце добавим коллекцию
+				<pre>
+INTERNAL_IPS = [
+    "127.0.0.1",
+]</pre>
+			</li>
+			<li>
+				В settings.py закончили
+			</li>
+			<li>
+				Необходимо добавить маршрут для этого инструмента
+				<br>Для этого в !! coolsite/urls.py - в if.DEBUG
+				<pre>
+# то есть в режиме отладки когда DEBUG = True
+if settings.DEBUG:
+    # для debug_toolbar
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include('debug_toolbar.urls')),
+    ] + urlpatterns</pre>
+			</li>
+			<li>
+				Запускаем тестовы web сервер - runserver и видим множество параметров
+			</li>
+			<li>
+				Сейчас нам интересно количество SQL запросов, желательно избавится от дублей
+				<pre>
+ 3 similar queries. Duplicated 3 times.</pre>
+			</li>
+			<li>
+				Ленивый запрос (отложенный) - выполняются в момент непосредственного обращения данных, в нашем случае при выводе рубрик {{ p.cat }} - делает много дублей.  Категория: Актёры
+			</li>
+			<li>
+				В django есть 2 метода:
+				<br>-select_related(key) - 'жадная' загрузка связанных данных по внешнему ключу key, который имеет тип ForeignKey
+				<br>-prefetch_related(key) - жадная' загрузка связанных данных по внешнему ключу key, который имеет тип ManyToManyField
+			</li>
+			<li>
+				Используем select_related - во views.py - в class MenHome - в методе get_queryset
+				<pre>return Men.objects.filter(is_publisher=True).select_related('cat')  # .select_related('cat') - оптимизация SQL запросов</pre>
+				То есть с данными Men.objects.filter(is_publisher=True) - будут загруженны данные из таблицы Category (по нашему полю в men = cat)
+				<br>cat  - связывает нашу вторичную модель Men - c первичной моделью Category
+				<br><strong>После вышеуказанных манипуляций, количество SQL запросов сократилось с 12 до 3 - то есть мы убрали все дубликаты SQL запросов</strong>
+			</li>
+			<li>
+				Аналогично поправим класс представления по категориям - в views.py - class MenCategory - def get_queryset:
+				<pre>return Men.objects.filter(cat__slug=self.kwargs['cat_slug'], is_publisher=True).select_related('cat')  # оптимизация SQL</pre>
+			</li>
+			<li>
+				В class MenCategory - остались ещё дубликаты, для этого немного подкорректируем get_context_data
+				<pre>
+c_def = self.get_user_context(title='Категория - ' + str(context['posts'][0].cat),  --> Удаляем	
+--->
+c = Category.objects.get(slug=self.kwargs['cat_slug'])
+c_def = self.get_user_context(title='Категория - ' + str(c.name), cat_selected=c.pk)</pre>
+			</li>
+
+
+
+
+			<br><br>
+			<h4 class="title_text border">[22]. Включаем кэширование данных</h4>
+			<li>
+				
+			</li>
 
 
 
