@@ -62,6 +62,7 @@
 	<p><a href="https://habr.com/ru/post/514348/">Шесть Python-пакетов, которые рекомендуется использовать в каждом веб-приложении на Django</a></p>
 	<p><a href="https://django.fun/ru/docs/">Документация по фреймворку и библиотекам Django</a></p>
 	<p><a href="https://translated.turbopages.org/proxy_u/en-ru.ru.5b0ed4c9-6378aa3f-3f4ce05c-74722d776562/https/hackr.io/blog/top-django-interview-questions-and-answers">50 лучших вопросов и ответов для интервью Django на 2022 год</a></p>
+	<p><a href="https://pypi.org/">pypi.org</a></p>
 
 	<div class="container-md all">
 		<h1 class="title_text">YouTube selfedu</h1>
@@ -4859,8 +4860,318 @@ c_def = self.get_user_context(title='Категория - ' + str(c.name), cat_s
 			<br><br>
 			<h4 class="title_text border">[22]. Включаем кэширование данных</h4>
 			<li>
+				Операция по формированию страницы делается для каждого клиента, клиентов может быть тысячи, и сервер должен справляться со всеми запросами одновременно, для того чтобы разгрузить работу сервера - делают кэширование страниц, то есть при первой загрузке страницы клиентом, у него в браузер сохраняются некоторые данные страницы, что бы при повторном заходе на страницу - не было необходимости загружать её из сервера заново.
+			</li>
+			<li>
+				Кэш можно реализовать на уровне:
+				<br>-Паямяти
+				<br>-БД (очень редко)
+				<br>-Файлов (наиболее часто)
+			</li>
+			<li>
+				Делаем кэширование на уровне файлов
+				<br>Для начала добавляем CACHES - в settings.py - в самом низу
+				<pre>
+# кэширование на уровне файлов
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': BASE_DIR / 'coolsite_cashe',  # где будет храниться кэш
+    }
+}</pre>
+			</li>
+			<li>
+				После обязательно создаём эту папку BASE_DIR / 'coolsite_cashe'<br>
+				...djsite/coolsite/coolsite-cache
+			</li>
+			<li>
+				Делаем кэширование на уровне представления. Будем реальзовывать кэш на классах представления
+				<br>Переходим в men/urls.py 
+				<pre>
+# импортируем декоратор
+from django.views.decorators.cache import cache_page
+				</pre>
+				<br>Кэширеум домашнюю страницу
+				<pre>
+path('', MenHome.as_view(), name='home'),
+-->					
+path('', cache_page(60)(MenHome.as_view()), name='home'),
+# 60 сегунд</pre>
+			</li>
+			<li>
+				Запускаем сервер - при включённом debug - смортим количество sql запросов - 3 штуки, количество Кэш 3 шт
+				<br>В течении 60 секунд обновляем и видим SQL 60сек  - Кэш 2. Т.Е. вся страница перезагрузилась из Кэша, никак не нагружая БД
+			</li>
+			<li>
+				Можем вернуть path name='home' - в исходное стостояние, так как будем пробывать другой способ
+				<pre>
+path('', MenHome.as_view(), name='home'),</pre>
+			</li>
+			<li>
+				Кэширование на уровне шаблонов, будем Кэшировать Sidebar - в base.html
+				<br>В base.html 
+				<pre>
+{% load cache %}  # вверху или прям над sidebar	
+
+{% cache 60 sidebar %}  # до циклов if-ов
+#  60 - секунд,  sidebar - название кэша придумываем сами
+
+{% endcache %}  # после вормирования sidebar</pre>
+				сохраняем - делаем проверку
+			</li>
+			<li>
+				Кэширование с использованием API низкого уровня
+				<br>cache.set() cache.get() cache.add() cache.get_or_set() cache.delete()  cache.clear()
+				<br>
+				<img src="images\cache.jpg" class="img-fluid">
+				<br>
+			</li>
+			<li>
+				Будем делать (Кэширование с использованием API низкого уровня) - во utils.py - class DataMixin: - в def get_user_context(self, **kwargs): - после context = kwargs
+				<pre>
+from django.core.cache import cache
+
+cats = cache.get('cats')  # вызываем cache, пытаемся прочитать из cats из кэша
+if not cats: # если cats не были прочитаны
+    #  читаем данные из БД
+    cats = Category.objects.annotate(Count('men'))  # количество постов в каждой рубрике
+    cache.set('cats', cats, 60)  # записываем кэш на 60 сек</pre>
+			</li>
+			<li>
+				Иннструмент Кэширование стоит включать только на конечном этапе разработки сайта!
+			</li>
+
+
+			<br><br>
+			<h4 class="title_text border">[23]. Использование капчи captcha</h4>
+			<li>
+				Комментируем функцию представления страницы Обратная связь - def contact(request): - во vievs.py
+			</li>
+			<li>
+				Делаем класс представления для формирования этой страницы - во vievs.py
+				<pre>
+from django.views.generic import ..., FormView 
+
+class ContactFormView(DataMixin, FormView):  # FormView - базовый класс - не привязан к модели
+    form_class = ContactForm  # наш класс из form.py
+    template_name = 'men/contact.html'  # ссылка на шаблон
+    success_url = reverse_lazy('home')  # при успешном заполнении формы - направит домой
+
+    def get_context_data(self, *, object_list=None, **kwargs):  # формируем context - для шаблона
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Обратная связь')
+        return dict(list(context.items()) + list(c_def.items()))
+
+    def form_valid(self, form):  # если пользователь правильно заполнит формы
+        print(form.cleaned_data)
+        return redirect('home')</pre>
+			</li>
+			<li>
+				В forms.py прописываем форму ContactForm:
+				<pre>
+# форма контактов
+class ContactForm(forms.Form):  # наследуемся от базового класса форма
+    # поля формы
+    name = forms.CharField(label='Имя', max_length=255)
+    email = forms.EmailField(label='Email')
+    content = forms.CharField(label='Контент', widget=forms.Textarea(attrs={'cols': 60, 'rows': 10}))</pre>
+			</li>
+			<li>
+				Связываем маршрут path - name='contact' - с классом представления ContactFormView - в men/urls.py
+				<pre>
+path('contact/', ContactFormView.as_view(), name='contact'),</pre>
+			</li>
+			<li>
+				Добавляем шаблон contact.html - в men/templates/men - наследуемся от base.html, csrf token - вызывваем форму через цикл:
+				<pre>
+{% extends 'men/base.html' %}
+
+{% block content %}
+&lt;h1>{{ title }}&lt;/h1>
+
+&lt;form method="post">
+	{% csrf_token %}
+	&lt;div class="form-error">{{ form.non_field_errors }}&lt;/div>
+
+	{% for f in form %}&lt;
+	&lt;p>
+		&lt;label class="form-label" for="{{ f.id_for_label }}">
+			{{ f.label }}: 
+		&lt;/label>
+		{{ f }}
+	&lt;/p>
+	&lt;div class="form-error">{{ f.errors }}&lt;/div>
+	{% endfor %}
+
+	&lt;button type="submit">Отправить&lt;/button>
+&lt;/form>
+
+{% endblock %}</pre>
+			</li>
+			<li>
+				Добавим капучу - графическую картинку с кодом, который необходимо ввести для отправки формы, делают её для защиты от ботов
+			</li>
+			<li>
+				Переходим в pypi.org -  впоиске ищем - django-simple-captcha, открываем её - копируем код установки в терминал, устанавливаем в виртуальном окружении в терминале
+				<pre>pip install django-simple-captcha</pre>
+			</li>
+			<li>
+				По ссылке в pyorg - ищем документацию этого модуля и читаем её
+			</li>
+			<li>
+				Добавляем в settings.py в коллекции INSTALLED_APPS - над нашим приложением
+				<pre>'captcha',  # добавили каптчу</pre>
+			</li>
+			<li>
+				далее необходимо выполнить миграцию, так как у каптчи есть своя модель которую необходимо внести в базу данных - можно делать сразу migrate (без makemigrations)
+				<pre>python manage.py migrate</pre>
+			</li>
+			<li>
+				Добавляем маршрут для каптчи - в глобальный urls.py - coolsite/coolsite/urls.py - в основном urlpatterns - добавим маршрут
+				<pre>
+path('captcha/', include('captcha.urls')),</pre>
+				Теперь каптча привязана к нашему приложению и мы можем её применять
+			</li>
+			<li>
+				Капчу необходимо использовать в форме, в forms.py - ContactForm дубем добавлять атрибут там где поля ввода
+				<pre>
+from captcha.fields import CaptchaField  # необходим импорт в forms.py
+
+captcha = CaptchaField()					
+				</pre>
+			</li>
+			<li>
+				Мы можем менять отображение формы каптчи (размер шрифта, сам шрифт, цвет фона, свет текста - можно сделать даже собственное оформление и тд) - всегда необходимо читать жокументацию к приложению
+			</li>
+
+
+			<br><br>
+			<h4 class="title_text border">[24]. Тонкая настройка админ панели</h4>
+			<li>
+				Настройка админ панели, по подробной настройке описано в документации django
+			</li>
+			<li>
+				Меняем стиль админ панели - для того чтобы она была в тех же тонах что и наш основной сайт.
+				<br>Запускаем сервер, заходим в админ панель, в debug-toolbar - ищем вкладку шаблоны и открываем  -  там видно, какие шаблоны используются для админки и видно пути к этим шаблонам
+				<br>Например C:\\Хранилище\\IT\\IT Разное\\Обучение\\YouTube_selfedu\\djsite\\venv2022\\Lib\\site-packages\\django\\contrib\\admin\\templates\\admin\\index.html
+			</li>
+			<li>
+				Мы можем открыть шаблон прямо по этому пути в виртуальном окружении, но так лечше не делать никогда! - все файл пакетов python, django и тд рекомендуется оставлять без изменения
+				<br>По этому лучше сделать просто переопределение!
+			</li>
+			<li>
+				В создаём новую папку в корне проекта djsite/coolsite/ - templates/admin
+			</li>
+			<li>
+				Если в подкаталоге templates/admin - точно такой же шаблон base_site.html - то это файл будет переопределять файл из виртуального окружения!
+			</li>
+			<li>
+				templates/admin - создаём новый шаблон - base_site.html
+			</li>
+			<li>
+				В settings.py - прописываем путь к нестандартной дирректории шаблонов TEMPLATES - DIRS
+				<pre>
+'DIRS': [BASE_DIR / 'templates'],</pre>
+				Перезапускаем сервер - заходим в админку и видим полностью пустую страницу, это означает что шаблон для отображения страницы админки уже берётся из нашего файла
+			</li>
+			<li>
+				Копируем всё из шаблона вирутального окружения base_site.html - наш шаблон coolsite/templates/admin/base_site.html
+				<pre>
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+&lt;h1 id="site-name">&lt;a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}&lt;/a>&lt;/h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}</pre>
+				Заходим в админку, и видим что админка выглядит в полностью стандартном виде
+			</li>
+			<li>
+				Из шаблона виртуального окружения base.html - копируем строчку кода и вставляем в наш шаблон base_site.html - над block title
+				<pre>
+{% block extrastyle %}
+
+....будем добавлять стили
+
+{% endblock %}</pre>
+				Ту да же добавим ссылку на наши стили css admin.css (добавим позже), и загрузим наши статические файлы.
+				<br>Получилось так
+				<pre>
+{% load static %}
+{% block extrastyle %}
+&lt;link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}</pre>
+			</li>
+			<li>
+				В подкаталоге men/static - создаём папку css
+			</li>
+			<li>
+				В men/static/css - создаём admin.css
+			</li>
+			<li>
+				Загружаем наш сайт в Google Chrome - заходим в админку - пкм - посмотреть код страницы, в панели справа мы можем наволить мышку, и в сайте будет видно для чего какой элемент будет использован
+			</li>
+			<li>
+				Наводим на id='header' - это назоловок - теперь чтобы обратится в нём в нашем css файле - пришем #header {..., ...,}
+			</li>
+			<li>
+				В admin.css - сменим фор у пары элементов
+				<pre>
+#header, .module caption  {
+    background: #5e3a00;
+}</pre>
+			</li>
+			<li>
+				Чтобы заменить сам заголовок - Администрирование Django - изменения лучше делать в python файлах
+				<br>men/admyn.py в самом низу, просто допишем 2 параметра
+				<pre>
+# заголовки в админке
+admin.site.site_title = 'Админ-панель Mello'
+admin.site.site_header = 'Админ-панель Mello'</pre>
+				Полный смписок необходимо смотреть в документации
+			</li>
+			<li>
+				Отображение миниатюр картинок вместо ссылок на них в админ панеле
+				<br>Для этого в admin.py в class MenAdmin(admin.ModelAdmin): - добавим метод для отображения html кода -
+				<pre>
+from django.utils.safestring import mark_safe
+
+# отобажение миниматюр фото в админке
+def get_html_photo(self, object):
+    if object.photo:  # если фото есть
+        return mark_safe(f"&lt;img src='{object.photo.url}' width=50>")  # mark_safe - не экранирует теги
+
+list_display = ('id', 'title', 'time_create', 'photo', 'is_publisher') -->удаляем
+--> 
+list_display = ('id', 'title', 'time_create', 'get_html_photo', 'is_publisher')</pre>
+				Можем сохранять, и смотреть. Если фото есть будет миниатюра, если фото нету будет прочерк
+				<br>
+				Там же добавим строчку чтобы вместо столбца под именем Get html photo - было миниатюра.
+				<br>неже def get_html_photo внутри class MenAdmin
+				<pre>get_html_photo.short_description = "Миниатюра"</pre>
+			</li>
+			<li>
+				Так же отобразим миниатюру - во время редактирования поста
+				<br>Для этого в admin.py - в class MenAdmin - добавим 2 атрибута
+				<pre>
+# список полей которые стоит отображать в форме редактирования
+fields = ('title', 'slug', 'cat', 'content', 'photo', 'get_html_photo', 'is_publisher', 'time_create', 'time_update')
+# не редактируемые поля (только после этой строчки можно добавить из в fields)
+readonly_fields = ('time_create', 'time_update', 'get_html_photo')</pre>
+				<br>Продублируем панель с кнопками сверху (удобно если не хочется проматывать вниз)
+				<pre>save_on_top = True  # панель сверху(дубль)</pre>
+			</li>
+
+
+			<br><br>
+			<h4 class="title_text border">[25]. Начинаем развертывание Django-сайта на хостинге</h4>
+			<li>
 				
 			</li>
+
+
 
 
 
