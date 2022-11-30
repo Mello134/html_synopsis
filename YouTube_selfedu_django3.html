@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+er<!DOCTYPE html>
 <html lang="ru">
 <head>
 	<meta charset="utf-8">
@@ -5167,9 +5167,114 @@ readonly_fields = ('time_create', 'time_update', 'get_html_photo')</pre>
 
 			<br><br>
 			<h4 class="title_text border">[25]. Начинаем развертывание Django-сайта на хостинге</h4>
+			Кратко
 			<li>
-				
+				<a href="https://beget.com/ru">https://beget.com/ru</a>
 			</li>
+			<li>
+				SSH ДОСТУП
+			</li>
+			<li>
+				<img src="images\host.jpg" class="img-fluid">
+			</li>
+			<li>
+				Устанавливаем локальную версию Python - которую использовали в виртуальном окружении проекта
+			</li>
+			<li>
+				Far Manager - программа для работы с файлами на серваре/локальном ПК
+			</li>
+			<li>
+				Слудуем инструкции хостинга
+			</li>
+			<li>
+				После установки Python на сервере устанавливаем виртуальное окружение на сервере
+			</li>
+			<li>
+				pip install django==4.1.12   -  установка django определённой версии, необходимо установить внутри виртуального окружения на сервере
+			</li>
+			<li>
+				На сервере стартуем проект
+			</li>
+			<li>
+				На сервере необходимо создать passenger_wsgi.py - для связи с проектом и сервером
+			</li>
+			<li>
+				Настраиваем settings.py - на сервере
+			</li>
+
+
+
+
+
+
+
+			<br><br>
+			<h4 class="title_text border">[26]. Завершаем развертывание Django-сайта на хостинге</h4>
+			Кратко
+			<li>
+				На сервере необходимо в виртуальное окружение установить все пакеты которые используются в проекте
+			</li>
+			<li>
+				<span class="spec">Получение списка всех покетов проекта! - pip freeze > requirements.txt</span>
+				<br>На своём пк в терминале pycharm - внутри виртуального окружения
+				<pre>pip freeze > requirements.txt</pre>
+				<br>В корневом каталоге проекта создастся txt файл, содержащий все пакеты и версии необходимые для работы сатйта
+				<pre>
+asgiref==3.5.2
+Django==4.1.3
+django-debug-toolbar==3.7.0
+django-ranged-response==0.2.0
+django-simple-captcha==0.5.17
+Pillow==9.3.0
+psycopg2==2.9.5
+pydevd==2.9.1
+sqlparse==0.4.3
+tzdata==2022.6</pre>
+			</li>
+			<li>
+				requirements.txt - необходимо переместить на сервер - для дальнейшей установки всех необходимых пакетов (из списка можно удалить django - т.к его уже установили)
+			</li>
+			<li>
+				Устанавливаем через SSH клиент, через доекер, и устанавливаем все пакеты, что указаны в txt - одной команды
+			</li>
+			<li>
+				Устанавливаем MySQL клиент - если на хостинге такая БД
+			</li>
+			<li>
+				Настраиваем settings.py на рервере
+			</li>
+			<li>
+				Создаём базу данных на сервере, делаем миграции на сервере
+			</li>
+			<li>
+				Для корректной отдачи статических файлов есть свои заморочки, либо их необходимо переместить в определённый каталог хостинга либо прописать путь в urls.py - где их искать 
+			</li>
+			<li>
+				<span class="spec">Переносим записи из БД пк - в БД на сервере</span>
+				<br>В локальном ПК - в терминале
+				<pre>
+python manage.py dumpdata > db.json  # перенос всех записей всех таблиц с пк в 1 файл</pre>
+				<br>Но две таблицы будут личними, будут проблемы на сервере, по этому их необходимо исключить
+				<br>Переносим все данные таблиц БД локального пк в 1 файл, кроме двух таблиц которые не нужно переносить. В терминале (venv2022) ..\djsite\coolsite>
+				<pre>python manage.py dumpdata --exclude auth.permission --exclude conten
+ttypes > db.json</pre>
+				После этого должен создасться файл db.json - но скорее всего он создасться из SQlite - стандартной БД - необходимо посмотреть как сделать тоже самое для postgreSQL.
+				<br>Хотя скорее всего всё получилось и этой командой мы взяли и запокавали файлы из postgress
+			</li>
+			<li>
+				db.json необходимо перевести в кодировку UTF8
+			</li>
+			<li>
+				db.json - копируем на хостинг
+			</li>
+			<li>
+				Распаковываем данные db.json на сервере и заносим в БД уже на сервер
+				<pre>
+python manage.py loaddata db.json</pre>
+			</li>
+			<br>
+
+
 
 
 
@@ -5179,11 +5284,11 @@ readonly_fields = ('time_create', 'time_update', 'get_html_photo')</pre>
 
 		</ol><!-- общий список -->
 	</div><!-- container-md all -->
-&lt; &lt; 
-&lt; &lt; &lt;
 &lt; &lt; &lt;
 
- Ctrl + Alt + L 
+# Ctrl + Alt + L 
+
+
 <!-- JS Bootstrap 5 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
 
