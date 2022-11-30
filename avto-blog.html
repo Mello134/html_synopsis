@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- css bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+	<title>Автоблог - конспект работы</title>
+
+	<style type="text/css">
+		
+		pre{
+			color: black;
+			background: #ffe2e2;
+			margin-right: 30px;
+			margin-left: 15px;
+			margin-bottom: 2px;
+			margin-top: 5px;
+		}
+		
+		.all{
+			background: #003802;
+			color: white;
+
+		}
+		
+		body{
+			background: #c1ffcb;
+		}
+		
+		.spec {
+			font-size: 18px;
+			letter-spacing: .2em;
+			font-weight: 500;
+/*			text-transform: uppercase;*/
+			color: #ff7575;
+			margin-top: 15px;
+			margin-bottom: 2px;
+		}
+
+		.title_text {
+			letter-spacing: .1em;
+			font-weight: 500;
+			color: #f2cb71;
+
+		}
+
+	</style>
+
+
+&lt; &lt; &lt;
+</head>
+
+
+<body>
+<!-- 	<p><a href="https://www.youtube.com/@selfedu_rus">selfedu</a></p>
+	<p><a href="https://www.youtube.com/watch?v=FyTL1bnUx5I&list=PLA0M1Bcd0w8xO_39zZll2u1lz_Q-Mwn1F">Django 3 для Python(плейлист)</a></p> -->
+	<p><a href="https://proproprogs.ru/django">https://proproprogs.ru/django</a></p>
+	<p><a href="https://django.fun/ru/articles/tutorials/">Статьи о Django</a></p>
+	<p><a href="https://habr.com/ru/post/514348/">Шесть Python-пакетов, которые рекомендуется использовать в каждом веб-приложении на Django</a></p>
+	<p><a href="https://django.fun/ru/docs/">Документация по фреймворку и библиотекам Django</a></p>
+	<p><a href="https://translated.turbopages.org/proxy_u/en-ru.ru.5b0ed4c9-6378aa3f-3f4ce05c-74722d776562/https/hackr.io/blog/top-django-interview-questions-and-answers">50 лучших вопросов и ответов для интервью Django на 2022 год</a></p>
+	<p><a href="https://pypi.org/">pypi.org</a></p>
+
+	<div class="container-md all"><!-- container-md all ОБЩИЙ -->
+		<h1 class="title_text">Автоблог</h1>
+		<ol><!-- общий список -->
+
+
+
+
+<!-- -delete-delete-delete-delete-delete-delete-delete-delete-delete-delete-delete- -->
+			<br><br>
+			<h4 class="title_text border">[1]. Начало</h4>
+			<li><span class="spec">Особый текст</span>
+				<br>
+				<img src="images\avtoblog\host.jpg" class="img-fluid">
+				<br>
+			</li>
+			<li>
+				Код
+				<pre>
+python manage.py runserver
+python manage.py sdfsdsd</pre>
+			</li>
+			</li>
+			<li>
+				
+			</li>
+<!-- -delete-delete-delete-delete-delete-delete-delete-delete-delete-delete-delete- -->
+
+			<br><br>
+			<h4 class="title_text border">[1]. Начало</h4>
+			<li>
+				Сделал окружение
+			</li>
+			<li>
+				Создаём Новый проект в PyCharm - C:\Хранилище\IT\IT Projects\avtoblog-project
+				<br>Окружение venv_2022 - указывал путь к venv_2022\Scripts\python.exe
+			</li>
+			<li>
+				Внутри окружения уже есть большинство пакетов которые будут необходимы:
+				<br>-Pillow - для работы с изображениями
+				<br>-django-crycpy-forms - использовал в eccomerce
+				<br>-Django 4.1.3
+				<br>-psycopg2 - для работы с PostgreSQL
+				<br>-virtuslenv
+				<br>-pip
+				<br><br>Консоль работает, должно быть всё норм
+			</li>
+			<li>
+				Стартую проект django
+				<pre>django-admin startproject avtoblog</pre>
+				<br>В ручную подкорректировал папки в проекте:
+				<br>-IT Projects\avtoblog-project\avtoblog (manage.py в avtoblog, .idea - в avtoblog-project)
+				<br>-В Pycharm - папке avtoblog-project - присвоил source root
+			</li>
+			<li>
+				Из <a href="www.toptal.com">www.toptal.com</a> генерируем .gitignore  - и помещаем в avtoblog-project
+				<br>Раскомментируй .idea/ поставь сверху
+			</li>
+			<li>
+				Создаём Базу данных DB - Для проекта в SQL Shell (PostgreSQL)
+				<pre>
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Пароль пользователя postgres:blog1234
+
+psql \! chcp 1251  # для отображении кириллицы
+\l смортрим список всех DB
+CREATE DATABASE avtoblogdb;  # создали базу данных - avtoblogdb
+-->CREATE DATABASE
+\l - смотрим DB создана
+				</pre>
+			</li>
+			<li>
+				Сразу привыязваем наш проект к базеданных postgreSQL - avtoblogdb - в settings.py
+				<pre>
+DATABASES = {
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',  # стандартная БД
+        # 'NAME': BASE_DIR / 'db.sqlite3',  # стандартная БД
+        'ENGINE': 'django.db.backends.postgresql',  # БД PostrgeSQL
+        'NAME': 'avtoblogdb',  # Имя нашей БД
+        'USER': 'postgres',  # пользователь postgres - который создал БД
+        'PASSWORD': 'blog1234',  # пароль в PostgreSQL, для пользователя postgres
+        'HOST': '127.0.0.1',  # либо просто - 'localhost'
+        'PORT': '5432',  # стандартный порт
+    }
+}</pre>
+			</li>
+			<li>
+				В settings.py сразу настроим часовой пояс и русский язык в админке
+				<pre>
+LANGUAGE_CODE = 'ru-Ru'  # русский язык в admin
+
+TIME_ZONE = 'Europe/Moscow'  # время по МСК</pre>
+			</li>
+			<li>
+				На github - создадим репозиторий - avtoblog
+			</li>
+			<li>
+				Инициализируем git репозиторий на PC, и запушим первый коммит
+				<pre>
+git –v  # посмотреть версию git
+git init  # инициализируем git репозиторикй- папку на pc
+git status  # смотрим какие файлы не отслеживаются на данный момент
+git add .  # добавляем все файлы
+git status  # смотрим что теперь всё отслеживается
+git commit -m "имя коммита(что сделали/стадия)"  # создаём коммит
+git remote add origin  - https://github.com/Mello134/репозиторий.git  # туда будем загружать
+git branch -M main
+git push -u origin main  # отправили на github - в репозитор</pre>
+			</li>
+			<li>
+				Создаём приложение blog  в avtoblog-project
+				<pre>python manage.py startapp blog</pre>
+			</li>
+			<li>
+				Регистрируем приложение blog в settings.py - INSTALLED_APPS. Информацию берём из blog/apps.py
+				<pre>'blog.apps.BlogConfig',  # наше приложение blog</pre>
+			</li>
+			<li>
+				Создадим urls.py в blog в него сразу импортируем path и views.py
+				<pre>
+from django.urls import path
+from .views import *</pre>
+				Создаём свой список urlpatterns, запишим первый путь
+				<pre>
+urlpatterns = [
+    path('', home, name='home'),
+]</pre>
+			</li>
+				Расширим основной avtoblog/urls.py  + avtoblog/urls.py (include)
+				<br>Для этого добавляем маршрут к urls.py из blog  + имортируем include()
+				<pre>
+from django.urls import path, include
+
+path('', include('blog.urls')),  # путь к путям приложения blog
+				</pre>
+
+			<li>
+				Создадим первую функцию представления во blog/views.py
+				<pre>
+from django.http import HttpResponse
+				</pre>
+			</li>
+			<li>
+				Добавим две функции представления категорий и отдельной машины. В blog/views.py
+				<pre>
+# страница категорий
+def categories(request):
+    return HttpResponse('Страница категорий')
+
+
+# страница отдельной машины
+def car(request):
+    return HttpResponse('Страница отдельной машины')</pre>
+			</li>
+			<li>
+				Сразу пропишем маршруты к ним в url.py
+				<pre>
+path('category/', categories, name="category"),
+path('car/', car, name='car'),</pre>
+			</li>
+			<li>
+				Увеличим функции представления и маршруты catregory/1-2-3.. и car/1-2-3
+				<br>Во views.py
+				<pre>
+# страница категорий
+def categories(request, category_id):  # в скобках то что получаем в запросе
+    # в return то что отдаём для отображения
+    return HttpResponse(f'&lt;h1>Страница категорий&lt;/h1>&lt;p>№ {category_id}&lt;/p>')
+
+
+# страница отдельной машины
+def car(request, car_id):
+    return HttpResponse(f'&lt;h1>Страница отдельной машины&lt;/h1>&lt;p>№ { car_id }&lt;/p>')</pre>
+				<br>В urls.py
+				<pre>
+path('category/&lt;int:category_id>/', categories, name="category"),
+path('car/&lt;int:car_id>/', car, name='car'),</pre>
+			</li>
+			<li>
+				<span class="spec">Искочения и 404 не далал на данном этапе. П33 КОНСПЕКТА SELFEDU</span>
+			</li>
+			<li>
+				Пропишим 2 модели Сar, Category в models.py
+				<pre>
+class Car(models.Model):
+    # Id прописывать не нужно - Model Это делает автоматически
+    title = models.CharField(max_length=255, verbose_name='Заголовок')  # длина 255 символов
+    # unique=True - поле уникально, db_index=True - индексируемое (для ускорения поиска, verbose_name - отображение в адм.)
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name='URL')
+    content = models.TextField(blank=True, verbose_name='Текст статьи')  # текстовое поле без ограничений, blank=True - поле может быть пустым
+    tth = models.TextField(blank=True, verbose_name='Технические характеристики авто')
+    photo = models.ImageField(upload_to='photos/%Y/%m', verbose_name='Фото')  # загружать будем в photos/год/месяц
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name='Время создания')
+    time_update = models.DateTimeField(auto_now=True, verbose_name='Время изменения')
+    is_published = models.BooleanField(default=True, verbose_name='Публикация')  # default=True
+    # cat_id - id добавится автоматом, ForeignKey - связь Car - c Category
+    cat = models.ForeignKey('Category', on_delete=models.PROTECT, verbose_name='Категории')
+
+
+class Category(models.Model):
+    # db_index - для того чтобы поле было индексированным, поиск по небу будет происходить быстрей
+    name = models.CharField(max_length=100, db_index=True, verbose_name='Категория')
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name='URL')</pre>
+			</li>
+			<li>
+				Сделаем первую миграцию и применим её - без этого путь admin не работает!
+				<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+			</li>
+			<li>
+				Создадим superuser
+				<pre>
+python manage.py createsuperuser  # создаём суперюзера
+
+Имя пользователя: Mello
+Адрес электронной почты: elproject220@yandex.ru
+Password:blog1234
+Password (again):blog1234
+Superuser created successfully.  # пользователь создан</pre>
+			</li>
+			<li>
+				Зарегистрируем наши моделе в админке. в blog/admin.py
+				<pre>
+admin.site.register(Car)
+admin.site.register(Category)</pre>
+			</li>
+			<li>
+				Настраиваем MEDIA_ROOT - MEDIA_URL в settings.py
+				<pre>
+MEDIA_ROOT = BASE_DIR / 'media'  # будет загружать медиа в папку media
+MEDIA_URL = '/media/'  # добавили url - будет отображаться в браузере</pre>
+			</li>
+			<li>
+				Для эмуляции работы сервер для получения ранее загруженных файлов, и передачи их нашему приложению.
+				<br>В avtoblog/urls.py добавим маршруты к статическим файлам и к медиафайлам
+				<pre>
+from django.conf.urls.static import static  # пути к статическим файлам
+from . import settings  # для MEDIA_URL MEDIA_ROOT
+
+if settings.DEBUG:
+    # к путям добавляем путь к статическим данным, графическим данным
+    # на реальных серверах обычно это не используется
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)</pre>
+			</li>
+			<li>
+				Настраиваем STATIC_URL STATIC_ROOT STATICFILES_DIRS
+				<br>-STATIC_URL - префикс URL-адреса
+				<br>-STATIC_ROOT - путь к общей статической папке, используемый реальым веб-сервером
+				<br>-STATICFILES_DIRS - список дополнительных(нестандартных) путей к статическим файлам, используемых для сбора и для рещима отладки
+				<br><br>в settings.py
+				<pre>
+STATIC_URL = 'static/'  # стандартно
+# STATIC_ROOT добавили, в эту папку при collectstatic - django перемещает все статические файлы
+# путь avtoblog-project/avtoblog - из этой папке, статический файлы будут пользоваться в режиме эксплуатации сайта на сервере
+STATIC_ROOT = BASE_DIR / 'static'
+# добавили пустой список, список нестандартных путей, пока у нас нет, оставим пустым
+STATICFILES_DIRS = []</pre>
+			</li>
+			<li>
+				Создам вручную папку для статических фалов. В blog:
+				<br>blog/static
+				<br>blog/static/blog
+				<br>blog/static/blog/css 
+				<br>blog/static/blog/images - туда буду загружать иконки
+				<br>blog/static/blog/js
+			</li>
+			<li>
+				Создам файл стилей styles.css - в blog/static/blog/css 
+			</li>
+			<li>
+				Создам вручную папку для шаблонов фалов. В blog:
+				<br>blog/templates
+				<br>blog/templates/blog
+			</li>
+			<li>
+				Создам base.html - в blog/templates/blog
+			</li>
+			<li>
+				Привяжу функцию представления def home - к base.html, в vievs.py
+				<pre>
+# домашняя страница
+def home(request):
+    context = {
+        'title': 'Базовый шаблон',
+        'ключ 2': 'Значение2',        
+    }
+    return render(request, 'blog/base.html', context=context)</pre>
+			</li>
+			<li>
+				В base.html  - чтото напишу для проверки
+				<pre>
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	&lt;meta charset="utf-8">
+	&lt;meta name="viewport" content="width=device-width, initial-scale=1">
+	&lt;title>{{ title }}&lt;/title>
+&lt;/head>
+&lt;body>
+	&lt;h1>{{ title }}&lt;/h1>
+&lt;/body>
+&lt;/html></pre>
+			</li>
+			<li>
+				Далее верстаю страницу base.html, Добавляю bootstrap, ссылку на css, подкгружаю статические файлы - В base.html - будет navbar, sidebar, footer
+				<pre>
+---в самом верху---
+{% load static %}
+
+---до title, в head---
+ссыылка BOOTSTRAP CSS -->
+ссыылка к нашему css файлу -->
+ссылка для отображении иконки в браузере (где title) -->
+
+---в title---
+{% block title %} {% endblock %}
+
+---до закрытия body---
+ссыылка BOOTSTRAP JS --></pre>
+			</li>
+			<li>
+				Сделал навбар, сайдбар и футер в base.html - указал промежуток {% block content %}
+			</li>
+			<li>
+				Создал home.html в нём унаследовался от base.html - указал block kontent с минимальным содержимым
+				<pre>
+{% extends 'blog/base.html' %} 
+
+{% block title %} 
+	{{ title }}
+{% endblock %}
+
+{% block content %}
+&lt;h1>{{ title }}&lt;/h1>
+&lt;p>{{ key_2 }}&lt;p>
+{% endblock %}</pre>
+			</li>
+			<li>
+				Подгорректировал def home во views.py
+				<pre>
+# домашняя страница
+def home(request):
+    context = {
+        'title': 'Главная страница',
+        'key_2': 'Значение2',
+    }
+    return render(request, 'blog/home.html', context=context)</pre>
+			</li>
+			<li>
+				Пропишим метод __str__ в моделях Car, Category - чтобы при обращении к категории или посту нам отображался title Car, name - Category
+				<pre>
+--class Car--
+# с помощью метода запись нашего класса будет выводиться по её заголовку
+def __str__(self):
+    return self.title
+
+--class Category--
+# будем обращаться к категории по полю name
+def __str__(self):
+    return self.name</pre>
+			</li>
+			<li>
+				В модели дпбавим класс Meta - для нормального отображенияв админ панели и сортировки
+				<pre>
+--class Car--
+class Meta:
+    verbose_name = "Автомобиль"
+    verbose_name_plural = "Автомобили"
+    ordering = ['-time_create', 'title']  # сортировка, сначала по дате создания, потом по имени
+
+--class Category--
+class Meta:
+    verbose_name = "Категория"
+    verbose_name_plural = "Категории"
+    ordering = ['id']  # сортировка, сначала по id</pre>
+			</li>
+			<li>
+				Отобразим на нормальном языке наше приложение в админке
+				<br>В blog/apps.py - class BlogConfig - добавим 1 поле
+				<pre>verbose_name = 'Авто блог'  # отображение названия приложения</pre>
+			</li>
+			<li>
+				Добавим пару записей в категорию и посты
+			</li>
+			<li>
+				Для отображения столбцов в админ панеле в admin.py добавим классы, и опишем их
+				<pre>
+class CarAdmin(admin.ModelAdmin):
+    # список отображаемых столбцов в админ-панели
+    list_display = ('id', 'title', 'time_create', 'photo', 'is_published')
+    prepopulated_fields = {'slug': ('title',)}  # автозаполнение слага по имени поста
+    # список полей на которые можно кликнуть - для редактирования
+    list_display_links = ('id', 'title')
+    # список полей - ко которым можно вести поиск
+    search_fields = ('title', 'content')
+    # редактирование поля публикации - в списке - в админке
+    list_editable = ('is_published',)  # запятая - если 1 поле!
+    # фильтр по полям - публикация, время изменения.
+    list_filter = ('is_published', 'time_create')</pre>
+    			<pre>
+    class CategoryAdmin(admin.ModelAdmin):
+    prepopulated_fields = {'slug': ('name',)}  # автозаполнение слага по имени категории
+    list_display = ('id', 'name')
+    list_display_links = ('id', 'name')
+    search_fields = ('name',)  # ЗАПЯТАЯ В КОНЦЕ- при одном поле</pre>
+    			<pre>
+admin.site.register(Car, CarAdmin)
+admin.site.register(Category, CategoryAdmin)</pre>
+			</li>
+			<li>
+				Для отображения миниатюр фото вместо ссылки на фото добавим метод get_html_photo (назвали сами) - там же в class CarAdmin(admin.ModelAdmin):
+				<pre>
+from django.utils.safestring import mark_safe
+
+list_display = ('id', 'title', 'time_create', 'get_html_photo', 'is_published')
+
+# отображение миниатюр фото в админке
+    def get_html_photo(self, object):
+        if object.photo:  # если фото есть
+            # mark_safe - не экранирует теги
+            return mark_safe(f"<img src='{object.photo.url}' width=50>")</pre>
+			</li>
+			<li>
+				Создам шаблон для отображения 1 поста car.html, наследуюсь от base.html
+				<pre>
+{% extends 'blog/base.html' %} 
+
+{% block title %} 
+	{{ title }}
+{% endblock %}
+
+{% block content %}
+&lt;h1>{{ title }}&lt;/h1><
+{% endblock %}</pre>
+			</li>
+			<li>
+				Изменю функцию представления def car
+				<pre>
+# страница отдельной машины
+def car(request, car_slug):
+    car = Car.objects.get(slug=car_slug)
+    context = {
+        'car': car,
+    }
+    return render(request, 'blog/car.html', context=context)</pre>
+			</li>
+			<li>
+				Добавлю метод get_absolute_url - для Модели Car - для получения маршрута по слагу
+				<pre>
+from django.urls import reverse
+
+# функция формирования маршрута к ссылке
+def get_absolute_url(self):  # self - ссылка на один экземпляр(строку) таблицы модели
+    # получаем путь('path name=car, 'car/&lt;slug:car_slug>/) = 127/car/supra)
+    return reverse('car', kwargs={'car_slug': self.slug})  # self.slug - атрибут slug</pre>
+			</li>
+			<li>
+				Изменяем маршрут в urls.py  name='car'
+				<pre>
+path('car/&lt;slug:car_slug>/', car, name='car'),</pre>
+			</li>
+			<li>
+				Отображаю все поля на в шаблоне car.html
+				<pre>
+{% extends 'blog/base.html' %} 
+
+{% block title %} 
+	{{ car.title }}
+{% endblock %}
+
+{% block content %}
+
+&lt;h1>{{ car.title }}&lt;/h1>
+{% if post.photo %}
+&lt;img src="{{ car.photo.url }}" class="img-fluid">&lt;br>
+{% endif %}
+
+&lt;p>Производство: {{ car.cat }}&lt;/p>
+&lt;h3>Технические характеристики&lt;/h3>
+&lt;p>{{ car.tth|linebreaks}}&lt;/p>&lt;br>
+&lt;h3>Описание модели&lt;/h3>
+&lt;p>{{ car.content|linebreaks }}&lt;/p>&lt;br>
+&lt;p>Время обновления поста: {{ car.time_update }}&lt;/p>
+&lt;
+{% endblock %}</pre>
+			</li>
+			<li>
+				Занимаемся оформлением шаблона car.html
+			</li>
+
+
+
+
+
+
+		</ol><!-- общий список -->
+	</div><!-- container-md all -->
+&lt; &lt; &lt;
+
+# Ctrl + Alt + L 
+
+
+<!-- JS Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+
+</body>
+</html>
