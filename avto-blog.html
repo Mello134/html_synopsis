@@ -557,10 +557,263 @@ path('car/&lt;slug:car_slug>/', car, name='car'),</pre>
 			<li>
 				Занимаемся оформлением шаблона car.html
 			</li>
+			<li>
+				Делаем отображение на главной странице (будут показывать все записи в модели)
+			</li>
+			<li>
+				Во views.py - передаём в шаблон, все записи модели Car - в функции представления
+				<pre>
+# домашняя страница
+def home(request):
+    cars = Car.objects.all()
+    context = {
+        'title': 'Главная страница',
+        'cars': cars,
+    }
+    return render(request, 'blog/home.html', context=context)</pre>
+			</li>
+			<li>
+				Выводим все записи в шаблоне home.html
+				<br>Оформляем шаблон home.html
+			</li>
+			<li>
+				Пишем get_absolute_url - Category  - по слагу - в models.py
+				<pre>
+# функция формирования маршрута к ссылке
+def get_absolute_url(self):
+    return reverse('category', kwargs={'cat_slug': self.slug})</pre>
+			</li>
+			<li>
+				Меняем маршрут по слагу urls.py
+				<pre>path('category/&lt;slug:cat_slug>/', categories, name="category"),</pre>
+			</li>
+			<li>
+				Меняем функцию представления views.py
+				<pre>
+# вывод записей Car - по выбранной категории
+def categories(request, cat_slug):  # в скобках то что получаем в запросе
+    # cat__slug - обращение из модели Car - к полю slug модели Category
+    # cat_slug - значение поля slug - выбранной категории - см get_abs_url Category
+    cars = Car.objects.filter(cat__slug=cat_slug)
+    context = {
+        'title': f'Производство: {category_1}',
+        'cars': cars,
+    }
+    return render(request, 'blog/home.html', context=context)</pre>
+			</li>
+			<li>
+				Выводим информацию в шаблон - в home.html
+				<br>Ничего менять не нужно - будут отображаться только выбранные по категории авто
+			</li>
+			<li>
+				Sidebar вывожу в отдельный шаблон sidebar.html
+				<br>Просто удаляю всё из base.html - переношу в sidebar.html
+				<br>В base.html - 1 строка в нужном месте
+				<pre>{% include 'blog/sidebar.html' %}</pre>
+			</li>
+			<li>
+				Выводим категории (ссылки в sidebar)
+				views.py  - создаём переменную all_categories - выше всех функций представления
+				<pre>
+all_categories = Category.objects.all()</pre>
+				<br>В context - Каждой функции представления добавим all_categoryies - чтобы при "вызове" функции представления на html - страницах отображались категории
+				<pre>
+# домашняя страница
+def show_home(request):
+    cars = Car.objects.all()
+    context = {
+        'cat_selected': 'all',
+        'all_categories': all_categories,
+        'title': 'Все модели',
+        'cars': cars,
+    }
+    return render(request, 'blog/home.html', context=context)
 
 
+# вывод записей Car - по выбранной категории
+def show_categories(request, cat_slug):  # в скобках то что получаем в запросе
+    # cat__slug - обращение из модели Car - к полю slug модели Category
+    # cat_slug - значение поля slug - выбранной категории - см get_abs_url Category
+    cars = Car.objects.filter(cat__slug=cat_slug)
+    category_1 = Category.objects.get(slug=cat_slug)
+    context = {
+        'all_categories': all_categories,
+        'cat_selected': category_1.slug,
+        'title': f'Производство: {category_1}',
+        'cars': cars,
+    }
+    return render(request, 'blog/home.html', context=context)
 
 
+# страница отдельной машины
+def show_car(request, car_slug):
+    car = Car.objects.get(slug=car_slug)
+    context = {
+        'all_categories': all_categories,
+        'car': car,
+    }
+    return render(request, 'blog/car.html', context=context)</pre>
+			</li>
+			<li>
+				В шаблоне sidebar.html  - сделаем вывод всех категорий, через цикл фор, так же добавим конструкцию if (сравниваем cat_selected) -  для отображания ссылки в виде активной ссылки либо в виде уже выбранной категории, причем будем сравнивать отдельно для кнопки  Все категории, и отдельно для остальных категорий
+				<pre>
+{% if cat_selected != 'all' %}
+&lt;li class="nav-item">
+&lt;a class="nav-link active" aria-current="page" href="{% url 'home' %}">Все категории&lt;/a>
+&lt;/li>
+{% else %}
+&lt;li class="nav-item">
+&lt;a class="nav-link disabled" href="{% url 'home' %}" tabindex="-1" aria-disabled="true">Все категории&lt;/a>
+&lt;/li>
+{% endif %}	
+
+
+{% for category in all_categories %}
+
+
+{% if cat_selected == category.slug %}
+&lt;li class="nav-item">
+&lt;a class="nav-link disabled" href="{{ category.get_absolute_url }}" tabindex="-1" aria-disabled="true">{{ category.name }}&lt;/a>
+&lt;/li>
+{% else %}
+&lt;li class="nav-item">
+&lt;a class="nav-link" href="{{ category.get_absolute_url }}">{{ category.name }}&lt;/a>
+&lt;/li>
+{% endif %}
+
+{% endfor %}</pre>
+			</li>
+			<li>
+				<span class="spec">Зелаю путь для отдельной машины - http://127.0.0.1:8000/category/japan/nissan-silvia-s14</span>
+				<ol>
+					<li>
+						Самое важное, models.py - class Car - get_absolute_url
+						<pre>
+def get_absolute_url(self):
+    return reverse('car', kwargs={'cat_slug': self.cat.slug, 'car_slug': self.slug})</pre>
+    					<strong>ПОРЯДОК cat_slug/car_slut - важен, точно такой эе как и в маршруте!</strong>
+					</li>
+					<li>
+						Меняем маршрут urls.py
+						<pre>path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>', show_car, name='car'),</pre>
+					</li>
+					<li>
+						Меняем функцию представления для отдельной машины
+						<br><strong>на входе необходимо принимать как car_slug так и cat_slug</strong>
+						<br>car/cat_slug - это ключи в get_absolute_url - models.py - class Car
+						<pre>
+# страница отдельной машины
+def show_car(request, car_slug, cat_slug):
+    car = Car.objects.get(slug=car_slug)
+    context = {
+        'all_categories': all_categories,
+        'car': car,
+    }
+    return render(request, 'blog/car.html', context=context)</pre>
+					</li>
+					<li>
+						Всё работает! Но последним штрихом def show_car - добавлю cat_selected в context
+						<pre>
+# страница отдельной машины
+def show_car(request, car_slug, cat_slug):
+    car = Car.objects.get(slug=car_slug)
+    context = {
+        'cat_selected': cat_slug,
+        'all_categories': all_categories,
+        'car': car,
+    }
+    return render(request, 'blog/car.html', context=context)</pre>
+					</li>
+				</ol>
+			</li>
+			<li>
+				<span class="spec">Делаем пагинацию главной страницы и отображения категорий</span>
+				<ol>
+					<li>
+						View.py
+						<pre>
+from django.core.paginator import Paginator
+
+# домашняя страница
+def show_home(request):
+    cars = Car.objects.all()
+
+    paginator = Paginator(cars, 4)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'cat_selected': 'all',
+        'all_categories': all_categories,
+        'title': 'Все модели',
+        # 'cars': cars,
+    }
+    return render(request, 'blog/home.html', context=context)
+
+# вывод записей Car - по выбранной категории
+def show_categories(request, cat_slug):  # в скобках то что получаем в запросе
+    # cat__slug - обращение из модели Car - к полю slug модели Category
+    # cat_slug - значение поля slug - выбранной категории - см get_abs_url Category
+    cars = Car.objects.filter(cat__slug=cat_slug)
+    category_1 = Category.objects.get(slug=cat_slug)
+
+    paginator = Paginator(cars, 2)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'all_categories': all_categories,
+        'cat_selected': cat_slug,
+        'title': f'Производство: {category_1}',
+        # 'cars': cars,
+    }
+    return render(request, 'blog/home.html', context=context)</pre>
+					</li>
+					<li>
+						В шаблоне home.html - для отображения кнопок (делал bootstrap) - из коробки html тоже приемлимый вид
+						<pre>
+	&lt;div class="pagination justify-content-center">
+    	&lt;span class="step-links">
+    		&lt;ul class="pagination justify-content-center ">
+    	
+	    	{% if page_obj.has_previous %}
+	    		&lt;&lt;li>
+	            	&lt;&lt;a class="page-link bg-dark"  href="?page=1">&laquo; Первая&lt;&lt;/a>
+	            &lt;&lt;/li>
+	            &lt;&lt;li>
+	            	&lt;&lt;a class="page-link bg-dark" href="?page={{ page_obj.previous_page_number }}">Предыдущая&lt;&lt;/a>
+	            &lt;&lt;/li>
+	        {% endif %}&lt;&lt;
+
+	        &lt;li class="page-item disabled">
+		        &lt;span class="page-link bg-dark">
+		            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}.
+		        &lt;/span>
+		    &lt;/l&lt;i>
+
+
+	        {% if page_obj.has_next %}
+	        	&lt;li>
+	            	&lt;a class="page-link bg-dark" href="?page={{ page_obj.next_page_number }}">Следующая&lt;/a>
+	            &lt;/li>&lt;
+	            &lt;li>	
+	            	&lt;a class="page-link bg-dark" href="?page={{ page_obj.paginator.num_pages }}">Последняя &raquo;&lt;/a>
+	            &lt;/li>
+	        {% endif %}
+	        &lt;/ul>
+    	&lt;/span>
+    &lt;/div></pre>
+				</ol>
+			</li>
+			<li>
+				
+			</li>
+
+http://127.0.0.1:8000/car/toyota-supra-a80/
+
+germany
 
 
 		</ol><!-- общий список -->
