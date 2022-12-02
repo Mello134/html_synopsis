@@ -808,8 +808,282 @@ def show_categories(request, cat_slug):  # в скобках то что пол�
 				</ol>
 			</li>
 			<li>
-				
+				<span class="spec">Регистрация пользователя</span>
 			</li>
+			<li>
+				В base.html - делаю ссылки для регистрация и войти
+				<pre>
+&lt;span class="navbar-text">
+	&lt;a class="nav-link active" href="{% url 'register' %}">Регистрация&lt;/a> | 
+	&lt;a class="nav-link active" href="{% url 'login' %}">Войти&lt;/a>
+&lt;/span></pre>
+			</li>
+			<li>
+				Прописываем марщруты в urls.py
+				<li>
+path('', show_login, name='login'),
+path('', RegisterUser.as_view(), name='register'),
+				</li>
+			</li>
+			<li>
+				Создаю шаблоны login.html +  register.html - в них наследуюсь от base.html
+				<pre>
+{% extends 'blog/base.html' %} 
+
+{% block title %} 
+	Регистрация пользователя
+{% endblock %}
+
+{% block content %}
+
+Форма для регистрации
+
+{% endblock %}</pre>
+				Аналогично для формы аутентификации
+			</li>
+			<li>
+				Создам класс Mixin - для формирования первоначальных контектсов всех функций представления, в будущем перейду на них
+			</li>
+			<li>
+				в avtoblog-project/blog создам utils.py - и добавим Mixin для формирования общего контекста
+				<pre>
+from blog.models import Category  # наша модель
+
+all_categories = Category.objects.all()  # общий для всех список в sidebar
+
+
+# общий класс
+class DataMixin:
+    # формируем общий контекст
+    def get_user_context(self, **kwargs):
+        # контекст будет словарём {'ключ':'значение'}
+        context = kwargs
+        # в словарь контекст добавили { 'all_categories' : Category.objects.all()}
+        context['all_categories'] = all_categories
+        # if 'cat_selected'
+        return context</pre>
+			</li>
+			<li>
+				Деляю класс представления для регистрации пользователя во views.py - перед этим импортировав всё что нужно
+				<pre>
+from django.views.generic import CreateView  # класс представления
+from django.contrib.auth.forms import UserCreationForm  # форма django
+from django.urls import reverse_lazy  # перенаправление на маршрут
+from .utils import DataMixin  # наш Mixin
+
+
+# класс представления RegisterUser
+class RegisterUser(DataMixin, CreateView):
+    form_class = UserCreationForm  # стандартная форма django
+    template_name = 'blog/register.html'  # шаблон куда передаём
+    success_url = reverse_lazy('login')  # При успешной регистрации направит path 'login'
+
+    # формируем полный словарь context
+    def get_context_data(self, object_list=None, **kwargs):
+        # берём контекст из этого класса представления
+        context = super().get_context_data(**kwargs)  # на данный момент form_class
+        # берём контекст из DataMixin - и в него сразу добавляем title
+        c_def = self.get_user_context(title='Регистрация')
+        # передаём в шаблон общий контекст (RegisterUser + DataMixin)
+        return {**context, **c_def}
+        # или
+        # return dict(list(context.items()) + list(c_def.items()))</pre>
+			</li>
+			<li>
+				В шаблоне register.html - выведем стандартную форму django
+				<pre>
+{% block content %}
+
+&lt;form method="post">
+	{% csrf_token %}
+	{{ form.as_p }}
+	&lt;button type="submit">
+		Зарегистрироваться
+	&lt;/button>
+&lt;/form>	
+{% endblock %}</pre>
+				Форма уже рабочая но фид у неё так себе
+			</li>
+			<li>
+				Создадим свою форму (на основе стандартной просто изменим вид, отцентруем и так далее).
+				<br>Формы будем создавать в отдельном файле - создаём blog/forms.py
+			</li>
+			<li>
+				В forms.py - создаём свою форму на основе стандартной формы django - UserCreationForm
+				<pre>
+from django.contrib.auth.forms import UserCreationForm  # стандартная форма django
+from django.contrib.auth.models import User  # из djando достаём записи модели User (все пользователи)
+from django import forms  # модуль forms - для написания полей
+
+
+# форма регистрации
+class RegisterUserForm(UserCreationForm):
+    # прописываем все необходимые поля, самостоятельно
+    # тк django в meta их не видит почему-то без этого
+    # название полей можно посмотреть в коде html - или в документации
+    username = forms.CharField(label='Логин', widget=forms.TextInput(attrs={'class': 'form-input'}))
+    email = forms.EmailField(label='Email', widget=forms.EmailInput(attrs={'class': 'form-input'}))
+    password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput(attrs={'class': 'form-input'}))
+    password2 = forms.CharField(label='Повтор пароля', widget=forms.PasswordInput(attrs={'class': 'form-input'}))
+
+    class Meta:
+        model = User  # связываемся с моделью User
+        # отображаем поля модели User
+        fields = ('username', 'email', 'password1', 'password2')</pre>
+			</li>
+			<li>
+				Во views.py изменим  в классе представление связь с формой - class RegisterUser - form_class = RegisterUserForm
+				<pre>
+from .forms import *  # наш forms.py
+
+form_class = RegisterUserForm  # наша форма из forms.py</pre>
+				Форма работает, но вид можно ещё улучшить
+			</li>
+			<li>
+				В styles.css  - добавим стилей form-label/form-input/form-error/form-button
+				<br>Отступы, размеры, цыет, выравнивание а такдалее
+			</li>
+			<li>
+				Улучшаем вид в register.html - будем выводить все поля через цикл for
+				<pre>
+{% for f in form %}
+&lt;p>
+&lt;label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: &lt;/label>{{ f }}
+&lt;/p>
+&lt;div class="form-error">{{ f.errors }}&lt;/div>
+{% endfor %}</pre>
+				Форма рабочая, с подобающим видом
+			</li>
+			<li>
+				<span class="spec">Делаю авторизацию пользователя</span>
+			</li>
+			<li>
+				Сразу создам свою форму аутентификации в forms.py на основе стандартной формы AuthenticationForm, пропишем 2 поля логин и пароль
+				<pre>
+from django.contrib.auth.forms import AuthenticationForm  # стандартные формы
+
+# Форма авторизации
+class LoginUserForm(AuthenticationForm):  # AuthenticationForm - стандартная форма
+    username = forms.CharField(label='Логин', widget=forms.TextInput(attrs={'class': 'form.input'}))
+    password = forms.CharField(label='Пароль', widget=forms.PasswordInput(attrs={'class': 'form.input'}))</pre>
+			</li>
+			<li>
+				Во views.py - сделю класс представления авторизацтт
+				<pre>
+from django.contrib.auth.views import LoginView  # стандартная логика авторизации
+
+# Класс представления формы авторизации
+# Логика работы базового класса LoginView + сама форма LoginUserForm
+class LoginUser(DataMixin, LoginView):
+    form_class = LoginUserForm  # наша форма из forms.py
+    template_name = 'blog/login.html'  # шаблон
+    
+    # формируем полный контекст
+    def get_context_data(self, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)  # распаковываем изначальный контекст
+        c_def = self.get_user_context()  # переменная контекста DataMixin
+        return {**context, **c_def}  # в шаблон передаём полный контекст</pre>
+			</li>
+			<li>
+				Поправляем маршрут login - ссылкаемся на класс представления LoginUser
+				<br>В urls.py
+				<pre>path('login/', LoginUser.as_view(), name='login'),</pre>
+			</li>
+			<li>
+				Выводим в шаблон login.html - нашу форму, По сути можно скопировать код из register.html - только изменить имя кнопки, так же добавил ошибки сверху и снизу
+				<pre>
+&lt;form method="post">
+	{% csrf_token %}
+
+	<!-- ошибки если неверный логин и пароль -->
+	&lt;div class="form-error">
+		{{ form.non_field_errors }}
+	&lt;/div>
+	&lt;
+	{% for f in form %}
+	&lt;p>
+	&lt;label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: &lt;/label>{{ f }}
+	&lt;/p>
+	&lt;div class="form-error">{{ f.errors }}&lt;/div>
+&lt;
+	<!-- ошибки если возникнут -->
+	&lt;div class="form-error">
+		{{ f.errors }}
+	&lt;/div>
+
+
+	{% endfor %}
+
+	&lt;button type="submit" class="btn btn-primary btn-lg">
+		Войти
+	&lt;/button>
+&lt;/form></pre>
+			</li>
+			<li>
+				<span class="spec">Страница аккаунта - сделаю позже!</span>
+			</li>
+			<li>
+				Стандартно после залогинивания - пренаправляет по url - http://127.0.0.1:8000/accounts/profile/ - Но такого маршрута нету, по этому будем перенаправлять на домашнюю страницу
+				<br>
+				Для этого в views.py - в классе представления LoginUser - в самом инзу добавим метод для перенаправление при успешной авторизации
+				<pre>
+def get_success_url(self):
+    return reverse_lazy('home')  # при успешном входе перенаправит домой</pre>
+    			<br><strong>Второй вариант сделать перенаправление через settings.py</strong>
+    			<pre>LOGIN_REDIRECT_URL = '/'  # При успешной аутентификации - перенаправление на home-page</pre>
+			</li>
+			<li>
+				Для залогиненого пользователя, вместо регистрации и войти в навбар будем отображать - имя пользователя и выйти
+				<br>Редактируем base.html - добавляя конструкцию if
+
+				<pre>
+	      	&lt;span class="nav-text text-light">
+
+	      		<!-- если пользователь залогиненый -->
+	      		{% if request.user.is_authenticated %}
+	      		&lt;span class="text-info" style="letter-spacing: .2em; font-size: 30px;">{{ user.username }} &lt;/span> &lt;a class="nav-link active text-warning" href="{% url 'logout' %}">Выйти&lt;/a>
+
+	      		<!-- иначе пользователь незалогинен -->
+	      		{% else %}
+		      	&lt;a class="nav-link active" href="{% url 'register' %}">Регистрация&lt;/a>
+		      	&lt;a class="nav-link active" href="{% url 'login' %}">Войти&lt;/a>
+		      	{% endif %}
+
+	      	&lt;/span></pre>
+			</li>
+			<li>
+				Делаем маршрут и функцию представляния для logout
+				<br>Во views.py
+				<pre>
+from django.contrib.auth import logout  # выход пользователя django
+from django.shortcuts import ..., redirect
+
+# выход из аккаунта
+def logout_user(request):
+    logout(request)  # стандартный выход пользователя
+    return redirect('login')  # перенаправляет залогиниться</pre>
+				<br>
+				В urls.py
+				<pre>path('logout/', logout_user, name='logout'),</pre>
+				<br>
+				<span class="spec">redirect делает перенаправление по сформированному маршруту, а reverse только формирует маршрут (без перенаправления)</span>
+			</li>
+			<li>
+				Добавлю вункцию чтобы при успешной регистрации  - пользователь сразу был залогинен
+				<br>Для этого во views.py - в классе представления RegisterUser - добавим метод form_valig
+				<pre>
+from django.contrib.auth import logout, login  # выход/вход пользователя django
+
+# автозалогинивание при успешной регистрации
+def form_valid(self, form):
+    user = form.save()  # сохраняем данные пользователя в БД (User)
+    login(self.request, user)  # авторизовывает пользователя
+    return redirect('home')  # перенаправляет домой</pre>
+			</li>
+
+&lt;
+
+
 
 http://127.0.0.1:8000/car/toyota-supra-a80/
 
