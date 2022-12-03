@@ -1030,7 +1030,10 @@ class LoginUser(DataMixin, LoginView):
 def get_success_url(self):
     return reverse_lazy('home')  # при успешном входе перенаправит домой</pre>
     			<br><strong>Второй вариант сделать перенаправление через settings.py</strong>
-    			<pre>LOGIN_REDIRECT_URL = '/'  # При успешной аутентификации - перенаправление на home-page</pre>
+    			<pre>
+LOGIN_REDIRECT_URL = '/'  # При успешной аутентификации - перенаправление на home-page
+LOGOUT_REDIRECT_URL = 'home'  # При выходе из акккунта перенаправление домой
+    			</pre>
 			</li>
 			<li>
 				Для залогиненого пользователя, вместо регистрации и войти в навбар будем отображать - имя пользователя и выйти
@@ -1080,15 +1083,310 @@ def form_valid(self, form):
     login(self.request, user)  # авторизовывает пользователя
     return redirect('home')  # перенаправляет домой</pre>
 			</li>
+			<li>
+				Немного подкорректирую шаблон login.html
+			</li>
+			<li>
+				<span class="spec">Вынесу аутентификацию пользователей в отдельное приложение</span>
+			</li>
+			<li>
+				В двух словах, нежны свои urls.py, forms.py, templates, vievs.py
+			</li>
+			<li>
+				Создам новой приложение account.
+				<pre>python manage.py startapp account</pre>
+			</li>
+			<li>
+				В settings.py - регистрирую приложение
+				<pre>
+INSTALLED_APPS = [ 
+....,
+'account.apps.AccountConfig',  # наше приложение аккаунт
+]</pre>
+			</li>
+			<li>
+				В account/urls.py добавляем пути - перемещаем  всё необходимое из blog/urls.py
+				<pre>
+from django.urls import path
+from .views import *
 
-&lt;
+urlpatterns = [
+    path('login/', LoginUser.as_view(), name='login'),
+    path('logout/', logout_user, name='logout'),
+    path('register/', RegisterUser.as_view(), name='register'),
+]</pre>
+			</li>
+			<li>
+				В Главном urls.py - расширимся путями из account/urls.py
+				<pre>path('', include('account.urls')),  # путь к путям приложения account</pre>
+			</li>
+			<li>
+				blog/forms.py - полностью переносим в account/urls.py (сейчас там только формы регистрации и автоиризации)
+			</li>
+			<li>
+				В account  - создаём подкаталоги templates/account. В него переносим наши шаблоны login.html, register.html
+			</li>
+			<li>
+				Из blog/views.py переносим все классы и функции представления в account/views.py, связанные с пользователем  - Везде где указан путь к шаблону меняем путь
+				<pre>
+'account/register.html'
+template_name = 'account/login.html'</pre>
+				<br>Все функции и класса представления в account views.py
+				<pre>
+# Create your views here.
+# класс представления RegisterUser
+class RegisterUser(DataMixin, CreateView):
+    form_class = RegisterUserForm  # наша форма из forms.py
+    template_name = 'account/register.html'  # шаблон куда передаём
+    success_url = reverse_lazy('login')  # При успешной регистрации направит path 'login'
+
+    # формируем полный словарь context
+    def get_context_data(self, object_list=None, **kwargs):
+        # берём контекст из этого класса представления
+        context = super().get_context_data(**kwargs)  # на данный момент form_class
+        # берём контекст из DataMixin - и в него сразу добавляем title
+        c_def = self.get_user_context(title='Регистрация')
+        # передаём в шаблон общий контекст (RegisterUser + DataMixin)
+        return {**context, **c_def}
+        # или
+        # return dict(list(context.items()) + list(c_def.items()))
+
+    # автозалогинивание при успешной регистрации
+    def form_valid(self, form):
+        user = form.save()  # сохраняем данные пользователя в БД (User)
+        login(self.request, user)  # авторизовывает пользователя
+        return redirect('home')  # перенаправляет домой
 
 
+# Класс представления формы авторизации
+# Логика работы базового класса LoginView + сама форма LoginUserForm
+class LoginUser(DataMixin, LoginView):
+    form_class = LoginUserForm  # наша форма из forms.py
+    template_name = 'account/login.html'  # шаблон
 
-http://127.0.0.1:8000/car/toyota-supra-a80/
+    # формируем полный контекст
+    def get_context_data(self, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)  # распаковываем изначальный контекст
+        c_def = self.get_user_context(title='Авторизация')  # переменная контекста DataMixin
+        return {**context, **c_def}  # в шаблон передаём полный контекст
 
-germany
+    def get_success_url(self):
+        return reverse_lazy('home')  # при успешном входе перенаправит домой
 
+
+# выход из аккаунта
+def logout_user(request):
+    logout(request)  # стандартный выход пользователя
+    return redirect('login')  # перенаправляет залогиниться</pre>
+			</li>
+			<li>
+				Выделенные красным мктоды, классы, формы  - импортируем в account/views.py - Это очень просто сделать в PyCharm.  - он почти всегда знает что откуда импортировать
+				<pre>
+from django.contrib.auth import logout, login
+from django.contrib.auth.views import LoginView
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
+
+from account.forms import RegisterUserForm, LoginUserForm
+from blog.utils import DataMixin</pre>
+			</li>
+			<li>
+				Пробуем запускать сервер и в терминале читаем ошибки, что и где не состыковывается
+				<br>В blog.views.py - удаляем ИМПОРТ forms.py
+				<pre>from .forms import *  # наш forms.py  -  УДАЛЯЕМ</pre>
+				<strong>Всё работает! Точно так же как и до создания прилодения account и переноса туда всеи информации!</strong>
+			</li>
+			<li>
+				Финальнцы штрих - удалим все неиспользуемые импорты в blog/Views.py
+				<pre>
+---DELETE---DELETE---DELETE---DELETE---DELETE---DELETE---
+from django.contrib.auth import logout, login  # выход/вход пользователя django
+from django.contrib.auth.forms import UserCreationForm  # форма django
+from django.contrib.auth.views import LoginView  # стандартная логика авторизации
+from django.http import HttpResponse
+
+from django.urls import reverse_lazy  # перенаправление на маршрут
+from django.views.generic import CreateView  # класс представления
+
+from .utils import DataMixin  # наш Mixin
+
+from django.shortcuts import redirect
+---DELETE---DELETE---DELETE---DELETE---DELETE---DELETE---</pre>
+				<br>Даже если что то и понадобится в будующем - импортируем заново
+			</li>
+			<li>
+				<span class="spec">Добавляем страницу добавления поста (userom)</span>
+			</li>
+			<li>
+				В blog/forms.py - создаём форму - по сути ссылаемся на нашу модель Car, и указываем какие поля будем отображать
+				<pre>
+from django import forms
+from blog.models import Car
+
+
+class CarForm(forms.ModelForm):
+    class Meta:
+        model = Car  # наша модель
+        # поля отображаемые в форме
+        fields = ('title', 'slug', 'content', 'tth', 'photo', 'is_published', 'cat')</pre>
+			</li>
+			<li>
+				Создаём шаблон add_post.html - по стандарту, расщиряемся от base.html , block content, block title
+			</li>
+			<li>
+				Создаём функция представления show_add_post
+				<pre>
+from .forms import CarForm			
+
+def show_add_post(request):
+    form = CarForm()
+    context = {
+        'all_categories': all_categories,
+        'form': form,
+    }
+    return render(request, 'blog/add_post.html', context=context)</pre>
+			</li>
+			<li>
+				Добавляем маршрут name='add_post'
+				<pre>path('add_post/', show_add_post, name='add_post'),</pre>
+
+			</li>
+			<li>
+				Добавим ссылку в навбар для добавления поста (base.html)
+				<pre>href="{% url 'add_post' %}</pre>
+			</li>
+			<li>
+				<span class="spec">Внутри шаблона обязательно сразу указать form method='POST' и csrf_token - Без этого ничего сервер не запустится!</span>
+				<pre>
+&lt;h1>New post&lt;/h1>
+&lt;form method="POST" class="post-form">
+	{% csrf_token %}
+    {{ form.as_p }}
+    &lt;button type="submit" class="save btn btn-default">Save&lt;/button>
+&lt;/form></pre>
+			</li>
+			<li>
+				На данном этапе, форма уже отображается, только при её заполнении ничего не происходит так как у нас по сути нет кода чтобы сохранить её, так же нужно сделать валидацию данных
+			</li>
+			<li>
+				Во первых в шаблоне add_post - необходимо обязательно добавить в тегах форм
+				<pre>
+&lt;form action="{%  url 'add_post' %}" method="post" enctype="multipart/form-data"></pre>
+			</li>
+			<li>
+				Добавим параметры отображения полей (по сути автозаполнение тегов при пережаче в шаблон)
+				<br>
+				В forms.py - class CarAddForm(forms.ModelForm): -  class Meta: - widgets
+				<pre>
+widgets = {
+    'title': forms.TextInput(attrs={'class': 'form-input'}),
+
+    'content': forms.Textarea(attrs={'cols': 60, 'rows': 6}),
+    'tth': forms.Textarea(attrs={'cols': 60, 'rows': 3}),
+}</pre>
+			</li>
+			<li>
+				В add_post - отобразим  ошибка форм - сразу после csrf -{{ form.non_field_errors }} / до закрытия цикла фор - {{ f.errors }}
+				<br>
+				Готовй шаблон add_post.html
+				<pre>
+&lt;h1>{{ title }}&lt;/h1>
+&lt;form action="{%  url 'add_post' %}" method="post" enctype="multipart/form-data">
+	{% csrf_token %}
+	
+&lt;div class="form-error">{{ form.non_field_errors }}&lt;/div>
+	
+	{% for f in form %}
+
+	&lt;p>
+		&lt;label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}:&lt;/label>{{ f }}
+	&lt;/p>
+
+&lt;div class="form-error">{{ f.errors }}&lt;/div>
+
+{% endfor %}
+
+&lt;button type="submit" class="btn btn-primary btn-lg">
+	Сохранить запись
+&lt;/button>
+
+{% endblock %}</pre>
+			</li>
+			<li>
+				Готовая функция представления (добавление поста)
+				<pre>
+def show_add_post(request):
+    if request.method == 'POST':  # если уже введены какие-то данные
+        # request.FILES - Обязательно если есть файлы, изображения и ТД
+        form = CarAddForm(request.POST, request.FILES)  # форма = заполненная форма
+        if form.is_valid():  # проверка правильности формы, если форма заполнена правильно
+            form.save()  # сохраняет запись в БД
+            return redirect('home')  # перенаправление домой при успешном заполнении
+    else:  # если никаких данный пользователь ещё не вводил
+        form = CarAddForm()  # отображаем пустую форму для заполнения
+
+    context = {
+          'title': 'Добавление статьи',
+          'all_categories': all_categories,
+          'form': form,
+      }
+    return render(request, 'blog/add_post.html', context=context)</pre>
+			</li>
+			<li>
+				<span class="spec">Редактирование поста</span>
+				<br><span class="spec">пока не работает-оставь на потом</span>
+				<br>Проблемы скорее всего в функции представления
+				<br>при сохранении поста пишет что такая запись уже есть, но менять название поста не хочется
+				<br>При выхове формы, заполнены только слаг/title, и категорию - остальные поля пустые, что тоже не очень хорошо
+
+				<ul>
+					<li>
+						Маршрут urls.py - всё ок - код пока удёлил
+						<pre>path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>/edit_post/', show_edit_post, name='edit_post'),</pre>
+					</li>
+					<li>
+						Отображение кнопки и ссылки в car.html
+						<br>Вроде отображает и ссылка перенаправляет на нужный маршрут - но при получении формы - заполненные поля только car.title/car.slug ,  car.tth/car.content - не заполнены, так же необходимо выбирать картинку заново.
+						<br>Этот метод вроде бы GET - при нажатии кнопки
+						<pre>
+&lt;a class="btn btn-default" href="{% url 'edit_post' car_slug=car.slug cat_slug=car.cat.slug %}">Редактировать&lt;span class="glyphicon glyphicon-pencil">&lt;/span>&lt;/a></pre>
+						<br><br><strong>Обрати внимание на href=''</strong>
+						<br>-Маршрут получается правильным и рабоатет - http://127.0.0.1:8000/category/uk/aston-martin-db11-amr/edit_post/ 
+					</li>
+					<li>
+						<strong>Проблема скорее всего в функции представления</strong>
+						<br>-В примере метод POST - а по факту работает тольок по GET
+						<br>-(request, car_slug, cat_slug): - скорее всего всё ок
+						<br>-form = CarAddForm(request.GET, request.FILES, instance=car) - вроде работает но, не заполнены формы
+						<pre>
+def show_edit_post(request, car_slug, cat_slug):
+    car = get_object_or_404(Car, slug=car_slug)  # получение поста по pk если такой есть
+    if request.method == 'POST' or 'GET':
+        # request.FILES - Обязательно если есть файлы, изображения и ТД
+        # форма = заполненная форма
+        # instance = car - экземпляр записи
+        form = CarAddForm(request.GET, request.FILES, instance=car)
+        if form.is_valid():  # проверка правильности формы, если форма заполнена правильно
+            form.save()  # сохраняет запись в БД
+            return redirect('home')  # перенаправление домой при успешном заполнении
+        else:
+            form = CarAddForm(instance=car)
+    context = {
+        'title': 'Добавление статьи',
+        'all_categories': all_categories,
+        'form': form,
+    }
+    return render(request, 'blog/edit_post.html', context=context)</pre>
+					</li>
+					<li>
+						<span class="spec">заверши редактирование поста потом</span>
+					</li>
+				</ul>
+			</li>
+			<li>
+				
+			</li>
 
 		</ol><!-- общий список -->
 	</div><!-- container-md all -->
@@ -1097,9 +1395,106 @@ germany
 # Ctrl + Alt + L 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<ol>
+	<li>
+		Получение данных о пользователи (какой пользователь аутентифицирован) в views.py - из реквеста
+		<pre>
+def sample_view(request):
+    current_user = request.user
+    print current_user.id</pre>
+	</li>
+	<li>
+		Получение записи одного пользователя в request - из модели User
+		<pre>
+def show_profile(request):
+    current_user = request.user
+
+    user_info = User.objects.get(username=current_user)</pre>
+    	<br>Передача в шаблон
+    	<pre>
+def show_profile(request):
+    current_user = request.user
+
+    user_info = User.objects.get(username=current_user)
+
+    all_user = User.objects.all()
+    context = {
+        'all_user': all_user,
+        'current_user': current_user,
+        'user_info': user_info,
+    }
+    return render(request, 'account/profile.html', context=context)</pre>
+    	<br>Отображение в шаблоне
+    	<pre>
+login: {{ user_info.username }}
+мыло: {{ user_info.email }}
+Имя: {{ user_info.first_name }}
+Фамилия: {{ user_info.last_name }}
+Пароль: {{ user_info.password }}</pre>
+	</li>
+	<li>
+		Проверка аутетефицирован ли пользователь в функции представления
+		<pre>
+if request.user.is_authenticated:
+    # Do something for authenticated users.
+else:
+    # Do something for anonymous users.</pre>
+    <li>
+    	Проверка аутентефицирован ли пользователь внутри шаблона
+    	<pre>
+{% if request.user.is_authenticated %}
+блок кода покажета если пользователь щалогинен</pre>
+    </li>
+    <li>
+    	Получение id пользоватьеля из request
+    	<pre>request.user.id</pre>
+    </li>
+    <li>
+    	<span class="spec">ПЕРЕДАВАТЬ ЗНАЧЕНИЯ ПОЛЬЗОВАТЕЛЯ В ШАБЛОН НЕ ОБЯЗАТЕЛЬНО</span>
+    	его передаёт request.   (requuest.user) 
+    	<br>Можно просто сразу обращаться в шаблоне {{user}} {{user.id}} {{user.last_name}} и тд
+    </li>
+    <li>
+    	<span class="spec">Что хранится в request? - полный список</span>
+    </li>
+
+
+</ol>
+
+
+
+
+
+
+
 <!-- JS Bootstrap 5 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
 
 
 </body>
 </html>
+
+
