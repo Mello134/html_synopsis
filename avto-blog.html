@@ -1674,23 +1674,365 @@ class DeletePostView(DataMixin, DeleteView):
 --------------------------------------------------
 			<li>
 				<span class="title_text">
-					
+					Добавление поля autor - в модель Car (связь User - Car)
 				</span>
 
 				<ol>
 					<li>
-						
+						В models.py - добавляем поле author
+						<pre>
+from django.contrib.auth.models import User
+
+class Car(models.Model):
+	...
+	author = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name='Автор', blank=True, null=True)
+						</pre>
 					</li>
 					<li>
-						
+						Сделаю и применю миграции для добавления поля в Базу данных
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						Смотрим в pgAdmin 4 - добавилось поле, значение для каждой статьи null
+					</li>
+					<li>
+						В админке - можно определить автора - в редактировании статьи, расставлю для всех стаей - автора
+					</li>
+					<li>
+						Для удобства добавлю поле author - в сприске статьей в админке - для этого в  admin.py - class CarAdmin(admin.ModelAdmin 
+						<pre>
+list_display = ('id', 'title', 'time_create', 'get_html_photo', 'is_published', 'author')
+list_editable = ('is_published', 'author')  # запятая - если 1 поле!</pre>
+					</li>
+					<li>
+						Выведу в шаблон car.html - поле автор
+						<pre>
+&lt;p class="text_desc">Автор: {{ car.author }}&lt;/p></pre>
+					</li>
+					<li>
+						Сделаю так что автоматически автором статьию будет админ - если удалим пользователя, то автором статьи автоматически будет администратор (чтобы не удалисть статьи при удалении автора)
+						<br>Для этого - в models.py - class Car(models.Model): - меняю поле - author
+						<pre>
+# автор - (связь с моделью User, при удалении автора - статья переходит админу, стандартно автором будет админ,
+# поле автор не может быть пустым)
+author = models.ForeignKey(User, on_delete=models.SET_DEFAULT, verbose_name='Автор', default=1, blank=False)</pre>
+					</li>
+					<li>
+						В функцию представления -show_add_post добавлю строчки кода
+						<pre>
+if form.is_valid():  # проверка правильности формы, если форма заполнена правильно
+    car = form.save(commit=False)  # commit=False - когда нужно внести изменение в поле модели не из формы!
+    car.author = request.user  # поле автора заполняется автоматически (залогиненый пользователь)
+    car.save()  # сохраняем модель</pre>
+    					<br>Полная функция представления дополненияя нового коста
+    					<pre>
+# добавление нового поста
+def show_add_post(request):
+    if request.method == 'POST':  # если уже введены какие-то данные
+        # request.FILES - Обязательно если есть файлы, изображения и ТД
+        form = CarAddForm(request.POST, request.FILES)  # форма = заполненная форма
+        if form.is_valid():  # проверка правильности формы, если форма заполнена правильно
+            car = form.save(commit=False)  <span class="spec"># commit=False - когда нужно внести изменение в поле модели не из формы!</span>
+            car.author = request.user  # поле автора заполняется автоматически (залогиненый пользователь)
+            car.save()  # сохраняем модель
+            return redirect('home')  # перенаправление домой при успешном заполнении
+    else:  # если никаких данный пользователь ещё не вводил
+        form = CarAddForm()  # отображаем пустую форму для заполнения
+
+    context = {
+        'title': 'Добавление статьи',
+        'all_categories': all_categories,
+        'form': form,
+      }
+    return render(request, 'blog/add_post.html', context=context)</pre>
+
+					</li>
+					<li>
+						Сделаю так что отображать ссылку для редактирования и удаления статью будут только автору статьи или администратору.
+						<br>
+						Для этого в car.html - добавляем конструкцию if
+						<pre>
+&lt;h3>Автор: {{ car.author }}&lt;/h3>
+&lt;p class="text-muted">Время обновления поста: {{ car.time_update }}&lt;/p>
+
+{% if car.author == request.user or request.user.id == 1 %}
+
+&lt;a class="btn btn-warning" href="{% url 'update_post' car_slug=car.slug cat_slug=car.cat.slug %}">Редактировать статью&lt;/a>
+&lt;a class="btn btn-danger" href="{% url 'delete_post' car_slug=car.slug cat_slug=car.cat.slug %}">Удалить статью&lt;/a>
+
+{% else %}
+
+&lt;p class="text-info">Вы не можете редактировать эту статью&lt;/p>
+
+{% endif %}</pre>
+					</li>
+					<li>
+						Для дополнительной безопасности (чтобы через url - не автор статьи не смог удалить статью через url) добавим проверку,  если пользователь автор статьи или администатор
+						<br>В delete_post и create_post - аналогично в двух формах
+						<pre>
+<!-- если это автор статьи или администратор -->
+{% if car.author == request.user or request.user.id == 1 %}
+
+блок кода - форма удаления или редактирования статьи
+
+<!-- если пользователь не автор статьи и не администратор -->
+{% else %}
+
+блок кода - ошибка, вы не автор статьи
+
+{% endif %}</pre>
+					</li>
+				</ol>
+			</li>
+---------------------------------------------------------
+			<li>
+				<span class="title_text">Переделаю функцию представления show_car - на класс представления ShowCar</span>
+
+				<ol>
+					<li>
+						Во views.py - комментируем функцию представления show_car, и пишем новый класс представления для определённой машины
+						<pre>
+from django.views.generic import .., .., DetailView
+
+# страница отдельной машины
+class ShowCar(DataMixin, DetailView):
+    model = Car
+    template_name = 'blog/car.html'
+    # !указываем только car_slug - из get_absolute_ur
+    # !несмотря на то что в пути есть и car_slug ? почему так хз
+    slug_url_kwarg = 'car_slug'  # !для пути 'category/&lt;slug:cat_slug>/&lt;slug:car_slug>/'
+    context_object_name = 'car'  # обращаемся в шаблоне {{ car.поле }} - вместо object
+
+    # формируем полный контекст
+    # kwargs = {'cat_slug': self.cat.slug, 'car_slug': self.slug}
+    # kwargs (пример из одного поста) = {'cat_slug': 'italy', 'car_slug': 'ferrari-488-gtb'}
+    def get_context_data(self, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)  # распаковываем изначальный контекст
+        c_def = self.get_user_context(cat_selected=self.kwargs['cat_slug'])
+        return {**context, **c_def}  # в шаблон передаём полный контекст
+						</pre>
+						<br><span class="spec">
+							Что здесь важно:<br>
+							1. slug_url_kwarg = 'car_slug' - этого достаточно в классе представления чтобы получить путь - 'category/&lt;slug:cat_slug>/&lt;slug:car_slug>/ - то есть cat_slug указываеть не нужно (как в функции представления)
+							<br>2. context_object_name = 'car' - чтобы в шаблоне к обхекту обращатся не как object (по стандарту) - а как car. car  = Car.object.get(slug=car_slug)
+							<br>3. kwargs = {'cat_slug': self.cat.slug, 'car_slug': self.slug}<br>kwargs (пример из одного поста) = {'cat_slug': 'italy', 'car_slug': 'ferrari-488-gtb'}
+							<br>4. Для получения cat_selected  - он должен быть равен cat_slug - добавляем в c_def: c_def = self.get_user_context(cat_selected=self.kwargs['cat_slug'])
+						</span>
+						<br><br>
+					</li>
+					<li>
+						Корректируем маршрут, т.е обращаемся не к def show_car, а к классу представления class ShowCar
+						<pre>path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>/', ShowCar.as_view(), name='car')</pre>
+					</li>
+					<li>
+						Всё страница отдельной статьи - работает как и раньше, букваньно за 2 действия.
+				</ol>	
+			</li>
+
+----------------------------------------------------------
+			<li>
+				<span class="title_text">Добавление комментариев к постам (модель Comment)</span>
+
+				<ol>
+					<li>
+						Проришем модель Comment - в models.py
+						<pre>
+# класс комментарии
+class Comment(models.Model):
+    # отношение к определенному посту (записи в Car)
+    car_post = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name='Статья', blank=True, null=True, related_name='comment_car')
+    # автор - связь с моделью User
+    author_comment = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Автор комментария', blank=True, null=True)
+    # дата создания комментария
+    time_create_comment = models.DateTimeField(auto_now_add=True, verbose_name='Время создания комментария')
+    # текст комментария
+    text_comment = models.TextField(verbose_name='Текст комментария')
+    # статус комментария (видно/не видно)
+    status_comment = models.BooleanField(verbose_name='Видимость комментария', default=True)</pre>
+					</li>
+					<li>
+						Создаём и принимаем миграции
+						<pre>
+python manage.py makemigrations  # создаём
+python manage.py migrate  # принимаем
+						</pre>						
+					</li>
+					<li>
+						Создадим форму для создания статьи. В forms.py
+						<pre>
+# форма для комментария
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment  # наша модель
+        # поля отображаемые в форме
+        fields = ['text_comment']
+        widgets = {
+            'text_comment': forms.Textarea(attrs={'rows': 1}),
+        }</pre>
+					</li>
+					<li>
+						Делаем представление, буду делать с помощью класса представлени DetailView
+						<br>Во views.py - добавлю - расширяем класс представления ShowCar - стандартным миксином, FormMixin, так как DetailView - изначально не может иметь форм
+						<br><strong>FormMixin -Предоставляет возможность показать и обработать форму в запросе.</strong>
+						<pre>
+from django.views.generic.edit import FormMixin
+
+class ShowCar(DataMixin, DetailView, FormMixin):
+	...
+	...</pre>
+						<br><span class="spec">
+							Важную информацию можно брать с репозитория github django
+						</span>	
+						<br><a href="https://github.com/django/django">https://github.com/django/django</a>
+					</li>
+					<li>
+						Выводим форму в классе представления class ShowCar, так как мы расширились от миксина django - FormMixin  - у нас есть возможность в свой класс представления добавлять атрибут - form_class = (имя формы)
+						<br>В views.py- class ShowCar
+						<pre>
+from .forms import ...., ..., CommentForm	# наши формы forms.py
+
+form_class = CommentForm  # наша форма для комментариев</pre>
+						Теперь можем выводить форму - в шаблоне!
+					</li>
+					<li>
+						Выводим форму в шаблон car.html.
+						<pre>
+<!-- Комментарии -->
+&lt;br>&lt;br>&lt;br>&lt;br>
+&lt;h3 class="text_desc">Комментарии к посту&lt;/h3>
+&lt;hr>
+
+&lt;p>Добавить комментарий&lt;/p>
+&lt;form action="" method="post" id="add_comment" enctype="multipart/form-data">
+{% csrf_token %}
+&lt;div class="col-6">{{ form.as_p }}&lt;/div>
+&lt;/form>
+
+&lt;button form="add_comment" type="submit" class="btn btn-primary btn-md">
+	Добавить комментарий
+&lt;/button></pre>
+					<br>
+					<span class="spec">
+						Что здесь важно:
+						<br>1. &lt;form action="" - означает что ссылаемся на ту страницу где находимся!
+						<br>2. Необходимо связать форму, с кнопкой. В тегах формы создаём id, в тегах кнопке ссылаемся на это id:
+						<br> - &lt;form ... id="add_comment" ..>
+						<br> - &lt;button form="add_comment" ...>
+					</span>
+					</li>
+					<li>
+						Для того чтобы кнопка добавить заработала, необходимо в классе представления переопределить метод post.
+						<pre>
+    # переопределяем метод пост (для того чтобы сохранялись комментарии)
+    # self - это все объекты класса
+    # request- запрос от пользователя
+    def post(self, request, **kwargs):
+        form = self.get_form()  # получить форму
+        if form.is_valid():
+            return HttpResponse('работает')
+        else:
+            return HttpResponse('не валидна')</pre>
+            			промежуточный вариант - для понимания что делаем всё правильно и post - работает,  при отправке комментария - в браузере должно выводится 'работает'
+					</li>
+					<li>
+						Полный класс представления
+						<pre>
+# страница отдельной машины
+class ShowCar(DataMixin, DetailView, FormMixin):
+    model = Car
+    template_name = 'blog/car.html'
+    # !указываем только car_slug - из get_absolute_ur
+    # !несмотря на то что в пути есть и car_slug ? почему так хз
+    slug_url_kwarg = 'car_slug'  # !для пути 'category/&lt;slug:cat_slug>/&lt;slug:car_slug>/'
+    # context_object_name = 'car'  # обращаемся в шаблоне {{ car.поле }} - вместо object
+    form_class = CommentForm  # наша форма для комментариев
+    # success_msg = 'Комментарий создан!'  # сообщение при успешном создании комментария - РАЗБЕРИСЬ
+
+    # определим перенаправление на нашу страницу, после отправки комментария, так как в пути у нас есть cat_slug, car_slug
+    def get_success_url(self, **kwargs):
+        # get_object() - это по сути Car.objects.get(1 штука)
+        # kwargs - мы добавляем /&lt;slug:cat_slug>/&lt;slug:car_slug>/
+        # полный наш путь равен пути path = 'car' - для этого и добавляли cat_slug car_slug
+        # То есть при успешном заполнении формы (отправка комментария, нас оставит на этой же странице)
+        return reverse_lazy('car', kwargs={'cat_slug': self.get_object().cat.slug, 'car_slug': self.get_object().slug})
+
+    # переопределяем метод пост (для того чтобы сохранялись комментарии)
+    # self - это все объекты класса
+    # request- запрос от пользователя
+    def post(self, request, **kwargs):
+        form = self.get_form()  # в переменной форм занесли ту форму которую отправили
+        # 2
+        if form.is_valid():  # проверка правильности формы
+            return self.form_valid(form)  # выполняется после form_valid - передаёт уже сохранённую форму
+        else:
+            return self.form_invalid(form)  # иначе вернёт что у нас неправильно
+
+    # 1
+    def form_valid(self, form):  # берём форму
+        self.object = form.save(commit=False)
+        self.object.car_post = self.get_object()  # получение и запись экземпляра статьи (одной машины)
+        self.object.author_comment = self.request.user  # получение и запись имени автора
+        self.object.save()  # форма пересохраняется с новыми данными
+        return super().form_valid(form)  # форма передаётся в базу данных и программа продолжит свои действия
+
+    # формируем полный контекст
+    # kwargs = {'cat_slug': self.cat.slug, 'car_slug': self.slug}
+    # kwargs (пример из одного поста) = {'cat_slug': 'italy', 'car_slug': 'ferrari-488-gtb'}
+    def get_context_data(self, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)  # распаковываем изначальный контекст
+        c_def = self.get_user_context(cat_selected=self.kwargs['cat_slug'])
+        return {**context, **c_def}  # в шаблон передаём полный контекст</pre>
+        				<br>
+        				<span class="spec">
+        					Что здесь важно:<br>
+        					1. Для переопределения параметров, которые запонили не в форме (например автоматическое имя аавтора) блок кода - def form_valid(self, form):
+        					<br>2. Для получения формы и сохранения в бд, переопределяем Post - который в габлоне в тегах form
+        					<br>3. Для того чтобы остаться на той же странице, после успешного заполнения формы - def get_success_url(self, **kwargs):
+        					<br>4. Передача параметров в путь, где есть слаги - return reverse_lazy('car', kwargs={'cat_slug': self.get_object().cat.slug, 'car_slug': self.get_object().slug})
+        					<br>5. В остальном всё по старому - необходимо будет добавить высплывающее окно, что комментарий создан
+        				</span><br><br>
+					</li>
+					<li>
+						Отображаем комментарии, автора комментария, дату публикации в шаблоне
+						<br>Шаблон car.html
+						<pre>
+&lt;p>Комментарии: {{ car.comment_car.all.count }}&lt;/p> # количество комментариев
+...
+...	
+&lt;!-- Обращение к комментарию из объекта с помощью related_name='comment_car'
+из class Comment(models.Model): - car_post &lt;p>{{ car.comment_car.all }}&lt;/p> -->
+{% for сom_element in car.comment_car.all reversed  %}
+
+&lt;ul class="list-group">
+	&lt;li class="list-group-item list-group-item-info">Автор комментария: {{ сom_element.author_comment }}&lt;/li>
+	&lt;li class="list-group-item list-group-item-light">{{ сom_element.text_comment|linebreaks }}&lt;/li>
+	&lt;li class="list-group-item list-group-item-secondary">Дата создания: {{ сom_element.time_create_comment }}&lt;/li>
+&lt;/ul>
+
+&lt;br>&lt;br>
+
+
+{% endfor %}</pre>
+					    <span class="spec">
+							Что здесь важно:<br>
+							1. car.comment_car.all - обращение к комментарию из Car в Comment, c помощью Comment - car_post - related_name='comment_car'
+							<br>2. Цикл for в шаблоне с конца (для отображения свежих коментариев в начале) - {% for i in list reversed  %}
+							<br>3. {{ сom_element.text_comment|linebreaks }} - Авто абзац
+							<br>4. &lt;/hr> - линия подчеркивание
+						</span><br><br>
+					</li>
+					<li>
+						Далее делал проверки аутентификации, и отображал что нужно кому нужно, с помощью проверки - {% if request.user.is_authenticated %} - авторизован ли пользователь:
+						<br>-Комментарии могут видить все
+						<br>-Комментировать могут только авторизоавнные пользователи
+						<br>-Не авторизованному пользователю вывел ссылки войти или загегистрироваться
 					</li>
 				</ol>
 
-
-
-
 			</li>
-
+----------------------------------------------------------
 &lt;
 		</ol><!-- общий список -->
 	</div><!-- container-md all -->
