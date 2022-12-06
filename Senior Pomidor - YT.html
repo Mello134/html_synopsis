@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- css bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+	<title>Senjor Pomidor Youtube</title>
+
+	<style type="text/css">
+		
+		pre{
+			color: black;
+			background: #fcfce8;
+			margin-right: 30px;
+			margin-left: 15px;
+			margin-bottom: 2px;
+			margin-top: 5px;
+		}
+		
+		.all{
+			background: #1c1c1c;
+			color: white;
+			#003802
+		}
+		
+		body{
+			background: #c0d7d8;
+		}
+		
+		.spec {
+			font-size: 18px;
+			letter-spacing: .2em;
+			font-weight: 500;
+/*			text-transform: uppercase;*/
+			color: #ff7575;
+			margin-top: 15px;
+			margin-bottom: 2px;
+		}
+
+		.title_text {
+			letter-spacing: .1em;
+			font-weight: 500;
+			color: #f2cb71;
+			font-size: 25px;
+
+		}
+
+	</style>
+
+
+&lt; &lt; &lt;
+</head>
+
+
+<body>
+
+	<p><a href="https://www.youtube.com/playlist?list=PLyaCd9XYVI9ACOnDvyto01CH6dx35PG-t">SPD YT 1</a></p>
+	<p><a href="https://www.youtube.com/playlist?list=PLyaCd9XYVI9DiMvYl-8OdZk7ktc6NQWrb">SPD YT 2</a></p>
+	<p><a href="https://www.youtube.com/playlist?list=PLyaCd9XYVI9BQXrJU3zw3PGs_vcWw7_CD/">SPD YT 3</a></p>
+	
+	<p><a href="https://django.fun/ru/articles/tutorials/">Статьи о Django</a></p>
+
+	<p><a href="https://django.fun/ru/docs/">Документация по фреймворку и библиотекам Django</a></p>
+	
+	<p><a href="https://pypi.org/">pypi.org</a></p>
+
+
+	<div class="container-md all"><!-- container-md all ОБЩИЙ -->
+		<br>
+		<h1 class="title_text border">Senjor Pomidor Youtube</h1>
+		<hr>
+		<br><br><br>
+
+
+		<!-- <img src="images\avtoblog\host.jpg" class="img-fluid"><br> -->
+
+
+
+
+
+		<h1 class="title_text border">I. Мини-курс Django</h1>
+		<hr>
+		<br><br>
+
+		
+		<h3 class="title_text">[1]. Установка и старт проекта</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+				Установка интерпритатора Python
+			</li>
+			<li>
+				Установка редактора кода IDE. PyCharm, SublimeText
+			</li>
+			<li>
+				Создание проекта, в PyCharm
+				<br>Выбираю New environment:
+				<br>Location<pre>C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\venv_spd</pre>
+				<br>Base interpreteter<pre>Python 3.11 C:\Users\Александр\AppData\Local\Programs\Python\Python311\python.exe</pre>
+				<br>Все остальные галочки пустые.
+				<br><span class="spec">Теперь это venv - будет использоваться этим проектом,<br>В нем установлено только: setuptools, pip, wheel</span>
+			</li>
+			<li>
+				Устанавливаем Django через PyCharm - settings - Project:spd-mini - Python Interpreteter - + - Django - Install Packege (Никаких галочек ставить не нужно)
+				<br>Теперь в пакеты добавилось: Django, asgiref, sqlparse, tzdate
+			</li>
+			<li>
+				Создаём проект django - в терминале: (venv_spd) PS C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\spd-mini> 
+				<pre>django-admin startproject mini</pre>
+				<br>путь получился такой .../spd-miti/mini[manage.py]/mini[__init__,settings.py, urls.py ..]
+			</li>
+			<li>
+				Запуксаем сервер
+				<pre>
+(venv_spd) PS C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\spd-mini\mini>  
+
+python manage.py runserver
+				</pre>
+				<br>проверяем в браузере - http://127.0.0.1:8000/
+			</li>
+			<li>
+				Дополнительно в spd\mini - Добавлю .gitignore (в папку где есть manage.py)
+			</li>
+			<li>
+				В settings.py - сделаю русский язык и время по МСК
+				<pre>
+LANGUAGE_CODE = 'ru-Ru'  # русский язык в admin
+
+TIME_ZONE = 'Europe/Moscow'  # время по МСК</pre>
+			</li>
+			<li>
+				Внешнюю папку mini - маркирую как Source Root
+			</li>
+		</ol>
+	
+
+
+&lt;
+	
+		<h3 class="title_text">[2]. Создание и управелние User</h3>
+		<hr>
+		<ol>
+
+			<li>
+				В settings.py - INSTALLED_APPS - 'django.contrib.auth', - это установленное приложение для User
+			</li>
+			<li>
+				Для умного пойска в PyCarm - два раза жмём Shift - Classes - ищем класс User - class User(AbstractUser):
+				<br>Открываем нас переносит в models.py - и показывают класс, полей в этом классе нет, потому что они находятся в AbstractUser
+			</li>
+			<li>
+				Переходим в AbstractUser - для этого выделяем родительский класс, жмём Ctrl - и нас перенаправит в нужный класс
+				<br>В Этом классе прописаны все поля (username, first_name, email и итд) 
+			</li>
+			<li>
+				Классы по сути это описание таблиц в базе данных
+			</li>
+			<li>
+				Дополнительно стразу, переделаю базу данных на PostgreSQL
+				<ul>
+					<li>
+						Создаём DB в SQL Sell
+						<pre>
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Пароль пользователя postgres:blog1234
+
+psql \! chcp 1251  # для отображении кириллицы
+\l смортрим список всех DB
+CREATE DATABASE spd_mini;  # создали базу данных - spd_mini
+-->CREATE DATABASE
+\l - смотрим DB создана</pre>
+					</li>
+					<li>
+						В PyCharm - в наше окружение устанавливаю psycopg2
+					</li>
+					<li>
+						В settings.py переделываю проект под новую БД - DATABASES
+						<pre>
+DATABASES = {
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',  # стандартная БД
+        # 'NAME': BASE_DIR / 'db.sqlite3',  # стандартная БД
+        'ENGINE': 'django.db.backends.postgresql',  # БД PostrgeSQL
+        'NAME': 'spd_mini',  # Имя нашей БД
+        'USER': 'postgres',  # пользователь postgres - который создал БД
+        'PASSWORD': 'blog1234',  # пароль в PostgreSQL, для пользователя postgres
+        'HOST': '127.0.0.1',  # либо просто - 'localhost'
+        'PORT': '5432',  # стандартный порт
+    }
+}</pre>
+
+					</li>
+				</ul>
+			</li>
+			<li>
+				Делаю делаю миграцию через терминал PyCharm
+				<pre>python manage.py migrate</pre>
+			</li>
+			<li>
+				Создаём суперюзера
+				<pre>
+python manage.py createsuperuser
+
+Имя пользователя: Mello
+Адрес электронной почты: elproject220@yandex.ru
+Password:blog1234
+Password (again):blog1234</pre>
+			</li>
+			<li>
+				Заходим в админку http://127.0.0.1:8000/admin/ - и смотрим пользователей
+			</li>
+			<li>
+				Создадим нового пользователя - user1
+			</li>
+			<li>
+				Создадим группу пользователей - Web_User
+			</li>
+			<li>
+				Перенесём нашего пользователя в нашу группу пользователей
+			</li>
+		</ol>
+	
+
+
+&lt;
+	
+		<h3 class="title_text">[3]. Проект и приложение</h3>
+		<hr>
+		<ol>
+			<li>
+				Собственные приложения django - это посути разделение кода (группировка кода по какомуто критерию)
+				<br>Например сайт магазина, для него можно сделать приложения:
+				<br>-покупки пользователя
+				<br>-blilling - интеграция платёжной системы, информацию когда платил
+				<br>-доставка (адреса, курьеры)
+			</li>
+			<li>
+				Создаём приложение
+				<pre>python manage.py startapp orders</pre>
+				<br>Файлы приложение:
+				<br>-папка migrations - миграции для передачи базы данных
+				<br>-admin.py - для регистриции и настройки отображения наших моделей в админ палене
+				<br>-apps.py - конфигурация приложения
+				<br>-models.py - создаём собственные модели
+				<br>-tests.py - для тестов
+				<br>-views.py - представление. Получение запросов c url, логика отображения вэб страницы
+				<br>-можем создавать свои файлы (forms.py, utils.py и тд)
+
+			</li>
+			<li>
+				Регистрируем наше приложение в settings.py в INSTALLED_APPS
+				<pre>
+'orders',</pre>
+		</ol>
+
+
+&lt;
+	
+		<h3 class="title_text">[4]. Models Модели</h3>
+		<hr>
+		<ol>
+			<li>
+				Назодим - class AbstractUser(AbstractBaseUser, PermissionsMixin):
+				<br>Метод класса def get_full_name(self): - он выводит динамический результат, он получает first_name + last_name - и выводит в новую строку
+				<br>Метод класс - def email_user  - имеет логику отправки email, где email-  берётся из самой модели User
+			</li>
+			<li>
+				Модель является единственным источником информации о ваших данных. Она содержит основные поля и поведение данных, которые вы храните. Как правило, каждая модель отображается в одну таблицу базы данных.
+				<br>У объекта есть свойства, и модели вмещают в себя эти свойства.
+			</li>
+			<li>
+				В models.py - создаём модель SalesOrder
+				<pre>
+class SalesOrder(models.Model):
+    amount = models.IntegerField()
+    description = models.CharField(max_length=255)</pre>
+			</li>
+			<li>
+				Создаём миграцию. Миграция это промежуточный файл между Django и Базой данных
+				<pre>python manage.py makemigrations</pre>
+				Django автоматически создаёт id/pk
+			</li>
+			<li>
+				применяем миграцию (записываем нашу модель в базе данных)
+				<pre>python manage.py migrate</pre>
+			</li>
+			<li>
+				Регистрируем модель в админ панеле. В admin.py
+				<pre>
+from .models import SalesOrder
+
+admin.site.register(SalesOrder)</pre>
+			</li>
+			<li>
+				Запустим django sell
+				<pre>python manage.py shell</pre>
+				<ul>
+					<li>
+						Импортируем нашу модель
+						<pre>from orders.models import SalesOrder</pre>
+					</li>
+					<li>
+						Выберем все обхекты модели
+						<pre>SalesOrder.objects.all()</pre>
+					</li>
+					<li>
+						Присвоим первый элемент списка нашей модели в переменную
+						<pre>order = SalesOrder.objects.all()[0]</pre>
+					</li>
+					<li>
+						Обратимся к отельным полям (столбцам) записи
+						<pre>
+order.id  -->  1
+order.amount --> 25
+order.description --> 'Книга'</pre>
+
+					</li>
+				</ul>
+			</li>
+		</ol>
+
+
+&lt;
+	
+		<h3 class="title_text">[5]. Model Relations</h3>
+		<hr>
+		<ol>
+			<li>
+				Связи между моделями.
+			</li>
+			<li>
+				Например <span class="spec">ForeingKey.</span> Многие к одному (много машин к одному производителю)
+				<br>Данная связь наиболее частоиспользуемая
+				<pre>
+class Manufacturer(models.Model):
+	name = ...
+	pass
+
+class Car(models.Model):
+	name = ...
+	manufacturer = models.ForeingKey(Manufacturer, on_delete=models.CASCADE)
+..</pre>		
+				<br>Производитель - у него может быть множество моделей машин
+				<br>У каждой машины может быть только один производитель
+			</li>
+			<li>
+				В модель SalesOrder - добавляем поле user - в models.py
+				<pre>
+class SalesOrder(models.Model):
+    amount = models.IntegerField()
+    description = models.CharField(max_length=255)
+    # null=True - разрешает в поле Null - в старых заказах всем записям будет присвоено Null
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)</pre>
+				<br>-od_delete=models.SET_NULL - при удалении пользователя, во всех заказах в поле User будет поле Null
+				<br>-od_delete=models.SET_DEFAULT - при удалении пользователя, во всех заказах в поле User будет дефолтное значение которое мы укажем
+				<br>-od_delete=models.PROTECT - Django запретит удялять пользователя пока у него есть заказы
+				<br>-od_delete=models.CASCADE - при удалении пользователя, все заказы связанные с пользователем будут удалены
+			</li>
+			<li>
+				Создадим новую миграцию и применим её
+				<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+			</li>
+			<li>
+				Запустим django sell
+				<pre>python manage.py shell</pre>
+				<ul>
+					<li>
+						Импортируем нашу модель
+						<pre>from orders.models import SalesOrder</pre>
+					</li>
+					<li>
+						<pre>SalesOrder.objects.all()  # все записи модели</pre>
+					</li>
+					<li>
+						Записываем в 2 разные переменные разные записи модели
+						<pre>
+order1, order2 = SalesOrder.objects.all()</pre>
+					</li>
+					<li>
+						Просмотр поля user
+						<pre>
+>>> order1.user 
+ничего не покажет, так как поле пустое
+>>> order2.user 
+&lt;User: user1></pre>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<span class="spec">Связь ManyToManyField</span> - многие ко многим
+				<br>Например начинка и пицца. У каждой пиццы может быть много начинок, для каждой начинки может быть много пицц.
+				<br>Не особо важно в какой модели прописать связь ManyToMany в поле, можно как в пицце, так и в Начинке
+			</li>
+			<li>
+				Создадим новыое приложение products
+				<pre>python manage.py startapp products</pre>
+			</li>
+			<li>
+				Регистрируем приложение в settings.py - INSTALLED_APPS
+				<pre>'products',</pre>
+			</li>
+			<li>
+				В приложении product - в models.py -  пишем модель Products
+				<pre>
+class Product(models.Model):
+    name = models.CharField(max_length=100)</pre>
+			</li>
+			<li>
+				Создаём и принимаем миграции
+				<pre>
+					python manage.py migrate</pre>
+			</li>
+			<li>
+				Регистрируем модель в админпанеле - products/models.py
+				<pre>
+from products.models import Product
+
+admin.site.register(Product)</pre>
+			</li>
+			<li>
+				В orged/models.py - определяем связь ManyToMany (SalesOrder - Product)
+				<br>В SalesOrder - добавляем поле product
+				<pre>
+from products.models import Product
+
+products = models.ManyToManyField(Product)</pre>
+			</li>
+			<li>
+				Создаём и принимаем миграцию
+				<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+			</li>
+			<li>
+				Изучаем связь в админ панеле
+				<br>В записях SaleOrders - появилось поле, Products - где будут хранится продукты для конкретного заказа
+				<br>Создадим продукты в Products - Мобильный телефон, Ноутбук
+				<br>В SaleOrders - в одном из заказе, добавляем наши продукты - и сохраняем
+			</li>
+			<li>
+				Передём в python sell
+				<pre>python manage.py shell</pre>
+				<ul>
+					<li>
+						python manage.py shell
+					</li>
+					<li>
+						Смотрим наши записи в модели SalesOrder
+						<pre>
+from orders.models import SalesOrder 
+SalesOrder.objects.all()
+
+order2 = SalesOrder.objects.all()[1]  # присвоили в переменную вторую запись модели
+
+order2.products --> это не сработает, укажет просто ...object at 0x0000018A3A8CA85...
+order2.products.all() --> &lt;QuerySet [&lt;Product: Product object (1)>, &lt;Product: Product object (2)>]> 
+order2.products.all()[0].name  # вывод имени 1 продукта в нашем заказе (через класс Заказы, имя класса Продукт)</pre>
+				</ul>
+			</li>
+			<li>
+				<span class="spec">Связь OneToOneField</span>
+				<br>Связь один к одному
+				<br>Например у пользователя есть свой аккаунт(где есть данные например о картах) - этот аккаунт может быть привязан только к одному пользователю User
+				<br>Связь применяется очень редко
+				<br>Ещё один пример  - например нам необходимо к Useru Добавить поле - например номер лицевого счёта, нам не нужно изменять стандартную модель User Django - она не наша, встроенные модели изменять не стоит во избежании проблем, по этому лучше создать новый клас со связью OneToOne - и как бы расширить дополнительными полями модель User
+			</li>
+		</ol>
+
+
+&lt;
+	
+		<h3 class="title_text">[6]. HTML rendering View</h3>
+		<hr>
+		<ol>
+			<li>
+				Пишем функцию представления - в orders/views.py
+				<br>У render - 2 обязательный параметра (request, 'имя шаблона')
+				<pre>
+def orders_page(request):
+    return render(request, 'index.html')</pre>
+			</li>
+			<li>
+				<span class="">Аатоматическое исправленеи оформления кода в PyCharm (Ctrl + Alt + L)</span>
+			</li>
+			<li>
+
+				<span class="spec">Во вмнешнем mini! там где manage.py.</span>
+				<br>Cоздаём каталог templates!
+			</li>
+			<li>
+				Прописываем созданною дирректирию templates - в settings.py - TEMPLATES - 'DIRS': []
+				<pre>
+'DIRS': ['templates'],</pre>
+			</li>
+			<li>
+				Создаём шаблон index.html - в дирректории templates
+			</li>
+			<li>
+				Делаем маршрут связанный с нашей функцией представления
+				<br>В mini/urls.py
+				<pre>path('', orders_page),</pre>
+			</li>
+			<li>
+				<span class="spec">Ctrl+Space - помощь в импортировании чего либо</span>
+				<br>Будет выскакивать похожие с именем функции/классы и где они находятся
+			</li>
+			<li>
+				Выведем/передадим данные из модели в шаблон (передадим параметр в render)
+				<br>views.py
+				<pre>
+from orders.models import SalesOrder
+
+def orders_page(request):
+    return render(request, 'index.html', {'orders': SalesOrder.objects.all()})
+				</pre>
+			</li>
+			<li>
+				Выводим данные модели в шаблоне index.html
+				<pre>
+{% for order in orders %}
+&lt;p>{{ order.amount }}&lt;/p>
+{% endfor %}</pre>
+			</li>
+			<li>
+				Подключи bootstrap - в шаблон. В head - html файла вставляем ссылку css из bootstrap
+			</li>
+			<li>
+				Немного оформим шаблон Index.html c помощью классов bootstrap
+				<pre>
+{% for order in orders %}
+
+&lt;div class="btn btn-success btn-lg">
+	&lt;p>Цена: {{ order.amount }}&lt;/p>
+	&lt;p>Наименование: {{ order.description }}&lt;/p>
+&lt;/div>
+&lt;hr>
+&lt;br>
+&lt;br>
+&lt;
+{% endfor %}</pre>
+			</li>
+			<li>
+				Метод шаблонов (view - создание HTML стриницы на сервере) устаревает, чаще всего успользуют методы API запросов
+				<br>Клиент адресовывает данные как ему хочется - а сервер представляет какието голоые данные.
+			</li>
+		</ol>
+
+
+
+&lt;
+	
+		<h3 class="title_text">[7]. API View на Django REST Framework</h3>
+		<hr>
+		<ol>
+			<li>
+				API запросы - обращение клиента к серверу. Клиент адресовывает данные как ему хочется - а сервер представляет какието голоые данные
+			</li>
+			<li>
+				view по созданию API endpoint, который позволит нам формировать данные на сервере, передавать их на клиент, и на клиенте отрисовывать эти данные - аналогично так же как мы могли отрисовать их на сервере с помощью шаблонов html
+			</li>
+			<li>
+				Для содания view API - необходим DJANGO REST FRAMEWORK
+			</li>
+			<li>
+				В виртуальное окружение добавим библиотеку (пакет) - Django REST Framework.
+				<br>Через PyCharm - djangorestframework
+			</li>
+			<li>
+				QuerySet - список объектов класса
+				<br>Сериализатор - Сериализаторы позволяют преобразовывать сложные данные, такие как наборы запросов и экземпляры моделей, в собственные типы данных Python, которые затем могут быть легко преобразованы в JSON , XML или другие типы содержимого.
+				<br>То есть в методах передачи в шаблон мы отправляли объекты модели в шаблон, и там обращались к полям - то в случае с API это необходимо делать с помощью сериализатора
+				<br>В сериализаторе нам необходимо определить какие именно поля необходимо передавать взапросе - точнее из каких полей формируетмя Python словарь
+			</li>
+			<li>
+				Создаём новый py файл в orders (app)
+				<br>serializers.py , в нём
+				<pre>
+from rest_framework.serializers import ModelSerializer  # базовый сериализатор dj rest
+from orders.models import SalesOrder  # наш сериализатор
+
+
+class OrderSerializer(ModelSerializer):  # наш сериализатор
+    class Meta:
+        model = SalesOrder  # наша модель
+        fields = ['amount', 'description']  # поля модели</pre>
+			</li>
+			<li>
+				<span class="spec">Alt + Enter - автоимпорт и PyCHarm</span>
+			</li>
+			<li>
+				Создаём класс представления уже(API) - во views.py
+				<pre>
+from rest_framework.viewsets import ModelViewSet  # класс представления RESTfw
+from orders.serializers import OrderSerializer  # наш сериализатор
+
+# класс представления OrderView
+# унаследовать функции из базового класса django REST - ModelViewSet
+class OrderView(ModelViewSet):
+    queryset = SalesOrder.objects.all()  # все записи модели
+    serializer_class = OrderSerializer</pre>
+			</li>
+			<li>
+				Пишем маршрут для нашего класса представления
+				<br>Для model view set - маршруты пишутся немного по другому
+				<br>В mini/urls.py
+				<pre>
+from rest_framework.routers import SimpleRouter
+from orders.views import ..., OrderView
+
+router = SimpleRouter()
+
+router.register('api/orders', OrderView)
+# ('путь url', класс представления rest)
+
+urlpatterns = [
+    path('......),
+    path(......),
+]
+
+# в urlpatterns добавляем маршруты router.urls
+urlpatterns += router.urls</pre>
+			</li>
+			<li>
+				Сохраняемся и проверяем в браузере
+				<pre>
+http://127.0.0.1:8000/api/orders/?format=json</pre>
+				<br>?format=json  - djnango rest fw - бдует понимать что необходимо передавать в формате json
+				<br><span class="spec">-json - JSON (JavaScript Object Notation) - простой формат обмена данными, удобный для чтения и написания как человеком, так и компьютером. Он основан на подмножестве языка программирования JavaScript, определенного в стандарте</span>
+				<br><br>
+				-В браузере в вышеуказанном запросе выведет на страцице:
+				<pre>-[{"amount":150,"description":"Аудиокнига"},{"amount":25,"description":"Книга"}]</pre>
+				<br>-Это объект в формате json - по сути выглядит как словарь python
+				<br>-В приложениях программам было бы удобно получать данные в формате json - и расставлять их куда нужно
+				<br>-В формате json - данные принимают - модильные приложения, серверы, в том числе и браузеры и браузерные приложения
+				<br>
+				<br>
+				-Способ ренедеринга в шаблоны - обычно уже не используется, он либо совсем заменён на формат json либо комбирируется (rendering + api запросы json)
+			</li>
+		</ol>
+
+
+
+&lt;
+	
+		<h3 class="title_text">[8]. Фронтенд клиент на vue.js</h3>
+		<hr>
+		<ol>
+			<li>
+				Взаимодействие при помощи api с приложением django, чтобы сделать похожий результат который получили с помощью render
+			</li>
+			<li>
+				Будем использовать framework JavaScript - vue JS
+			</li>
+			<li>
+				Создадим шаблон, в который будем отправлять json, а рендерингом уже будет заниматся фронтенд JavaScript (vue JS) - то есть рендеринг будет происходить не на стороне сервера, а на стороне клиента
+				<br><br>
+				То есть мы отдаём клиенту шаблон и данные которые нужно в него подставить - и клиент сам расставляет эти данные в шаблон
+				<br>Чаше всего даже не требуется отдавать шаблон фронтэнд клиенту - а необходимо передавать только данные
+				<br>-В любом случае потребуется какаято страница, чтобы увидеть работу JavaScript framework
+				<br><br>-По этому создаём новую html страницу, в папке templates - main_app.html
+				<br> Делаем Html - разметку, подключаем bootstrap css в head, подключаем библиотеку vue JS - копируя ссылку скрипта из  <a href="https://github.com/translation-gang/ru.vuejs.org/blob/master/src/v2/guide/installation.md">https://github.com/translation-gang/ru.vuejs.org/blob/master/src/v2/guide/installation.md</a> (vue.js)
+				Внизу head html
+				<br> - добавляем axios cdn <a href="https://cdnjs.com/libraries/axios">https://cdnjs.com/libraries/axios</a> (axios.js) - аналогично vue
+				<pre>
+&lt;!-- css bootstrap 5 -->
+&lt;link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+&lt;!-- vue.js - vue.cjs.js-->
+&lt;script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js&lt;>&lt;/script>
+
+&lt;!-- axios cdn -->
+&lt;script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js">&lt;/script></pre>
+			</li>
+			<li>
+				Делаем функцию представления - который будет отдавать main_app.html - файл
+				<br>orders/views.py
+				<pre>
+# представление main_app.html
+def orders_main_app(request):
+    return render(request, 'main_app.html')</pre>
+			</li>
+			<li>
+				Делаем маршрут в mini/urls.py
+				<pre>
+from orders.views import ...., ...., orders_main_app
+
+urlpatterns = [
+    ...
+    ...
+    path('orders_main_app/', orders_main_app),
+]</pre>
+			</li>
+			<li>
+				В браузере переходим - http://127.0.0.1:8000/orders_main_app/ - и открываем консоль разработчика  - Network - и смотрим полключились ли файлы bootstrap, vue, axios - всё ок
+			</li>
+			<li>
+				Создаём папку статических файлов в  mini - static, создаём js файл
+				<br>spd-mini/mini/static/app.js
+			</li>
+			<li>
+				В settings.py - указываем путь к static файлам
+				<pre>STATICFILES_DIRS = [BASE_DIR / 'static']  # путь к папке static</pre>
+			</li>
+
+
+			<li>
+				В шаблоне main_app.html - подключаем app.js - до закрывания body
+				<pre>
+&lt;script src="/static/app.js">&lt;/script></pre>
+				В панеле разработчика в Network проверяем подключилмя ли наш app.js
+			</li>
+			<li>
+				Пишем app.js - Java Script - код
+				<pre>
+//обращаемся к классу который есть в библиотеке Vue.js
+new Vue({
+    el: '#orders_app',  // 'элементы - Это id в div html
+    // data - словарь переменных
+    data: {
+    orders: []
+    },
+    // функция - которая не принимает аргументов
+    // {} - внутри код на JS когда Vue будет создано
+    // Vue будет создано - когда откроется веб страница
+    created: function () {
+        // константа - имя = vm
+        // this - это self в JS
+        const vm = this;
+        // подключаемся к библиотеке axios
+        axios.get('/api/orders/')
+        // then - после того как запрос выполнен
+        // response - ответ от сервера
+        .then(function (response){
+        vm.orders = response.data
+        })
+    }
+}
+)</pre>
+				<br>То же самое без комментариев
+				<pre>
+new Vue({
+    el: "#orders_app",
+    data: {
+    orders: []
+    },
+    created: function () {
+        const vm = this;
+        axios.get("/api/orders/")
+        .then(function (response){
+        vm.orders = response.data
+        })
+    }
+}
+
+)</pre>
+			</li>
+			<li>
+				main_app.html body
+				<pre>	
+&lt;!-- внтри verbatim - django рендерить не будет
+потому что {{ js }} , такжеделает и djnago {{ django }} -->
+
+{% verbatim %}
+&lt;div class="container" id="orders_app">
+	
+
+	&lt;!-- v-for="order in orders - это цикл for -->
+	&lt;div class="btn btn-success btn-lg" v-for="order in orders">
+		
+		Наименование: {{ order.description }}
+		&lt;br>
+		Цена: {{ order.amount }}
+
+	&lt;/div>
+
+
+&lt;/div>
+{% endverbatim %}</pre>
+				<br><br>
+				<span class="spec">
+					-В чём смысл - смысл в том что в первом сулчае (то что обычно делали в шаблонах django) - мы получали записи из БД и выводили в шаблон с помощью джанго, то есть страницу рендерил джанго, на сервере
+					<br><br>-В указанном случае рендеринг делал vue JS, для этого мы и создавали api endpoint -  к которому может обращатся какойто клиент, браузер, мобильное приложение и с помощью JS - рендерить уже на стороне клиента
+					<br><br>-Они вроде находятся в  маршруте router.register('api/orders', OrderView) - то есть при переходе на path('orders_main_app/', orders_main_app),   -  данные берутся из router.register('api/orders', OrderView).
+					<br>При помощи API endpoint - больше возможностей.
+				</span>
+				<br><br>
+			</li>
+		</ol>
+
+&lt;
+	
+
+
+
+
+
+
+		<br><br><br><br><br><br>
+		<h1 class="title_text border">II. Бекенд на Django</h1>
+		<hr>
+		<br><br>
+
+		
+		<h3 class="title_text">[0]. Название</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[0]. Название</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+
+		<h3 class="title_text">[0]. Название</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[0]. Название</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[0]. Название</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[0]. Название</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[0]. Название</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+		
+
+
+
+	</div><!-- container-md all -->
+&lt; &lt; &lt;
+
+<!-- # Ctrl + Alt + L  -->
+
+
+
+
+
+<!-- JS Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+
+</body>
+</html>
+
+
