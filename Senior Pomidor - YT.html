@@ -811,7 +811,588 @@ new Vue({
 		<br><br>
 
 		
-		<h3 class="title_text">[0]. Название</h3>
+		<h3 class="title_text">[1]. Quickstart</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+				Будем делать новый проект, в Pyharm - создаём Python проект и создаём  виртуальное окружение к нему
+				<pre>
+Проект - C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\Books-project
+Venv - C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\venv_books</pre>
+				<br><br><span class="spec">Никаких 'галочек'' не надо</span>
+			</li>
+			<li>
+				В терминале  - (venv_books) PS C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\Books-project>  - устанавливаем django
+				<pre>
+pip install Django</pre>
+
+			</li>
+			<li>
+				Создаю новый django проект
+				<pre>django-admin startproject books</pre>
+			</li>
+			<li>
+				Внешнюю папку Books - (там где manage.py)  - маркирую как Sources Root - то есть это будет корневой папкой django проекта
+			</li>
+			<li>
+				Дополнительно - сам сделаю новую Базу данных в PostgreSQL - в SQL Shell
+				<pre>
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Пароль пользователя postgres:blog1234
+
+psql \! chcp 1251  # для отображении кириллицы
+\l смортрим список всех DB
+CREATE DATABASE books;  # создали базу данных - books
+-->CREATE DATABASE
+\l - смотрим DB создана</pre>
+			</li>
+			<li>
+				Установлю в  - psycopg2 - в виртуальное окружение через терминал, для того чтобы база данных PostrgeSQL работала в проекте
+				<pre>pip install psycopg2</pre> 
+			</li>
+			<li>
+				Дополнительно - наструю БД в settings.py, там же сразу сделаю русский язык и время по МСК
+				<br>settings.py - База данных
+				<pre>
+DATABASES = {
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',  # стандартная БД
+        # 'NAME': BASE_DIR / 'db.sqlite3',  # стандартная БД
+        'ENGINE': 'django.db.backends.postgresql',  # БД PostrgeSQL
+        'NAME': 'books',  # Имя нашей БД
+        'USER': 'postgres',  # пользователь postgres - который создал БД
+        'PASSWORD': 'blog1234',  # пароль в PostgreSQL, для пользователя postgres
+        'HOST': '127.0.0.1',  # либо просто - 'localhost'
+        'PORT': '5432',  # стандартный порт
+    }
+}</pre>
+			<br>settings.py - время и язык
+			<pre>
+LANGUAGE_CODE = 'ru-Ru'  # русский язык в admin
+
+TIME_ZONE = 'Europe/Moscow'  # время по МСК</pre>
+			</li>
+			<li>
+				В корневой каталог books (там где manage.py) - добавляю .gitignore
+			</li>
+			<li>
+				Создаём новое приложение - в терминале - (venv_books) PS C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\Books-project\books> 
+				<pre>
+python manage.py startapp store</pre>
+			</li>
+			<li>
+				Дополнительно - регистрирую приложение store в settings.py - INSTALLED_APPS
+				<br>Информацию берём из store/apps.py - class
+				<pre>'store.apps.StoreConfig',</pre>
+			</li>
+			<li>
+				Принимаю первую миграцию (пользователи админки и такдалее) - те таблицы что нужны django изначально
+				<pre>python manage.py migrate</pre>
+				<br>Через pgAdmin 4 - можно проверить, создались си в нашей базе данных таблицы
+			</li>
+			<li>
+				Создаём супер пользователя
+				<pre>
+python manage.py createsuperuser
+
+Имя пользователя: Mello
+Адрес электронной почты: elproject220@yandex.ru
+Password:blog1234
+Password (again):blog1234</pre>
+			</li>
+			<li>
+				Проверим работостпособность сервера и войдём в админ панель - под аккаунтом superuser
+			</li>
+			<li>
+				Создадим пользователя user1
+			</li>
+			<li>
+				Создаём первую модель в store/models.py
+				<pre>
+class Book(models.Model):
+    name = models.CharField(verbose_name='Название книги', max_length=255)
+    # DecimalField - почти float, но необходимо указать сколько значений будет после запятой
+    # max_digits=7 - максимальное количество цифр в числе (вместе с дробной частью)
+    # decimal_places=2 - два числа после запятой
+    price = models.DecimalField(verbose_name='Цена книги', max_digits=7, decimal_places=2)</pre>
+			</li>
+			<li>
+				Ctrl+Alt+L - PyCharm - автоматически отредактирует код согласно PIP8
+			</li>
+			<li>
+				Создадим и применим миграцию
+				<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+			</li>
+			<li>
+				Дополнительно, зарегистрирую и настрою отображение нашей модели в админ панеле
+				<br>в store/admin.py
+				<pre>
+from store.models import Book
+
+
+class BookAdmin(admin.ModelAdmin):
+    # список отображаемых столбцов в админ-панели
+    list_display = ('id', 'name', 'price')
+    # список полей на которые можно кликнуть - для редактирования
+    list_display_links = ('id', 'name', 'price')
+    # список полей - ко которым можно вести поиск
+    search_fields = ('name',)
+
+
+# регистрируем в админке - модель Book
+# регистрируем класс отображения в админке - BookAdmin
+admin.site.register(Book, BookAdmin)</pre>
+			</li>
+			<li>
+				Дополнительно - Изменю отображение названия в админ панели для модели Book, в единственном и множественном числе - на русском языке
+				<br>для этого в store/models.py - модели Book, допишем class Meta:
+				<pre>
+class Meta:
+    verbose_name = 'Книги'
+    verbose_name_plural = 'Книги'</pre>
+			</li>
+			<li>
+				Дополнительно - отобразим название приложения - STORE - на русском языке
+				<br>Для этого в store/apps.py - class StoreConfig(AppConfig): - добавим verbose_name
+				<pre>
+verbose_name = 'Магазин'</pre>
+			</li>
+			<li>
+				Устанавливаем djangorestframework - через PyCharm
+				<br>Теперь мы можем пользоваться классами который предоставляет djangorestframewoek
+			</li>
+			<li>
+				Дополнительно зарегистрирую djangorestframework в settings.py - INSTALLED_APPS
+				<pre>
+'rest_framework',  # djangorestframework</pre>
+			</li>
+			<li>
+				Сделаем сериализацию модели Book - в store - создаём новый файл - serialuzers.py
+				<br>Внутри него делаем сериализатор для нашего класса
+				<pre>
+from rest_framework.serializers import ModelSerializer
+from store.models import Book
+
+# ModelSerializer - родительский класс
+class BookSerializer(ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'  # все поля</pre>
+			</li>
+			<li>
+				Создадим представление для нашего будущего API Endpoint
+				<br>в store/views.py
+				<pre>
+from django.shortcuts import render  # обычный render - нам больше не нужен..
+
+from rest_framework.viewsets import ModelViewSet
+from store.models import Book
+from store.serializers import BookSerializer
+
+# ModelViewSet - родительский класс
+class BookViewSet(ModelViewSet):
+    queryset = Book.objects.all()  # объекты нашей модели
+    serializer_class = BookSerializer  # наш сериализатор</pre>
+			</li>
+			<li>
+				необходимо пробросить запрос из нашего представления
+				<br>В books (проект)/urls.py
+				<pre>
+from rest_framework.routers import SimpleRouter  # маршрутизатор rest
+from store.views import BookViewSet  # наше представление api
+
+# создали переменную роутер
+router = SimpleRouter()
+
+# в роутер добавим наше представление
+router.register(r'book', BookViewSet)
+
+
+urlpatterns = [
+	...
+]
+
+# добавляем в urlpatterns, url-ы нашего роутера
+urlpatterns += router.urls</pre>
+			</li>
+			<li>
+				Проверяем работоспособность
+				http://127.0.0.1:8000/book/
+				<br><span class="spec">Прелесть Django REST framework - в том что он делает всё автоматически - при переходе по указанному url-у http://127.0.0.1:8000/book/  - нам выведется страница со всей информациией от фреймворка, мы можем посмотртеть сухой json (какой он на самом деле) просто нажав кнопку json<br>
+				И нас перенесёт по реальному url-у - http://127.0.0.1:8000/book/?format=json</span>
+				<br><br>
+			</li>
+			<li>
+				Добавим пару записей в Book через django sell в терминале
+				<pre>
+python manage.py shell 
+
+# импортируем модель в shell
+from store.models import Book 
+
+# создаём пару записей
+Book.objects.create(name='Учебник Python', price='1000.00') 
+Book.objects.create(name='Документация Django', price='1500.00')
+
+# выход из shell
+exit()</pre>
+			</li>
+			<li>
+				Проверим в браузере, всё чётко работает, выводит словарь - словарь как сериальзованная модель ф формате json
+				<pre>
+[{"id":1,"name":"Учебник Python","price":"1000.00"},{"id":2,"name":"Документация Django","price":"1500.00"}]
+				</pre>
+			</li>
+			<li>
+				Дополнительно создам репозиторий на github - отправлю первый коммит
+				(.gitignore - уже создавал)
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[2]. Unit Tests</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+				Делаем первый unnit test - store/tests.py - удалим файл - и сделаем целую дирректорию
+				store/tests  - делаем как Python Package (папка с __init__.py) В этой дирректории бдут тесты для каждого модуля которые мы имеем (models.py views.py serializers.py)
+			</li>
+			<li>
+				В store - создадим python файл - logic.py - в нём делаем пример теста
+				<pre>
+def operations(a, b, c):
+    if c == '+':
+        return a + b
+    if c == '-':
+        return a - b
+    if c == '*':
+        return a * b</pre>
+        		<br>Переходим в Python Console
+        		<pre>
+from store.logic import operations  # импортируем нашу функцию из logic.py
+
+operations(3, 7, '-')  # вводим значения для a, b, c
+-4  # вывела консоль - функция работает
+
+operations(3, 7, '+')
+10
+operations(3, 7, '*')
+21</pre>
+			</li>
+			<li>
+				В store/tests - создаём .py -файл - test_logic.py <strong>Причём нижнее подчёркивание обязательно для создании тестов</strong>
+				<br>Как правило тесты пишится классами, для этого есть два самых популярных фреймворка - <strong>unittest, django.test , pytest</strong><br>первый и второй как праивло уже установлены - на данном этапе
+			</li>
+			<li>
+				<span class="spec">В Pithon 3.11 - на данный момент есть проблемы с pydev debugger</span>
+				<br>Я решил проблему 1) с помошью установки в виртуальное окружения django-debugger
+				<br>2) from <strong>unittest</strong> import TestCase
+			</li>
+			<li>
+				В store/test/logic_test/py - пишем тест:
+				<pre>
+from unittest import TestCase  # встроенный класс для тестов
+
+# наш тест на основе базового TestCase
+class LogicTestCase(TestCase):
+    def test_plus(self):  # метод внутри теста
+        # подставляем значения abc
+        # def operations (a, b, c) - прописана в другой файле
+        result = operations(6, 13, '+')
+        # (то что мы ожидаем, результат)
+        self.assertEqual(19, result)</pre>
+        		<br>Делаем тест - на test_plus - ПКМ -Run
+        		<br>Вывод в консоле:
+        		<pre>
+Ran 1 test in 0.002s
+
+OK</pre>
+				<br>То есть 6 + 13 = 19 --> OK -  условие выполнено
+			</li>
+			<li>
+				Если мы поменяем значение в условии на result = operations(9, 13, '+')
+				<br>Run выведет:
+				<pre>
+Ran 1 test in 0.004s
+
+FAILED (failures=1)
+
+22 != 19
+
+Expected :19
+Actual   :22
+
+AssertionError: 19 != 22
+</pre>
+				То есть не верно, мы планируем увидить 19, но по факту результат функции = 22
+			</li>
+			<li>
+				Добавим ещё два теста (метод в классе ) - LogicTestCase
+				<br>Там же test_logic.py
+				<pre>
+def test_minus(self):
+    result = operations(6, 13, '-')
+    # (то что мы ожидаем, результат)
+    self.assertEqual(-7, result)
+
+def test_multiply(self):
+    result = operations(6, 13, '*')
+    # (то что мы ожидаем, результат)
+    self.assertEqual(78, result)</pre>
+    			Всё работает!
+			</li>
+			<li>
+				То эе самое проделаем в терминале
+				<br>В терминле - (venv_books) PS C:\Хранилище\IT\IT Разное\Обучение\Senior Pomidor\Books-project\books>
+				<pre>
+ python manage.py test store.tests
+ # где - store.tests - это дирректория где хранятся наши тесты</pre>
+			</li>
+			<li>
+				Ещё вариант сделать тесты - в терминале просто записать
+				<pre>python manage.py test .</pre>
+				Будут сделаны все тесты в папке которой мы находимся в терминале
+			</li>
+			<li>
+				В store/test - создаём test_api.py (будем тестировать представления api) - внутри создаём
+				<pre>
+from django.urls import reverse
+from rest_framework.test import APITestCase
+
+# проверка API  - см urls.py router.register(r'book', BookViewSet)
+class BooksApiTestCase(APITestCase):
+    def test_get(self):
+        # book-list - получение всего списка router.register(r'book', BookViewSet)
+        # book-detail - если бы необходимо было бы конкретную книгу
+        url = reverse('book-list')
+        print(url)  # для себя - для проверки что выведет
+        # self.client - например клиент/браузер - который делает запрос нашему серверу
+        response = self.client.get(url)
+        print(response)  # для себя - для проверки что выведет</pre>
+			</li>
+			<li>
+				Делаем проверку BooksApiTestCase  - в терминале (так.как PyCharm PyCharm Community Edition - не поддерживает тесты rest) - чтобы делать кнопочками, необходима платная версия
+				<br>Делаем тест только в одном файле
+				<pre>
+python manage.py test store.tests.test_api</pre>
+				<br><br>Терминал выведет
+				<pre>
+/book/
+&lt;Response status_code=200, "application/json">
+.
+-----------
+Ran 1 test in 0.012s
+
+OK</pre>
+			</li>
+			<li>
+				Поменяем print(response) на print(response.data)  и повторим тест
+				<pre>
+print(response.data)
+-->
+/book/
+[]  # это пустой api - так как в тесте мы не загружали никакие данные
+.....</pre>
+			</li>
+			<li>
+				Добавим в тест пару книг, 
+				<br><span class="spec">Важно понимать - что книги не записываются в БД - это только текст - не смотря на то что мы импортировали модель из models.py</span>
+				<pre>
+from store.models import Book
+
+# проверка API  - см urls.py router.register(r'book', BookViewSet)
+class BooksApiTestCase(APITestCase):
+    def test_get(self):
+        # добавили тестовые книги! они не записываются в БД! - это тест!
+        book_1 = Book.objects.create(name='Test book 1', price=25)
+        book_2 = Book.objects.create(name='Test book 2', price=50)
+        # book-list - получение всего списка router.register(r'book', BookViewSet)
+        # book-detail - если бы необходимо было бы конкретную книгу
+        url = reverse('book-list')
+        print(url)  # для себя - для проверки что выведет
+        # self.client - например клиент/браузер - который делает запрос нашему серверу
+        response = self.client.get(url)
+        print(response.data)  # для себя - для проверки что выведет</pre>
+        		<br>Делаем тест
+        		<pre>
+python manage.py test store.tests.test_api
+-->
+/book/
+[OrderedDict([('id', 1), ('name', 'Test book 1'), ('price', '25.00')]), OrderedDict([('id', 2), ('name', 'Test book 2'), ('price', '50.0
+0')])]
+----
+Ran 1 test in 0.014s
+
+OK</pre>
+				Всё работает - отлично
+			</li>
+			<li>
+				Подключим сериализатор к тесту
+				<pre>
+from store.serializers import BookSerializer
+
+# проверка API  - см urls.py router.register(r'book', BookViewSet)
+class BooksApiTestCase(APITestCase):
+    def test_get(self):
+        # вводные данные
+        book_1 = Book.objects.create(name='Test book 1', price=25)
+        book_2 = Book.objects.create(name='Test book 2', price=50)
+
+        # book-list - получение всего списка router.register(r'book', BookViewSet)
+        # book-detail - если бы необходимо было бы конкретную книгу
+        url = reverse('book-list')
+
+        # self.client - например клиент/браузер - который делает запрос нашему серверу
+        response = self.client.get(url)
+
+        # сравниваем то что вводные данные сходятся с выходными
+        serializer_data = BookSerializer([book_1,book_2], many=True).data
+        # serializer_data - входные данные, response.data - выходные данные
+        # Мы ожидаем что должно быть serializer_data, и проверяем равен ли ей response.data
+        self.assertEqual(serializer_data, response.data)
+
+
+--> 
+Ran 1 test in 0.011s
+
+OK</pre>		
+				Тест прошёл
+			</li>
+			<li>
+				Необходимо сравнить что код возврата http сервера будет 200 (200 это значит всё хорощо, 404 - значит страница не найдена)
+				<br>
+				Добавим строчку - self.assertEqual(status.HTTP_200_OK, response.status_code)
+				<pre>
+test_api.py:
+
+from rest_framework import status
+
+
+class BooksApiTestCase(APITestCase):
+    def test_get(self):
+        book_1 = Book.objects.create(name='Test book 1', price=25)
+        book_2 = Book.objects.create(name='Test book 2', price=50)
+        url = reverse('book-list')
+        response = self.client.get(url)
+
+        # Ожидаем страницу статус=200, сравниваем с ответным кодом
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        serializer_data = BookSerializer([book_1,book_2], many=True).data
+        self.assertEqual(serializer_data, response.data)
+
+
+Тест:
+
+python manage.py test store.tests.test_api
+-->
+Ran 1 test in 0.010s
+
+OK</pre> 
+			</li>
+			<li>
+				Сделаем запланированную ошибку
+				<pre>self.assertEqual(status.HTTP_202_ACCEPTED, response.status_code)</pre>
+				<br>Тест не пройдёт - так как ошидаемые данные не будут совпадать с выходными
+				<br>page code 202 != page code 200
+			</li>
+			<li>
+				<strong>Делаем тест сериализатора</strong><br>
+				В tests - создаём  - test_serializers.py, в нём пишем тест
+				<pre>
+from django.test import TestCase
+from django.urls import reverse
+from store.models import Book
+from store.serializers import BookSerializer
+
+
+class BookSerializerTestCase(TestCase):
+    def test_ok(self):
+        # вводные данные
+        book_1 = Book.objects.create(name='Test book 1', price=25)
+        book_2 = Book.objects.create(name='Test book 2', price=50)
+        # проверяемые данные
+        data = BookSerializer([book_1, book_2], many=True).data
+
+        # ожидаемые данные
+        expected_data =[
+            {
+                'id': book_1.id,
+                'name': 'Test book 1',
+                'price': '25.00'
+            },
+            {
+                'id': book_2.id,
+                'name': 'Test book 2',
+                'price': '50.00'
+            },
+        ]
+
+        # само тестирование
+        # (ожидаемые данные, данные из сериализатора)
+        self.assertEqual(expected_data, data)</pre>
+        		<br><span class="spec">Обрати внимание - на price - необходимо делать именно с .00 - так как поле в моделе - class Book - price = models.DecimalField(.... decimal_places=2)</span>
+        		<br>
+        		<br>Делаем тест
+        		<pre>
+python manage.py test store.tests.test_serializer
+-->
+Ran 1 test in 0.011s
+OK</pre>		
+			</li>
+			<li>
+				Тесты в целом не должны выглядить красиво, с наследованиями, декораторами и так далее, тесты должны быть максимально простыми и понятными, чтобы на тесты не прищлось писать свои тесты
+			</li>
+			<li>
+				<span class="spec">Пакет coverage</span>
+				<br>Показывает - на сколько тесты покрывают имеющийся код
+				<br>Устанавливаем пакет в окружение
+			</li>
+			<li>
+				Анализируем весь проект в терминали с помощью coverage
+				<pre>
+coverage run --source='.' ./manage.py test .</pre>
+				Покрытие нужно анализировать отностительно корня / анализируем весь проект
+			</li>
+			<li>
+				Смотрим список покрытия, создаём репорт
+				<pre>
+coverage report</pre>
+				На выходе будет таблица py файлов и процент покрытия
+			</li>
+			<li>
+				Для вывода репорта в виде html - в терминале
+				<pre>coverage html</pre>
+				Будет создан подкаталог htmlcov - и в нём будут нужные html страницы
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+
+		<h3 class="title_text">[3]. Filters, Search, Ordering</h3>
 		<hr>
 
 		<ol>
@@ -838,7 +1419,115 @@ new Vue({
 
 
 
-		<h3 class="title_text">[0]. Название</h3>
+		<h3 class="title_text">[4]. OAuth</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[5].  CRUD через REST Framework</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[6]. Permissions</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[7]. Like, Bookmarks, Rating</h3>
+		<hr>
+
+		<ol>
+
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+			<li>
+
+			</li>
+		</ol>
+	
+
+
+&lt;
+
+
+
+
+
+		<h3 class="title_text">[8]. Annotate и агрегация</h3>
 		<hr>
 
 		<ol>
@@ -866,7 +1555,7 @@ new Vue({
 
 
 
-		<h3 class="title_text">[0]. Название</h3>
+		<h3 class="title_text">[9]. Оптимизация SQL запросов в ORM</h3>
 		<hr>
 
 		<ol>
@@ -893,7 +1582,8 @@ new Vue({
 
 
 
-		<h3 class="title_text">[0]. Название</h3>
+
+		<h3 class="title_text">[10]. Кеширующие поля</h3>
 		<hr>
 
 		<ol>
@@ -920,55 +1610,6 @@ new Vue({
 
 
 
-		<h3 class="title_text">[0]. Название</h3>
-		<hr>
-
-		<ol>
-
-			<li>
-
-			</li>
-			<li>
-
-			</li>
-			<li>
-
-			</li>
-			<li>
-
-			</li>
-		</ol>
-	
-
-
-&lt;
-
-
-
-
-
-		<h3 class="title_text">[0]. Название</h3>
-		<hr>
-
-		<ol>
-
-			<li>
-
-			</li>
-			<li>
-
-			</li>
-			<li>
-
-			</li>
-			<li>
-
-			</li>
-		</ol>
-	
-
-
-&lt;
 
 
 
@@ -996,6 +1637,7 @@ new Vue({
 
 
 &lt;
+
 
 		
 
