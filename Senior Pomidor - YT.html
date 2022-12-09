@@ -1398,16 +1398,229 @@ coverage report</pre>
 		<ol>
 
 			<li>
-
+				Механизм фильтрациии, поиск и сортировка в API
 			</li>
 			<li>
-
+				Django REST-  предлагает работать с пакетом django-filter  - устанавливаем в окружение
 			</li>
 			<li>
-
+				Во views.py - добавляем фильтр в представлении (API) - class BookViewSet(ModelViewSet): - 
+				<pre>
+class BookViewSet(ModelViewSet):
+    ....
+    filter_backends = [DjangoFilterBackend]  # filter django-filter
+    # для фильтра в url  - ?price=1000
+    filter_fields = ['price']  # django-filter - возможность фильтровать по price (цене))</pre>
+				<br>пробуем запускать в браузере - http://127.0.0.1:8000/book/ / JSON - http://127.0.0.1:8000/book/?format=json
 			</li>
 			<li>
+				Зайдём в консоль manage.py shell
+				<pre>
+python manage.py shell
+from store.models import Book 
+Book.objects.all() # посмотрим все записи модели
+&lt;QuerySet [&lt;Book: Book object (1)>, &lt;Book: Book object (2)>]> 
 
+Book.objects.all()[0]  # посмотреть Querisetы  первой записи
+Book.objects.all()[0]  # посмотреть Querisetы  первой записи
+
+Book.objects.all()[0].price # посмотреть цену первой записи
+--> Decimal('1000.00') 
+
+#создадим новую запись модели Book
+Book.objects.create(price='500.00', name='Русско-Английский переводчик')
+&lt;Book: Book object (3)> 
+				</pre>
+			</li>
+			<li>
+				Дополнительно пропишу метод str для модель Book - для того чтобы при обращении к можели нам показывало название кники а не Book object (2)
+				<pre>
+class Book(models.Model):
+	......
+    def __str__(self):
+    return self.name</pre>
+			</li>
+			<li>
+				Расрурю метод __str__ - чтобы показывалось id + name
+				<pre>
+def __str__(self):
+    return f'Id {self.id}: {self.name}'</pre>
+			</li>
+			<li>
+				Добавим поле - имя автора в модели Book
+				<pre>
+class Book(models.Model):
+	...
+    author_name = models.CharField(max_length=255)</pre>
+    			Это поле не предполагается быть пустым (то есть у каждой книги есть автор), при создании миграции будет проблема - так как необходимо заполнить поле автор - для всех уже созданных записей. Есть несколько вариантов решения
+    			<br>-Временно указать в моделе default=значение
+    			<br>-Можно прям в терминале прописать значение которым заполнятся поля
+			</li>
+			<li>
+				Создаём и и принимаем миграцию
+				<pre>
+python manage.py makemigrations
+
+# Введём в поле author_name  - во всех созданных записях значение Автор
+Please select a valid option: 1
+"Автор"	
+
+pythin manage.py migrate</pre>
+			</li>
+			<li>
+				Сразу изменим авторов для всех записей на реальные
+			</li>
+			<li>
+				Дополнительно настрою отображение в админке и не только
+				<br>models.py - class Book
+				<pre>author_name = models.CharField(verbose_name='Автор книги', max_length=255)</pre>
+				<br>admin.py
+				<pre>
+class BookAdmin(admin.ModelAdmin):
+    # список отображаемых столбцов в админ-панели
+    list_display = ('id', 'name', 'price', 'author_name')
+    # список полей на которые можно кликнуть - для редактирования
+    list_display_links = ('id', 'name', 'price', 'author_name')
+    # список полей - ко которым можно вести поиск
+    search_fields = ('name', 'author_name')</pre>
+			</li>
+			<li>
+				Настраиваем посик во view.py - (поиск имеет смысл когда мы ищем по двум полям или более)
+				<pre>
+from rest_framework.filters import SearchFilter
+
+class BookViewSet(ModelViewSet):
+	....
+	filter_backends = [DjangoFilterBackend, SearchFilter]  # django-filter
+	.....
+	search_fields = ['name', 'author_name']	 # для поиска</pre>
+			</li>
+			<li>
+				Для поиска в url пишем
+				<pre>
+http://127.0.0.1:8000/book/?search=django
+-->
+[{"id":2,"name":"Документация Django","price":"1500.00","author_name":"Адриан Головатый"}]
+
+
+http://127.0.0.1:8000/book/?search=докум
+-->
+
+[{"id":2,"name":"Документация Django","price":"1500.00","author_name":"Адриан Головатый"}]
+</pre>
+				Будет выводить любые записи по результатам ?search=поиск - в полях name и author_name
+			</li>
+			<li>
+				Сортировка api - OrderingFilter
+				<pre>
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+class BookViewSet(ModelViewSet):
+	....
+    filter_backends = [..., ..., OrderingFilter]  # django-filter
+    ...
+    # для сортировки
+    ordering_fields = ['price', 'author_name']</pre>
+			</li>
+			<li>
+				Используем сортировку, в брузере попробуем всё отсортировать по цене
+				<pre>
+http://127.0.0.1:8000/book/?ordering=price
+--> 
+выведет полный отсортированный список
+
+http://127.0.0.1:8000/book/?ordering=-price
+-->
+сортировка в обратном порядке
+
+http://127.0.0.1:8000/book/?ordering=author_name
+-->
+сортировка по автору (по алфавиту)
+</pre>
+			</li>
+			<li>
+				Полнный класс представления views.py
+				<pre>
+# ModelViewSet - родительский класс
+class BookViewSet(ModelViewSet):
+    queryset = Book.objects.all()  # объекты нашей модели
+    serializer_class = BookSerializer  # наш сериализатор
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]  # django-filter
+    # для фильтра в url  - ?price=1000
+    filter_fields = ['price']  # django-filter - возможность фильтровать по price (цене)
+    # для поиска
+    search_fields = ['name', 'author_name']
+    # для сортировки
+    ordering_fields = ['price', 'author_name']</pre>
+			</li>
+			<li>
+				Пишем unit test
+				<br>Ищзменяем - test_api.py - class BooksApiTestCase(APITestCase): - добавляем метод - в самом начале
+				<pre>
+# проверка API  - см urls.py router.register(r'book', BookViewSet)
+class BooksApiTestCase(APITestCase):
+    # метод будет запускаться перед каждым тестом (методами test_get)
+    def setUp(self):
+        # вводные данные
+        self.book_1 = Book.objects.create(name='Test book 1', price=25, author_name='Автор 1')
+        self.book_2 = Book.objects.create(name='Test book 2', price=50, author_name='Автор 2')
+        self.book_3 = Book.objects.create(name='Test book 3', price=75, author_name='Автор 3')</pre>
+			</li>
+			<li>
+				Изменим def test_get  (убрали вводные данные в setUp, добавили в serializer_data, к записям self, добавили book_3)
+				<pre>
+    def test_get(self):
+        # book-list - получение всего списка router.register(r'book', BookViewSet)
+        # book-detail - если бы необходимо было бы конкретную книгу
+        url = reverse('book-list')
+
+        # self.client - например клиент/браузер - который делает запрос нашему серверу
+        response = self.client.get(url)
+
+        # Ожидаем страницу статус=200, сравниваем с ответным кодом
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        # сравниваем то что вводные данные сходятся с выходными
+        serializer_data = BookSerializer([self.book_1, self.book_2, self.book_3], many=True).data
+        # serializer_data - входные данные, response.data - выходные данные
+        # Мы ожидаем что должно быть serializer_data, и проверяем равен ли ей response.data
+        self.assertEqual(serializer_data, response.data)					
+				</pre>
+			</li>
+			<li>
+				Сделаем test_get в терминале - тест api полного списка без каких либо сортировок
+				<pre>
+python manage.py test  store.tests.test_api.BooksApiTest
+Case.test_get</pre>
+			</li>
+			<li>
+				В этот же класс - BooksApiTestCase  - добавим ещё один метод (test_get_filter) - сестируем фильтр, поиск и немного подкорректируем входные данные в setUp
+				<pre>
+def setUp(self):
+    # вводные данные
+    self.book_1 = Book.objects.create(name='Test book 1', price=25, author_name='Автор 1')
+    self.book_2 = Book.objects.create(name='Test book 2', price=50, author_name='Автор 2')
+    self.book_3 = Book.objects.create(name='Test book 3 Автор 1', price=75, author_name='Автор 1')
+
+
+def test_get_search(self):
+    # book-list - получение всего списка router.register(r'book', BookViewSet)
+    # book-detail - если бы необходимо было бы конкретную книгу
+    url = reverse('book-list')
+
+    # условия поиска
+    response = self.client.get(url, data={'search': 'Автор 1'})
+    # Ожидаем страницу статус=200, сравниваем с ответным кодом
+    self.assertEqual(status.HTTP_200_OK, response.status_code)
+    serializer_data = BookSerializer([self.book_1,
+                                      self.book_3], many=True).data
+    # Мы ожидаем что должно быть serializer_data, и проверяем равен ли ей response.data
+    self.assertEqual(serializer_data, response.data)</pre>
+				<br>
+				Делаем тест test_get_search
+				<pre>python manage.py test  store.tests.test_api.BooksApiTestCase.te
+st_get_search</pre>
 			</li>
 		</ol>
 	
@@ -1425,18 +1638,164 @@ coverage report</pre>
 		<ol>
 
 			<li>
-
+				Проверка аутентификации пользователя
 			</li>
 			<li>
+				Выйдем из админки, в views.py - BookViewSet - добавим строчку, что бы запритить это представление не залогиненым пользователям (авторизация) permission
+				<pre>
+from rest_framework.permissions import IsAuthenticated
 
+# ModelViewSet - родительский класс
+class BookViewSet(ModelViewSet):
+	...
+	# только авторизованные пользователи могут пользоваться представлением
+    permission_classes = [IsAuthenticated]</pre>
+    			Сохраняем пробуем войти по url
+    			<pre>
+http://127.0.0.1:8000/book/
+-->
+"detail": "Учетные данные не были предоставлены."
+
+http://127.0.0.1:8000/book/?format=json
+-->
+{"detail":"Учетные данные не были предоставлены."}</pre>
+				<br>То есть всё работает
 			</li>
 			<li>
-
+				<span class="spec">
+					Аутентифиация и авторизация - это разные вещи
+				</span>
+				<br>
+				Аутентифиация - проверка подлинности пользователя (проверка подлинности эмейла, проверка подлинности аккаунта на facebok)
+				<br>
+				Авторизация - разрешение.
+				<br>Сначала пользователя аутентифецируем, логиним, а вотом запрещаем/разрешаем пользователю что то видеть или делать какието действия
 			</li>
 			<li>
+				Python Social Auth - читай порядок установки с оф докумметации
+				<br><a href="https://python-social-auth.readthedocs.io/en/latest/configuration/django.html">https://python-social-auth.readthedocs.io/en/latest/configuration/django.html</a>
+				<ul>
+					<li>Устанавливаем в виртуальное окружение - social-auth-app-django</li>
+					<li>settings.py - INSTALLED_APPS - 
+						<pre>
+'social_django',  # аутентификация</pre>
+						<br><strong>
+							Как правило в INSTALLED_APPS - идут приложения джанго, нижу третесторониие приложения, ниже наши приложения, которые создавали сами
+						</strong>
+					</li>
+					<li>Необходимо сделать миграцию
+						<pre>python manage.py migrate</pre>
+					</li>
+					<li>
+						Для PostrgeSQL - в settings.py необходимо добавить - Чтобы этот пакет мог пользоваться json форматом  - без нагрузки на базу
+						<pre>SOCIAL_AUTH_JSONFIELD_ENABLED = True</pre>
 
+					</li>
+					<li>
+						В settings.py необходимо добавить то через какие соцсети можно будет залогинится
+						<pre>
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)</pre>
+					</li>
+					<li>
+						Необходимо сделать маршрутизацию
+						<br>urls.py
+						<pre>
+from django.urls import .., include, re_path
+
+re_path('', include('social_django.urls', namespace='social'))</pre>
+					</li>
+					<li>
+						Запускаем сервер - домашняя страница будет ошибка 404 - так как нет домашней странице, но есть список всех маршрутов которые существуют
+						<pre>
+admin/
+login/&lt;str:backend>/ [name='begin']
+complete/&lt;str:backend>/ [name='complete']
+disconnect/&lt;str:backend>/ [name='disconnect']
+disconnect/&lt;str:backend>/&lt;int:association_id>/ [name='disconnect_individual']
+^book/$ [name='book-list']
+^book/(?P&lt;pk>[^/.]+)/$ [name='book-detail']</pre>
+						<br>Как раз login, complete, disconnect - это как раз те эндпойнты которые создал Social Auth
+					</li>
+					<li>
+						Почитай статью <a href="https://www.digitalocean.com/community/tutorials/oauth-2-ru">Введение в OAuth 2</a>
+						<br>
+						<img src="images\SPD\oauth.png" class="img-fluid">
+						<br>
+
+					</li>
+					<li>
+						Продолжаем настройку для аутентификации по гитхабу - 
+						<br><a href="https://python-social-auth.readthedocs.io/en/latest/backends/github.html#github">https://python-social-auth.readthedocs.io/en/latest/backends/github.html#github</a>
+						<br>settings.py
+						<pre>
+AUTHENTICATION_BACKENDS = [
+    ...
+    'social_core.backends.github.GithubOAuth2',
+]</pre>
+					</li>	
+					<li>
+						В settings.py - добавляем ключи
+						<pre>
+SOCIAL_AUTH_GITHUB_KEY = 'a1b2c3d4'
+SOCIAL_AUTH_GITHUB_SECRET = 'e5f6g7h8i9'</pre>
+					</li>	
+					<li>
+						Переходим в настройки на самом гитхабе
+						<br><a href="https://github.com/settings/applications/new">https://github.com/settings/applications/new</a>
+						<br>Заполняем форму регистрации приложения, с которого можно будет сделать аутентификацию через github
+						<br>
+						<img src="images\SPD\git_oauth.jpg" class="img-fluid">
+						<br>
+					</li>	
+					<li>
+						Далее с самого гита - берём ключ Client ID и Client secrets
+ - и добавляем в settings.py
+ 						<pre>
+ SOCIAL_AUTH_GITHUB_KEY = '442aea3aeb0402d9a95b'
+SOCIAL_AUTH_GITHUB_SECRET = '90d906e0e4172a9c1eed641e9add54a6c12cbb08'</pre>
+						<span class="spec">проверь чтобы не где небыло лишних пробелов!</span>
+					</li>
+					<li>
+						Настройка oauth завершена, можно пользоваться в представлениях, в шаблонах
+					</li>				
+				</ul>
 			</li>
-		</ol>
+			<li>
+				В корневой папке books - создаём папку templates
+			</li>
+			<li>
+				В settings.py - TEMPLATES - DIRS - добавляем
+				<pre>'DIRS': ['templates'],</pre>
+			</li>
+			<li>
+				Создаём шаблон oauth.html - делаем изначальный шаблон - добавим bootstrap cdn - В body - добавим ссылку на аутентификацию через github
+				<pre>
+&lt;a href="{% url "social:begin" "github" %}">GitHub&lt;/a></pre>
+			</li>
+			<li>
+				Сделаем функцию представления для шаблона oauth.html
+				<pre>
+def my_auth(request):
+    return render(request, 'oauth.html')</pre>
+			</li>
+			<li>
+				Добавим маргрут в urlpatterns
+				<pre>
+from store.views import ..., my_auth	
+
+path('auth/', my_auth, name='my_auth'),</pre>
+			</li>
+			<li>
+				Переходим - http://127.0.0.1:8000/auth/
+				<br>При нажатии ссылки нас отправит на github для разрежения аутентификации
+				<br>Авторизуемся на github - и нас отправит обратно на нашу домашнюю страницу, тестового веб сервера
+			</li>
+			<li>
+				Зайдём в админ панель - и видим что у нас отображается приложение - PYTHON SOCIAL AUTH - в User social auths - есть пользователь с гитхабом - всё отлично, так же есть user в пользователях
+			</li>
+		</ol> 
 	
 
 
@@ -1451,6 +1810,120 @@ coverage report</pre>
 
 		<ol>
 
+			<li>
+				CRUD - create reade update delete - создание чтение редкатирование удаление
+			</li>
+			<li>
+				СRUD при помощи MoodelViewSet - в нём есть всё из коробки
+				<br>Посмотри из каких классов 'смиксирован ' MoodelViewSet (Ctrl+ЛКМ):
+				<pre>
+class ModelViewSet(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):					
+				</pre>
+				По сути сразу становится  всё понятно
+			</li>
+			<li>
+				Postman - программа для эмуляции запросов (GET, POST, PUT, DELETE..)<br>
+				<a href="https://www.postman.com/">https://www.postman.com/</a>
+			</li>
+			<li>
+				Запустим сервер - http://127.0.0.1:8000/book/ - и перейдём в панель разработчика (хром) - Network - book/ - Cookie: копируем полностью и
+				<br>Вставляем в postman - Run - Headers - в столбце VALUES
+				<br>
+				<img src="images\SPD\postman.jpg" class="img-fluid">
+				<br>
+			</li>
+			<li>
+				Что бы создать какуюто запись необходим запрос POST, при попытке нам опять дась запрет - для исправления в о второй записи таблицы Header Добавим значения
+				<pre>
+KEY:
+X-CSRFToken
+
+VALUE:
+MnjUFIwCRsFNjrzrSjwoN03tTJOjJmsJ
+#ЭТО csrf token - из того же Cookie</pre>
+			</li>
+			<li>
+				Запрашиваем POST всё проходит но пишет
+				<pre>
+"name": [
+    "Обязательное поле."
+],
+"price": [
+    "Обязательное поле."
+],
+"author_name": [
+    "Обязательное поле."
+]</pre>
+				Это рещультат валидиции нашего сериализаторы - BookSerializer - он не допускает создания пкстых записей
+			</li>
+			<li>
+				В postman - Body (POST) - отправим JSON запрос (Body - raw - JSON)
+				<pre>
+{"name": "Python 3",
+"price": "150",
+"author_name": "Mark Summerfield"}
+
+-->
+	
+{
+    "id": 4,
+    "name": "Python 3",
+    "price": "150.00",
+    "author_name": "Mark Summerfield"
+}</pre>
+				Всё отлично сработало, запись сделана, валидацию мы прошли
+
+			</li>
+			<li>
+				Попробуем сделать ошибку в заполнении
+				<pre>
+{"name": "Python 4",
+"price": "1500000000000",
+"author_name": "Mark"}
+
+--->
+{
+    "price": [
+        "Убедитесь, что вы ввели не более 7 цифры."
+    ]
+}</pre>
+				Валидацию не прошли - так как неправильно заполнили одно поле (не прошли условие поля которое прописывали в модели Book)
+			</li>
+			<li>
+				PUT - изменение данных, для того что бы пут был разрешёл, в urle необходимо добавить id обхекта, иначе будет -     "detail": "Метод \"PUT\" не разрешен."
+				<br>url
+				<pre>127.0.0.1:8000/book/4/</pre>
+				<br>Body
+				<pre>
+{"name": "Пайтон 3",
+"price": "150.00",
+"author_name": "Марк Шумерфилд"
+}</pre>
+				Всё отлично сработало
+			</li>
+			<li>
+				DELETE - удалмть - аналогично в PUT - указать ID - удалится запись
+			</li>
+			<li>
+				Переходим во Views.py - переделаем так чтобы получать книги можно было всем - а изменять удалять возможно только авторизованные пользователи.
+				<br>class BookViewSet(ModelViewSet): - меняем permission_classes
+				<pre>
+from rest_framework.permissions import ..., IsAuthenticatedOrReadOnly	
+
+class BookViewSet(ModelViewSet):
+	...
+    # только авторизованные пользователи могут изменять записи - а смотреть могут все
+    permission_classes = [IsAuthenticatedOrReadOnly]
+	...</pre>
+			</li>
+			<li>
+				23:00 видео <a href="https://www.youtube.com/watch?v=Q18WTrnK3e8&list=PLyaCd9XYVI9DiMvYl-8OdZk7ktc6NQWrb&index=5&t=211s">https://www.youtube.com/watch?v=Q18WTrnK3e8&list=PLyaCd9XYVI9DiMvYl-8OdZk7ktc6NQWrb&index=5&t=211s</a>
+			</li>
 			<li>
 
 			</li>
