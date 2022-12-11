@@ -1922,19 +1922,151 @@ class BookViewSet(ModelViewSet):
 	...</pre>
 			</li>
 			<li>
-				23:00 видео <a href="https://www.youtube.com/watch?v=Q18WTrnK3e8&list=PLyaCd9XYVI9DiMvYl-8OdZk7ktc6NQWrb&index=5&t=211s">https://www.youtube.com/watch?v=Q18WTrnK3e8&list=PLyaCd9XYVI9DiMvYl-8OdZk7ktc6NQWrb&index=5&t=211s</a>
+				Прогоним тесты которые уже есть, и тест сериализатора не пройдёт, так как не подкорректировали его.
+				<br>store/tests/test_serializers.py - корректируем
+				<pre>
+# тест сериализатора
+class BookSerializerTestCase(TestCase):
+    def test_ok(self):
+        # вводные данные
+        book_1 = Book.objects.create(name='Test book 1', price=25,
+                                     author_name='Author 1')
+        book_2 = Book.objects.create(name='Test book 2', price=50,
+                                     author_name='Author 2')
+        # проверяемые данные
+        data = BookSerializer([book_1, book_2], many=True).data
+
+        # ожидаемые данные
+        expected_data = [
+            {
+                'id': book_1.id,
+                'name': 'Test book 1',
+                'price': '25.00',
+                'author_name': 'Author 1',
+            },
+            {
+                'id': book_2.id,
+                'name': 'Test book 2',
+                'price': '50.00',
+                'author_name': 'Author 2',
+            },
+        ]
+
+        # само тестирование
+        # (ожидаемые данные, данные из сериализатора)
+        self.assertEqual(expected_data, data)</pre>
 			</li>
 			<li>
-
+				Прогоним все тесты в приложении
+				<pre>python manage.py test</pre>
+				Всё должно работать
 			</li>
 			<li>
+				В test_api.py - BooksApiTestCase - делаем post - тест (def test_post_create)
+				<pre>
+# проверка API  - см urls.py router.register(r'book', BookViewSet)
+class BooksApiTestCase(APITestCase):
+    # метод будет запускаться перед каждым тестом (методами test_get)
+    def setUp(self):
+        self.user = User.objects.create(username='test_username')
+        ........
 
+        ........
+
+    def test_post_create(self):
+        # book-list - получение всего списка router.register(r'book', BookViewSet)
+        # book-detail - если бы необходимо было бы конкретную книгу
+        url = reverse('book-list')
+
+        # Данные которые попытаемся записать
+        data = {"name": "Пайтон 3",
+                "price": "150.00",
+                "author_name": "Марк Шумерфилд"
+                }
+
+        # преобразуем наши данные в формат json
+        json_data = json.dumps(data)
+
+        # сделаем авторизацию, так как сейчас мы ограничели доступ
+        self.client.force_login(self.user)
+
+        # проверяемые данные, post запрос
+        response = self.client.post(url, data=json_data,
+                                    content_type='application/json')
+
+        # Ожидаем страницу статус=201, сравниваем с ответным кодом
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)</pre>
+        		сделаем тест
+        		<pre>python manage.py test store.tests.test_api.Book
+sApiTestCase.test_post_create</pre>
+				Должен пройти
 			</li>
 			<li>
+				Усилим проверку в том же тесте - test_post_create (сравнивая количество книг/объектов до добавления и после добавления)
+				<pre>
+def test_get_search(self):
 
+	# сравниваем в самом начале
+    # количество книг до добавления - ожидаем 3
+    self.assertEqual(3, Book.objects.all().count())
+
+    .....
+
+    # сравниваем в самом конце
+    # сравниваем количество книг, ожидаем 4
+        self.assertEqual(4, Book.objects.all().count())</pre>
+        		<br>Делаем тест
+        		<pre>python manage.py test store.tests.test_api.Book
+sApiTestCase.test_post_create</pre>
 			</li>
 			<li>
+				Пишем ещё один post - тест - проверка изменения записи (update)
+				<br>Там же tests/test_api - BooksApiTestCase - добавляем def test_put_update(self):
+				<pre>
+def test_put_update(self):
+    # book-list - получение всего списка router.register(r'book', BookViewSet)
+    # book-detail - если бы необходимо было бы конкретную книгу
+    # нам обязательно необходимо получить id - чтобы понять какую книгу менять, получаем в args
+    url = reverse('book-detail', args=(self.book_1.id,))
 
+    # Данные которые попытаемся записать / поменять цену
+    data = {"name": self.book_1.name,
+            "price": 1500,
+            "author_name": self.book_1.author_name
+            }
+
+    # преобразуем наши данные в формат json
+    json_data = json.dumps(data)
+
+    # сделаем авторизацию, так как сейчас мы ограничели доступ
+    self.client.force_login(self.user)
+
+    # проверяемые данные, post запрос
+    response = self.client.put(url, data=json_data,
+                                content_type='application/json')
+
+    # Ожидаем страницу статус=200, сравниваем с ответным кодом
+    self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    # перезаписываем данные изменённой книги 1
+    self.book_1 = Book.objects.get(id=self.book_1.id)
+
+    # проверяем изменилась ли цена
+    self.assertEqual(1500, self.book_1.price)</pre>
+    			Делаем тест
+    			<pre>python manage.py test store.tests.test_api.Book
+sApiTestCase.test_put_update</pre>
+			</li>
+			<li>
+				Можно упрастить перезапись объекта, для этого есть специальный метод - refresh_from_db()
+				<pre>
+self.book_1 = Book.objects.get(id=self.book_1.id) - ЗАМЕНЯЯЕМ
+НА --> это равносильные строчки (т.е одно и тоже)
+# перезаписываем данные изменённой книги 1
+self.book_1.refresh_from_db()</pre>
+				Делаем тест
+    			<pre>python manage.py test store.tests.test_api.Book
+sApiTestCase.test_put_update</pre>
 			</li>
 		</ol>
 	
@@ -1952,16 +2084,198 @@ class BookViewSet(ModelViewSet):
 		<ol>
 
 			<li>
+				permission классы. Зайдем в базовый класс - IsAuthenticatedOrReadOnly (ctrl+лкм) - посмотрим как он устроен
+				<pre>
+# получаем из реквеста метод
+# есть ли этот метод в SAFE_METHODS = ('GET', 'HEAD', 'OPTIONS')
+request.method in SAFE_METHODS or
+request.user and # получаем инфу о пользователе
+request.user.is_authenticated	# проверяем авторизован ли пользователь
+
+# полный код
+        return bool(
+            request.method in SAFE_METHODS or
+            request.user and
+            request.user.is_authenticated
+        )
+
+#Если метод ('GET', 'HEAD', 'OPTIONS') - будет True - и запрещать пользователю ничего не будеи
+# или берем инфу о пользователе и он зарегестрирован  - тогда и метод PUT DELET сработает -True
+# иначе будет False</pre>
+			</li>
+			<li>
+				В допишем в модели Book - поле владельца книги
+				<pre>
+from django.contrib.auth.models import User
+
+class Book(models.Model):
+	....
+    # owner - владелец
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL,
+                              null=True)</pre>
+			</li>
+			<li>
+				Создадим и применим миграцию
+			</li>
+			<li>
+				Cделаем так чтобы владелец книги создавался автоматичеки (брал из request.user и записывал в таблицу Book)
+				<br>Посмотрим базовые классы - views.py - class BookViewSet (это наш)  -> class ModelViewSet -> class CreateModelMixin:
+				<br>Оттуда возьмём метод def perform_create(self, serializer): - добавим его в наш class BookViewSet и немного изменим повидение (добавим)
+				<br>views.py -  class BookViewSe:
+				<pre>
+# ModelViewSet - родительский класс
+class BookViewSet(ModelViewSet):
+	....
+	# дополняем поведение при создании книги
+    def perform_create(self, serializer):
+        # В модель Book - в поле owner - присвоим инфу о пользователе
+        serializer.validated_data['owner'] = self.request.user
+        serializer.save()  # сохраняем</pre>
+			</li>
+			<li>
+				Проверим работочпособность в тесте
+				<br>tests/test_api.py - BooksApiTestCase - test_post_create - снизу добавим строчку print
+				<pre>
+# Вывод инфы о пользователе (из модели Book - поля owner - последней записи)
+print(Book.objects.last().owner)</pre>
+				Сделаем тест - наш пользователь по условию выше должен быть 'tets_username'
+				<pre>python manage.py test store.tests.test_api.BooksApiTestCase.test_post_create</pre>
+				<br>Заменим наш принт на проверку
+				<pre>
+# сравниваем поле owner (инфа владельца)
+# сравниваем текущий пользователь = запись о владельце модели Book
+self.assertEqual(self.user, Book.objects.last().owner)</pre>
+			</li>
+			<li>
+				В store создадим permissions.py - в нём будет всё о разрешении пользователям что то делать
+				<pre>
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+
+
+Копируем базовый класс IsAuthenticatedOrReadOnly - переиминую его в наш, чтобы не запутаться
+class MyIsOwnerOrReadOnly(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        return bool(
+            request.method in SAFE_METHODS or
+            request.user and
+            request.user.is_authenticated
+        )
+
+def has_object_permission(self, request, view, obj): # мы заменили
+# просто поменяли 1 строчку - её взяли из базового BasePermission</pre>
+				<br>has_permission 	- привязан к спику книг
+				<br>has_object_permission - привязан к определённой записи у которой есть id, конкретной книги
+			</li>
+			<li>
+				В наш новый класс MyIsOwnerOrReadOnly - добавим ещё одну проверку (что пользователь который хочет удалить или редактировать кингу является её владельцем) - в нижней строчке
+				<pre>request.user.is_authenticated and obj.owner == request.user</pre>
+				Полный класс
+				<br>
+				<pre>
+class MyIsOwnerOrReadOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return bool(
+            request.method in SAFE_METHODS or
+            request.user and
+            request.user.is_authenticated and obj.owner == request.user
+        )</pre>
 
 			</li>
 			<li>
+				views.py - изменим в представлении BookViewSet - permission_classes - на свой класс
+				<pre>
+from store.permissions import MyIsOwnerOrReadOnly
 
+class BookViewSet(ModelViewSet):
+	...
+    # только авторизованные пользователи и владельцы могут изменять записи - а смотреть могут все
+    permission_classes = [MyIsOwnerOrReadOnly]</pre>
 			</li>
 			<li>
-
+				Сделаем тесты test_api и будет ошибка в тесте tets_put_update
+				<br>Для того что бы он прошёл необходимо добавить owner в setUp - в книге 1
+				<pre>
+class BooksApiTestCase(APITestCase):
+    def setUp(self):
+    ...
+    self.book_1 = Book.objects.create(name='Test book 1', price=25,
+                                      author_name='Автор 1', owner=self.user)
+    ....</pre>
 			</li>
 			<li>
-
+				Необходимо сделать негативный тест - class BooksApiTestCase(APITestCase):
+				<pre>
+# сценарий когда не владелец книги пытается изменить данные книги
+def test_put_update_not_owner(self):
+    # это будет не владелец книги
+    self.user2 = User.objects.create(username='test_username2')
+    url = reverse('book-detail', args=(self.book_1.id,))
+    data = {"name": self.book_1.name,
+            "price": 1500,
+            "author_name": self.book_1.author_name
+            }
+    json_data = json.dumps(data)
+    # авторизация не владельца книги
+    self.client.force_login(self.user2)
+    # проверяемые данные, post запрос
+    response = self.client.put(url, data=json_data,
+                               content_type='application/json')
+    # Ожидаем страницу статус=403 - запрет доступа, сравниваем с ответным кодом
+    self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+    # перезаписываем данные изменённой книги 1
+    self.book_1.refresh_from_db()
+    # проверяем изменилась ли цена - ожидаем что изменения не произойдёт
+    self.assertEqual(25, self.book_1.price)
+				</pre>
+				Сделаем тест
+				<pre>python manage.py test store.tests.test_api.BooksApiTestCase.test_put_update_not_owner</pre>
+				Тест должен пройти
+			</li>
+			<li>
+				В MyIsOwnerOrReadOnly - добавим ещё одну проверку, чтобы разрешать или удалять книги можно было ещё и админу
+				<br>Во первых изменим название на MyIsOwnerOrStaffOrReadOnly, Saff - это по сути администратор/персонал сайта, переимоновывай в PyCharm - чтобы он переименовался во всех файлах включая views.py
+				<br>Перейдём в базовый класс - class IsAdminUser(BasePermission): - и скопируем от туда - request.user.is_staff (то есть входные данные о пользователи = пользователь пресонал сайта)
+				<br><br>Итого изменяем одну нижнюю строчку в permissions.py - MyIsOwnerOrStaffOrReadOnly - has_object_permission - добавив ещё одно сравнение данных о пользователе
+				<pre>
+class MyIsOwnerOrStaffOrReadOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+    ......
+    request.user.is_authenticated and 
+	(obj.owner == request.user or request.user.is_staff)</pre>
+			</li>
+			<li>
+				Сделаем все тесты BooksApiTestCase - проверим что ничего не поламалось
+				<pre>
+python manage.py test store.tests.test_api.BooksApiTestCase</pre>
+			</li>
+			<li>
+				Добавим проверку but_staff
+				<pre>
+# сценарий когда не владелец книги пытается изменить данные книги
+def test_put_update_not_owner_but_staff(self):
+    # это будет не владелец книги, но админ
+    self.user2 = User.objects.create(username='test_username2',
+                                     is_staff=True)
+    url = reverse('book-detail', args=(self.book_1.id,))
+    data = {"name": self.book_1.name,
+            "price": 1500,
+            "author_name": self.book_1.author_name
+            }
+    json_data = json.dumps(data)
+    # авторизация не владельца книги
+    self.client.force_login(self.user2)
+    # проверяемые данные, post запрос
+    response = self.client.put(url, data=json_data,
+                               content_type='application/json')
+    # Ожидаем страницу статус=200 - всё ок, сравниваем с ответным кодом
+    # 200 - потому что изменяет админ и должно получится
+    self.assertEqual(status.HTTP_200_OK, response.status_code)
+    # перезаписываем данные изменённой книги 1
+    self.book_1.refresh_from_db()
+    # проверяем изменилась ли цена - ожидаем что изменилось
+    self.assertEqual(1500, self.book_1.price)</pre>
+    			Всё тесты test_api - проходят
 			</li>
 		</ol>
 	
@@ -1979,16 +2293,307 @@ class BookViewSet(ModelViewSet):
 		<ol>
 
 			<li>
+				Лайти, закладки, рейтинг
+			</li>
+			<li>
+				В models.py  создадим модель, которая и будет хранить отношение между пользоваетлем и книгой
+				<pre>
+# Пользователь - книга
+class UserBookRelation(models.Model):
+    # оценка рейтинга - варианты выбора
+    # 1 - то что хранится в базе, 2 - то что будет отображаться *на фронте, в админке)
+    RATE_CHOICES = (
+        (1, 'Очень плохо'),
+        (2, 'Плохо'),
+        (3, 'Средне'),
+        (4, 'Хорошо'),
+        (5, 'Отлично'),
+    )
 
+    # связь с пользователем
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    # связь с книгой
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, verbose_name='Кинга')
+    # учёт лайков (True - +1, False = нет дайка)
+    like = models.BooleanField(default=False, verbose_name='Лайк')
+    # добавлена в закладки (избранное)
+    is_bookmarks = models.BooleanField(default=False, verbose_name='Закладка')
+    # рейтинг (оценка пользователя для книги)
+    rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, verbose_name='Оценка')
+
+    class Meta:
+        verbose_name = 'Отношение пользователя к книге'
+        verbose_name_plural = 'Отношения пользователей к книгам'</pre>
+			</li>
+			<li>
+				Сделаем и применим миграцию
 			</li>
 			<li>
 
-			</li>
-			<li>
 
 			</li>
 			<li>
+				Зарегистрирую модель в админке (и сразу настрою):
+				<br>admin.py
+				<pre>
+from store.models import ..., UserBookRelation
 
+class UserBookRelationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'book', 'like', 'is_bookmarks', 'rate')
+    list_display_links = ('like', 'is_bookmarks', 'rate')
+    search_fields = ('user', 'book')
+
+admin.site.register(UserBookRelation, UserBookRelationAdmin)
+</pre>
+			</li>
+			<li>
+				Изменим метод str - для отношении - models.py - UserBookRelation
+				<pre>
+def __str__(self):
+    return f'Пользователь:{self.user.username} - Книга:{self.book.name}, Рейтинг:{self.rate}'</pre>
+			</li>
+			<li>
+				Сделаем так чтобы через ORM мы могли добраться до книги через пользователя (например к тем книгам к которые он лайкал) "Book - покажи мне кто где лайкал"<br>
+				Для этого в Book - добавим поле с отношением ManyToMany
+				<pre>
+class Book(models.Model):
+	...					
+	# owner - владелец -один
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL,
+                              null=True, related_name='my_books', verbose_name='Владелец')
+    # читатель - много читателей
+    readers = models.ManyToManyField(User, through='UserBookRelation',
+                                     related_name='read_books', verbose_name='Читатели')</pre>
+				<span class="spec">
+					related_name = он необходим так как к User у нас 2 отношения (owner и readers)
+					through= (англ. - через)
+				</span>
+			</li>
+			<li>
+				Сделаем и применим миграцию
+			</li>
+			<li>
+				Подкорректируем - отображение в админке для модели Book - добавиви полe owner
+				<br>В admin.py
+				<pre>
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'price', 'author_name', 'owner')
+    list_display_links = ('id', 'name', 'price', 'author_name', 'owner')
+...</pre>
+			</li>
+			<li>
+				Зайдём в Django shell
+				<pre>
+python manage.py shell
+from django.contrib.auth.models import User
+user = User.objects.get(id=2)
+user.username --> 'user1'
+user.reas_books.all() --> &lt;QuerySet []>  # Book.readers (related_name='read_books')
+user.my_books.all()  --> &lt;Book: Id 2: Документация Django>]> # # Book.owner (related_name='my_books')</pre>
+				<br>
+				<span class="spec">
+					user.reas_books.all() - обращение через пользователя к полю Book - readers - по related_name='read_books' 
+					<br>
+					user.my_books.all() - обращение через пользователя к полю Book - owner - по related_name='my_books' 
+				</span>
+				<br>
+			</li>
+			<li>
+				Создаём сериализатор для будущего представления рейтинга
+				<br>serializers.py
+				<pre>
+from store.models import ..., UserBookRelation
+
+class UserBookRelationSerializer(ModelSerializer):
+    class Meta:
+        model = UserBookRelation
+        fields = ('book', 'like', 'is_bookmarks', 'rate')  # поля
+        # 'user' - не будем добавлять, так как его можно взять из request.user.username</pre>
+			</li>
+			<li>
+				Создаём предстаелние при помощи которого сможем всё это делать (лайкать, ставить рейтинг, добавлять закладки)
+				<br>Во views.py - пишем класс представления (api)
+				<pre>
+class UserBooksRelationView(UpdateModelMixin,
+                            GenericViewSet):
+    # права
+    permission_classes = [IsAuthenticated]  # только авторизованный
+    # данные
+    queryset = UserBookRelation.objects.all()
+    serializer_class = UserBookRelationSerializer
+    lookup_field = 'book'  # id книги
+
+    # переопределим метод
+    def get_object(self):
+        # get_or_create (получить отношение если есть,
+        #                создать его если нету)
+        # obj - это объект
+        # _ - created (создан или найден)
+        # book_id - пришёл через lookup_field в виде словаря
+        # Мы получаем доступ к модели UserBookRelation - через переданный параметр книги, и пользователя из request
+        # если такой связи нет мы создадим её - get_or_create
+        obj, _ = UserBookRelation.objects.get_or_create(user=self.request.user,
+                                                        book_id=self.kwargs['book'])
+        return obj</pre>
+				lookup_field и get_object. Для каждого отношения (лайк+закладка+рейтинг) есть id, но оно бессмысленно, в отдельности, фронтенду, клиенту нет необходимости знать это id - для этого есть необходимость указывать id книги где будет обобщённая информация?
+				<br>
+				<span class="spec">
+					Разберись с get objects
+				</span>
+			</li>
+			<li>
+				Добавим маршнут api для представления UserBooksRelationView
+				<br>books/urls.py
+				<pre>
+from store.views import ..., .., UserBooksRelationView
+
+router.register(r'book_relation', UserBooksRelationView)</pre>
+			</li>
+			<li>
+				Разрабатываем функционал через тест
+				<br>store/tests/test_api.py - буддем создавать новый класс тестов - BooksRelationTestCase(APITestCase)
+				<pre>
+from store.models import Book, UserBookRelation
+
+class BooksRelationTestCase(APITestCase):
+    # метод будет запускаться перед каждым тестом (методами test_get)
+    def setUp(self):
+        self.user = User.objects.create(username='test_username')
+        self.user2 = User.objects.create(username='test_username2')
+        # вводные данные
+        self.book_1 = Book.objects.create(name='Test book 1', price=25,
+                                          author_name='Автор 1', owner=self.user)
+        self.book_2 = Book.objects.create(name='Test book 2', price=50, author_name='Автор 2')
+
+    def test_patch_like(self):
+        # reverse - смотри в 404 странице в браузере, по name=''
+        # там же смотри что нам нужно id книги
+        url = reverse('userbookrelation-detail', args=(self.book_1.id,))
+        # по дефолту лайк = False
+        data = {"like": True,
+
+                }
+        json_data = json.dumps(data)
+
+        # авторизуем пользователя 1
+        self.client.force_login(self.user)
+        # self.client - например клиент/браузер - который делает запрос нашему серверу
+        response = self.client.patch(url, data=json_data,
+                                     content_type='application/json')
+
+        # Ожидаем страницу статус=200, сравниваем с ответным кодом
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        # отношение каким  пользователем какая книга пролайкана
+        relation = UserBookRelation.objects.get(user=self.user,
+                                                book=self.book_1)
+
+        # ожидаем что лайк будет True
+        self.assertEqual(True, relation.like)
+    	# self.assertTrue(relation.like)</pre>
+				<span class="spec">
+					patch - запрост. то же что и put (обновление данных модели) только передавать можно не всю запись(обьект) а отдельное поле лайк/нелайк, закладка/незакалдка, рейтинг1/2/3/4/5
+				</span>
+			</li>
+			<li>
+				Добавим тест - закладки - test_api.py - class BooksRelationTestCase(APITestCase):
+				<pre>
+def test_patch_is_bookmarks(self):
+    # reverse - смотри в 404 странице в браузере, по name=''
+    # там же смотри что нам нужно id книги
+    url = reverse('userbookrelation-detail', args=(self.book_1.id,))
+    # по дефолту лайк = False
+    data = {
+        "is_bookmarks": True,
+            }
+    json_data = json.dumps(data)
+
+    # авторизуем пользователя 1
+    self.client.force_login(self.user)
+    # self.client - например клиент/браузер - который делает запрос нашему серверу
+    response = self.client.patch(url, data=json_data,
+                                 content_type='application/json')
+
+    # Ожидаем страницу статус=200, сравниваем с ответным кодом
+    self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    # отношение каким пользователем какая книга добавлена в закладки
+    relation = UserBookRelation.objects.get(user=self.user,
+                                            book=self.book_1)
+
+    # ожидаем что добавится в закладки
+    self.assertEqual(True, relation.is_bookmarks)
+    # self.assertTrue(relation.is_bookmarks)</pre>
+			</li>
+			<li>
+				Сделаем тест на рейтинг
+				<pre>
+def test_patch_rate(self):
+    # reverse - смотри в 404 странице в браузере, по name=''
+    # там же смотри что нам нужно id книги
+    url = reverse('userbookrelation-detail', args=(self.book_1.id,))
+    # по дефолту рейтинг = null
+    data = {
+        "rate": 5,
+            }
+    json_data = json.dumps(data)
+
+    # авторизуем пользователя 1
+    self.client.force_login(self.user)
+    # self.client - например клиент/браузер - который делает запрос нашему серверу
+    response = self.client.patch(url, data=json_data,
+                                 content_type='application/json')
+
+    # Ожидаем страницу статус=200, сравниваем с ответным кодом
+    self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    # отношение каким пользователем какой книге поставит рейтинг
+    relation = UserBookRelation.objects.get(user=self.user,
+                                            book=self.book_1)
+
+    # ожидаем что рейтинг будет 5
+    self.assertEqual(5, relation.rate)</pre>
+    			Все тесты - проходят
+			</li>
+			<li>
+				Сделаем негативный сценарий для рейтенга в тестах (если например поставили рейтинг 6 а у нас может быть только  от 1 до 5  включительно +null по дефолту)
+				<pre>
+def test_patch_rate_wrong(self):
+    # reverse - смотри в 404 странице в браузере, по name=''
+    # там же смотри что нам нужно id книги
+    url = reverse('userbookrelation-detail', args=(self.book_1.id,))
+    # по дефолту рейтинг = null
+    # 6 - может быть по условию модели
+    data = {
+        "rate": 6,
+            }
+    json_data = json.dumps(data)
+
+    # авторизуем пользователя 1
+    self.client.force_login(self.user)
+    # self.client - например клиент/браузер - который делает запрос нашему серверу
+    response = self.client.patch(url, data=json_data,
+                                 content_type='application/json')
+
+    # Ожидаем страницу статус=200, сравниваем с ответным кодом
+    <span class="spec">
+    # третий аргумент - если что-то не сошлось (какой сделать принт)
+    # то есть 3-й аргумент скажет, почему не вышло получить 200
+    self.assertEqual(status.HTTP_200_OK, response.status_code, response.data)</span>
+
+    # отношение каким пользователем какой книге поставит рейтинг
+    relation = UserBookRelation.objects.get(user=self.user,
+                                            book=self.book_1)
+
+    # ожидаем что рейтинг будет 5 (то есть он не изменится с прошлого теста, так как 6 не может быть)
+    self.assertEqual(5, relation.rate)
+				</pre>
+				Сделаем тест
+				<pre>python manage.py test store.tests.test_api.BooksRelationTestCase</pre>
+				<br>Третий аргумент - response.data - нам выдаст в консоле
+				<pre>
+AssertionError: 200 != 400 : {'rate': [ErrorDetail(string='Значения 6 нет среди допустимых вариантов.', code='invalid_choice')]}</pre>
+				<br>Мы даже не писали никакой валидации, всё есть из коробки классов представления, сериализаторов..
 			</li>
 		</ol>
 	
@@ -2004,18 +2609,380 @@ class BookViewSet(ModelViewSet):
 		<hr>
 
 		<ol>
-
 			<li>
+				Будем выводить количество лайков при помощи annotate. Нужно понимать что это один из способов вывода и не обязательно самый хороший в том или ином случае, но он точно поможет сократить количество SQL запросов в базу
+			</li>
+			<li>
+				изменим сериализатор - BookSerializer  -и укажем какие поля мы будем выводить (на данный момент __all__ - все поля), так же сделаем вывод количества лайков через сериализатор
+				<pre>
+from rest_framework.serializers import ModelSerializer
+
+# ModelSerializer - родительский класс
+class BookSerializer(ModelSerializer):
+    # поле количество лайков
+    likes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Book
+        fields = ('id', 'name', 'price', 'author_name', 'likes_count')  # поля
+
+    # считаем количество лайков - ручным способом
+    # instance - та самая книга, которую в данный момент сериализуем
+    def get_likes_count(self, instance):
+        # считаем объекты - выбранная книга, у которой есть отношение like=True
+        return UserBookRelation.objects.filter(book=instance, like=True).count()</pre>
+			</li>
+			<li>
+				Корректируем тест сериализатора BookSerializer  - добавив поле likes_count в expected_data( то что будем ожидать)
+				<br>test_serializers.py - class BookSerializerTestCase(TestCase):
+				<pre>
+# тест сериализатора
+class BookSerializerTestCase(TestCase):
+    def test_ok(self):
+        # вводные данные
+        book_1 = Book.objects.create(name='Test book 1', price=25,
+                                     author_name='Author 1')
+        book_2 = Book.objects.create(name='Test book 2', price=50,
+                                     author_name='Author 2')
+        # проверяемые данные
+        data = BookSerializer([book_1, book_2], many=True).data
+
+        # ожидаемые данные
+        expected_data = [
+            {
+                'id': book_1.id,
+                'name': 'Test book 1',
+                'price': '25.00',
+                'author_name': 'Author 1',
+                'likes_count': 0
+            },
+            {
+                'id': book_2.id,
+                'name': 'Test book 2',
+                'price': '50.00',
+                'author_name': 'Author 2',
+                'likes_count': 0
+            },
+        ]
+
+        # само тестирование
+        # (ожидаемые данные, данные из сериализатора)
+        self.assertEqual(expected_data, data)</pre>
+				Сделаем тест - должно всё работать
+				<pre>python manage.py test store.tests.test_serializ
+ers</pre>
+			</li>
+			<li>
+				В этот же тест сериальзатора добавим пользователей
+				<br>test_serializers.py - class BookSerializerTestCase(TestCase):
+				<pre>
+from django.contrib.auth.models import User
+from store.models import ..., UserBookRelation
+
+# тест сериализатора
+class BookSerializerTestCase(TestCase):
+    def test_ok(self):
+        # вводные данные
+        user1 = User.objects.create(username='username1')
+        user2 = User.objects.create(username='username2')
+        user3 = User.objects.create(username='username3')
+        book_1 = Book.objects.create(name='Test book 1', price=25,
+                                     author_name='Author 1')
+        book_2 = Book.objects.create(name='Test book 2', price=50,
+                                     author_name='Author 2')
+
+        # все пользователи поставили лайк на первую книгу
+        UserBookRelation.objects.create(user=user1, book=book_1, like=True)
+        UserBookRelation.objects.create(user=user2, book=book_1, like=True)
+        UserBookRelation.objects.create(user=user3, book=book_1, like=True)
+
+        # 2 пользователя поставили лайк на вторую книгу
+        UserBookRelation.objects.create(user=user1, book=book_2, like=True)
+        UserBookRelation.objects.create(user=user2, book=book_2, like=False)
+        UserBookRelation.objects.create(user=user3, book=book_2, like=True)
+
+        # проверяемые данные
+        data = BookSerializer([book_1, book_2], many=True).data
+
+        # ожидаемые данные
+        expected_data = [
+            {
+                'id': book_1.id,
+                'name': 'Test book 1',
+                'price': '25.00',
+                'author_name': 'Author 1',
+                'likes_count': 3  # будем ожидать 3 лайка
+            },
+            {
+                'id': book_2.id,
+                'name': 'Test book 2',
+                'price': '50.00',
+                'author_name': 'Author 2',
+                'likes_count': 2  # будем ожидать 3 лайка
+            },
+        ]
+
+        # само тестирование
+        # (ожидаемые данные, данные из сериализатора)
+        self.assertEqual(expected_data, data)</pre>
+			</li>
+			<li>
+				В сериализатор - BookSerializer - добавим поле которое будет получать количество лайков через annotate
+				<br>serializers.py - class BookSerializer(ModelSerializer):
+				<pre>
+class BookSerializer(ModelSerializer):
+	....					
+    # поле количество лайков через annotated
+    annotated_likes=serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = Book
+        fields = (....., 'annotated_likes')  # поля</pre>
+			</li>
+			<li>
+				Делаем annotated queryset через тесты
+				<br>test_serializers.py - class BookSerializerTestCase(TestCase):
+				<pre>
+from django.db.models import Count, Case, When
+
+# тест сериализатора
+class BookSerializerTestCase(TestCase):
+    def test_ok(self):
+        # вводные данные
+        user1 = User.objects.create(username='username1')
+        user2 = User.objects.create(username='username2')
+        user3 = User.objects.create(username='username3')
+        book_1 = Book.objects.create(name='Test book 1', price=25,
+                                     author_name='Author 1')
+        book_2 = Book.objects.create(name='Test book 2', price=50,
+                                     author_name='Author 2')
+
+        # все пользователи поставили лайк на первую книгу
+        UserBookRelation.objects.create(user=user1, book=book_1, like=True)
+        UserBookRelation.objects.create(user=user2, book=book_1, like=True)
+        UserBookRelation.objects.create(user=user3, book=book_1, like=True)
+
+        # 2 пользователя поставили лайк на вторую книгу
+        UserBookRelation.objects.create(user=user1, book=book_2, like=True)
+        UserBookRelation.objects.create(user=user2, book=book_2, like=False)
+        UserBookRelation.objects.create(user=user3, book=book_2, like=True)
+
+        # проверяемые данные
+        books = Book.objects.all().annotate(
+            # annotated_likes(Считаем лайки(Case(когда будет работать(Если стоит лайк, возвращаем 1)
+            # userbookrelation__like - через книгу пробираемся к relation, через relation к лайку, then=1)
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1)))
+        ).order_by('id')  # без сортировки работать не будет
+        data = BookSerializer(books, many=True).data
+
+        # ожидаемые данные
+        expected_data = [
+            {
+                'id': book_1.id,
+                'name': 'Test book 1',
+                'price': '25.00',
+                'author_name': 'Author 1',
+                'likes_count': 3,  # будем ожидать 3 лайка
+                'annotated_likes': 3  # будем ожидать 3 лайка
+            },
+            {
+                'id': book_2.id,
+                'name': 'Test book 2',
+                'price': '50.00',
+                'author_name': 'Author 2',
+                'likes_count': 2,  # будем ожидать 2 лайка
+                'annotated_likes': 2,  # будем ожидать 2 лайка
+            },
+        ]
+
+        # само тестирование
+        # (ожидаемые данные, данные из сериализатора)
+        self.assertEqual(expected_data, data)</pre>
+			</li>
+			<li>
+				Во views.py в представление - BookViewSet - добавим изменим queryset, чтобы отображались количество лайков (обрати внимание количество лайков не будет в модели Book они хранятся в другой модели, плюч ко всему количество лайков там хранится только для каждого пользователя, а нам необходимо вывести общее количество лайков от всех пользователей)
+				<pre>
+from django.db.models import Count, Case, When
+
+class BookViewSet(ModelViewSet):
+    # объекты
+    queryset = Book.objects.all().annotate(
+            # annotated_likes(Считаем лайки(Case(когда будет работать(Если стоит лайк, возвращаем 1)
+            # userbookrelation__like - через книгу пробираемся к relation, через relation к лайку, then=1)
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1)))
+        )	
+	....</pre>
+			</li>
+			<li>
+				сделаем все тесты - есть множестов ошибок
+				правим тесты 
+				<br>def test_patch_rate_wrong(self): - изменяем на 404
+				<br>read_only=True - в сериализатори - BookSerializer - annotated_likes
+				<br>def test_get(self): - необходимо создать books = Book.obkects.all().annotate...вся для лайков
+				<pre>
+def test_get(self):
+    # book-list - получение всего списка router.register(r'book', BookViewSet)
+    # book-detail - если бы необходимо было бы конкретную книгу
+    url = reverse('book-list')
+
+    # self.client - например клиент/браузер - который делает запрос нашему серверу
+    response = self.client.get(url)
+
+    # проверяемые данные
+    books = Book.objects.all().annotate(
+        # annotated_likes(Считаем лайки(Case(когда будет работать(Если стоит лайк, возвращаем 1)
+        # userbookrelation__like - через книгу пробираемся к relation, через relation к лайку, then=1)
+        annotated_likes=Count(Case(When(userbookrelation__like=True, then=1)))
+    )
+
+    # сравниваем то что вводные данные сходятся с выходными
+    serializer_data = BookSerializer(books, many=True).data
+
+    # Ожидаем страницу статус=200, сравниваем с ответным кодом
+    self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+    # serializer_data - входные данные, response.data - выходные данные
+    # Мы ожидаем что должно быть serializer_data, и проверяем равен ли ей response.data
+    self.assertEqual(serializer_data, response.data)</pre>
+				<br>def test_get_search(self): - необходимо создать books = Book.obkects.filter(id__in=[]).annotate...вся для лайков
+				<pre>
+def test_get_search(self):
+    # количество книг до добавления - ожидаем 3
+    self.assertEqual(3, Book.objects.all().count())
+
+    # book-list - получение всего списка router.register(r'book', BookViewSet)
+    # book-detail - если бы необходимо было бы конкретную книгу
+    url = reverse('book-list')
+
+    # условия поиска
+    response = self.client.get(url, data={'search': 'Автор 1'})
+
+    # проверяемые данные
+    books = Book.objects.filter(id__in=[self.book_1.id, self.book_3.id]).annotate(
+        # annotated_likes(Считаем лайки(Case(когда будет работать(Если стоит лайк, возвращаем 1)
+        # userbookrelation__like - через книгу пробираемся к relation, через relation к лайку, then=1)
+        annotated_likes=Count(Case(When(userbookrelation__like=True, then=1)))
+    )
+
+    serializer_data = BookSerializer(books, many=True).data
+
+    # Ожидаем страницу статус=200, сравниваем с ответным кодом
+    self.assertEqual(status.HTTP_200_OK, response.status_code)
+    # Мы ожидаем что должно быть serializer_data, и проверяем равен ли ей response.data
+    self.assertEqual(serializer_data, response.data)</pre>
 
 			</li>
 			<li>
+				Будем выводить средний рейтинг книги
+				<br>serializers.py - class BookSerializer - добавляем поле raiting
+				<pre>
+class BookSerializer(ModelSerializer):
+	....
+    # рейтинг по типу 1.77, 4,50, 3,93
+    rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Book
+        fields = (..., 'rating')  # поля					
+				</pre>
 
 			</li>
 			<li>
+				Изменяем тесты, добавич поле rating - и добавив аннотацию в books queriset, так же расставим рейтинг пользователями
+				<br>test_serializers.py
+				<pre>
+from django.db.models import ..., Avg
 
+# тест сериализатора
+class BookSerializerTestCase(TestCase):
+    def test_ok(self):
+        # вводные данные
+        user1 = User.objects.create(username='username1')
+        user2 = User.objects.create(username='username2')
+        user3 = User.objects.create(username='username3')
+        book_1 = Book.objects.create(name='Test book 1', price=25,
+                                     author_name='Author 1')
+        book_2 = Book.objects.create(name='Test book 2', price=50,
+                                     author_name='Author 2')
+
+        # все пользователи поставили лайк на первую книгу, и поставили рейтинг 5
+        UserBookRelation.objects.create(user=user1, book=book_1, like=True,
+                                        rate=5)
+        UserBookRelation.objects.create(user=user2, book=book_1, like=True,
+                                        rate=5)
+        UserBookRelation.objects.create(user=user3, book=book_1, like=True,
+                                        rate=5)
+
+        # 2 пользователя поставили лайк на вторую книгу, и поставили разный рейтинг
+        UserBookRelation.objects.create(user=user1, book=book_2, like=True,
+                                        rate=3)
+        UserBookRelation.objects.create(user=user2, book=book_2, like=False)
+        UserBookRelation.objects.create(user=user3, book=book_2, like=True,
+                                        rate=4)
+
+        # проверяемые данные
+        books = Book.objects.all().annotate(
+            # annotated_likes(Считаем лайки(Case(когда будет работать(Если стоит лайк, возвращаем 1)
+            # userbookrelation__like - через книгу пробираемся к relation, через relation к лайку, then=1)
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            # аннотация рейтинга
+            # Avg - average - среднее значение
+            rating=Avg('userbookrelation__rate'),
+        ).order_by('id')
+        data = BookSerializer(books, many=True).data
+
+        # ожидаемые данные
+        expected_data = [
+            {
+                'id': book_1.id,
+                'name': 'Test book 1',
+                'price': '25.00',
+                'author_name': 'Author 1',
+                'likes_count': 3,  # будем ожидать 3 лайка
+                'annotated_likes': 3,  # будем ожидать 3 лайка
+                'rating': '5.00',
+            },
+            {
+                'id': book_2.id,
+                'name': 'Test book 2',
+                'price': '50.00',
+                'author_name': 'Author 2',
+                'likes_count': 2,  # будем ожидать 2 лайка
+                'annotated_likes': 2,  # будем ожидать 2 лайка
+                'rating': '3.50',
+            },
+        ]
+
+        # само тестирование
+        # (ожидаемые данные, данные из сериализатора)
+        self.assertEqual(expected_data, data)</pre>
 			</li>
 			<li>
-
+				Проверим все тесты - все 14 тестов должны пройти
+				<pre>python manage.py test</pre>
+			</li>
+			<li>
+				В представление - BookViewSet - копируем books (с аннотациями рейтинга и лайков)
+				<pre>
+class BookViewSet(ModelViewSet):
+    # объекты
+    queryset = Book.objects.all().annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate'),
+        ).order_by('id')
+    	.....</pre>
+			</li>
+			<li>
+				Запустим все тесты - теперь будет две ошибки тестов api - так как мы изменили представление api - необходимо добавить аннотацию рейтинга в тесты api
+				<br>test_api.py - test_get, test_get_search
+				<pre>
+....
+......annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate'),
+        ).order_by('id')
+.....</pre>
+				Сделаем все тесты и всё должно пройти
 			</li>
 		</ol>
 	
@@ -2034,17 +3001,292 @@ class BookViewSet(ModelViewSet):
 		<ol>
 
 			<li>
+				Будем оптимизировать SQL запросы, в нашм случае ORM (так как к базе данных мы обращаемся через django ORM)
+				<br>Оптимизация в том смысле чтобы сократить количество SQL запросов к базе данных, путём удаления дубликатов этиъ запросов
+			</li>
+			<li>
+				<ul>
+					<span class="spec">
+						Установка Django Debub Toolbar
+					</span>
+					<br><a href="https://django-debug-toolbar.readthedocs.io/en/latest/">Документация</a>
+					<br><a href="https://github.com/jazzband/django-debug-toolbar">github</a>
+					<li>
+						В PyCharm - в окружени устанавливаем пакет - django-debug-toolbar
+						<br>На данный момент полседняя версия 3.8.1
+						<br><br>Через командную строку
+						<pre>python -m pip install django-debug-toolbar</pre>
+					</li>
+					<li>
+						Добавляем django-debug-toolbar в INSTALLED_APPS - settings.py
+						<pre>
+INSTALLED_APPS = [
+	....
+    'django.contrib.staticfiles',
+
+    "debug_toolbar",  # debug_toolbar
+    ...
+]</pre>
+					</li>
+					<li>
+						settings.py  - проверим STATIC_URL - должно быть по стандарту
+						<pre>STATIC_URL = 'static/'</pre>
+					</li>
+					<li>
+						urls.py - необходимо добавить:
+						<pre>
+from django.conf import settings
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include('debug_toolbar.urls')),
+    ] + urlpatterns</pre>
+					</li>
+					<li>
+						settings.py - доабвим INTERNAL_IPS 
+						<pre>
+INTERNAL_IPS = [
+    "127.0.0.1",
+]</pre>
+					</li>
+					<li>
+						settings.py - debug - 
+					</li>
+					<li>
+						Пробуем запустить отладочный django web сервер (runserver) - Должна появится кнопка - DjDT
+					</li>
+				</ul>
+			</li>
+			<li>
+				Самое важное для нас это SQL - смотрим количество запросов и видим что много дублигатов для получения лайков, подкорректируем сериализатор - class BookSerializer(ModelSerializer): - уберём - likes_count и def get_likes_count(self, instance): - так как лайки мы получаем через анотацию
+				<br>serializers.py - BookSerializer
+				<pre>
+# ModelSerializer - родительский класс
+class BookSerializer(ModelSerializer):
+	# поле количество лайков через annotated
+    annotated_likes = serializers.IntegerField(read_only=True)
+    # рейтинг по типу 1.77, 4,50, 3,93
+    rating = serializers.DecimalField(max_digits=3, decimal_places=2, )
+
+    class Meta:
+        model = Book
+        fields = ('id', 'name', 'price', 'author_name', 'annotated_likes', 'rating')  # поля</pre>
+        		По итогу смотрим вместо 5 SQL - остался 1 запрос!
+			</li>
+			<li>
+				сделаем все тесты и посмотрим какие упали
+				<br>Везде удаляем поле likes_count - так как мы им больше не пользуемся
+			</li>
+			<li>
+				<span class="spec">
+					read_only=True - поле только для чтения
+				</span>
+			</li>
+			<li>
+				Добавим в сериализатор BookSerializer - ещё поле - имя владельца книги
+				<pre>
+# ModelSerializer - родительский класс
+class BookSerializer(ModelSerializer):
+    # поле количество лайков через annotated
+    annotated_likes = serializers.IntegerField(read_only=True)
+    # рейтинг по типу 1.77, 4,50, 3,93
+    rating = serializers.DecimalField(max_digits=3, decimal_places=2, )
+    # имя владельца
+    # read_only=True - поле только для чтение
+    owner_name = serializers.CharField(source='owner.username', default='',
+                                       read_only=True)
+
+    class Meta:
+        model = Book
+        fields = ('id', 'name', 'price', 'author_name',
+                  'annotated_likes', 'rating', 'owner_name')  # поля</pre>
+			</li>
+			<li>
+				Обновим страницу - http://127.0.0.1:8000/book/  - в DEBUG TULLBAR - SQL  - видич что когличество запросов увеличилось в разы, как раз для каждой записи, там где есть влдаелец, каждый раз будет отдельный SQL запрос в базу
+			</li>
+			<li>
+				<span class="spec">
+					secect_related('поле') - для увеличения производительности, необходимо в том случае когда записей много
+				</span>
+				<br>select_related(*fields)¶
+Возвращает QuerySet, который будет «следовать» отношениям внешнего ключа, выбирая дополнительные данные связанного объекта при выполнении своего запроса. Это повышение производительности, которое приводит к одному более сложному запросу, но означает, что дальнейшее использование отношений внешнего ключа не потребует запросов к базе данных.
+			</li>
+			<li>
+				Изменим одну строчку предатсвления - BookViewSet, добавив select_related
+				<br>views.py - BookViewSet - queryset
+				<pre>
+class BookViewSet(ModelViewSet):
+    # объекты
+    queryset = Book.objects.all().annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate'),
+        ).select_related('owner').order_by('id')					
+	....</pre>
+				<br>Пробуем обновить и видим всего один SQL (он стал немного медленней, но в общем с учётом того что раньше запросы были отдельно для каждой записи, это сильно сократит время на обработку и нагрузку на sql бызы)
+			</li>
+			<li>
+				Вложенные словари json, напишем ещё один сериализатор BookReaderSerializer
+				<br>serializers.py
+				<pre>
+from django.contrib.auth.models import User
+
+class BookReaderSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name')</pre>
+			</li>
+			<li>
+				В сериализатор BookSerializer - добавим поле readers
+				<br>serializers.py - BookSerializer
+				<pre>
+class BookSerializer(ModelSerializer):
+	....
+	# читатели
+    readers = BookReaderSerializer(many=True, read_only=True)
+
+    class Meta:
+    ....
+    fields = (...,
+              'readers', )  # поля</pre>
+              <br>Пробуем обновить и увидем куча запросов
+			</li>
+			<li>
+				В адинке добавлю last_name, first_name  к пользователям
+			</li>
+			<li>
+				В админке добавим рейтинги лайки закладки к разным книгам
+			</li>
+			<li>
+				http://127.0.0.1:8000/book/ -  смотрим запросы, для каждой записи Book - идёт отдельный запрос - по информации о пользователе
+			</li>
+			<li>
+				<span class="spec">
+					prefetch_related - почти тоже самое что и select_related - только используется там может быть много обхектов
+				</span>
+				<br>
+				select_related - поле owner - ForeignKey
+				<br>
+				prefetch_related - поле readers - ManyToManyField
+			</li>
+			<li>
+				В views.py - BookViewSet - queryset - добавлю prefetch_related - поля readers
+				<pre>
+class BookViewSet(ModelViewSet):
+    queryset = Book.objects.all().annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate'),
+        ).select_related('owner').prefetch_related('readers').order_by('id')
+        ...</pre>
+        		Количество запросово и время SQL запросов в разы меньше
 
 			</li>
 			<li>
+				Тестируем - исправляем тест
+				<br>test_serializers.py
+				<pre>
+# тест сериализатора
+class BookSerializerTestCase(TestCase):
+    def test_ok(self):
+        # вводные данные
+        user1 = User.objects.create(username='user1',
+                                    first_name='Ivan', last_name='Petrov')
+        user2 = User.objects.create(username='user2',
+                                    first_name='Alex', last_name='Morozov')
+        user3 = User.objects.create(username='user13',
+                                    first_name='Oleg', last_name='Oleg')
+        book_1 = Book.objects.create(name='Test book 1', price=25,
+                                     author_name='Author 1',
+                                     owner=user1)
+        book_2 = Book.objects.create(name='Test book 2', price=50,
+                                     author_name='Author 2',
+                                     owner=user2)
 
+        # все пользователи поставили лайк на первую книгу, и поставили рейтинг 5
+        UserBookRelation.objects.create(user=user1, book=book_1, like=True,
+                                        rate=5)
+        UserBookRelation.objects.create(user=user2, book=book_1, like=True,
+                                        rate=5)
+        UserBookRelation.objects.create(user=user3, book=book_1, like=True,
+                                        rate=5)
+
+        # 2 пользователя поставили лайк на вторую книгу, и поставили разный рейтинг
+        UserBookRelation.objects.create(user=user1, book=book_2, like=True,
+                                        rate=3)
+        UserBookRelation.objects.create(user=user2, book=book_2, like=False)
+        UserBookRelation.objects.create(user=user3, book=book_2, like=True,
+                                        rate=4)
+
+        # проверяемые данные
+        books = Book.objects.all().annotate(
+            # annotated_likes(Считаем лайки(Case(когда будет работать(Если стоит лайк, возвращаем 1)
+            # userbookrelation__like - через книгу пробираемся к relation, через relation к лайку, then=1)
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            # аннотация рейтинга
+            # Avg - average - среднее значение
+            rating=Avg('userbookrelation__rate'),
+        ).order_by('id')
+        data = BookSerializer(books, many=True).data
+
+        # ожидаемые данные
+        expected_data = [
+            {
+                'id': book_1.id,
+                'name': 'Test book 1',
+                'price': '25.00',
+                'author_name': 'Author 1',
+                'annotated_likes': 3,  # будем ожидать 3 лайка
+                'rating': '5.00',
+                'owner_name': 'user1',
+                'readers': [
+                    {
+                        'first_name': 'Ivan',
+                        'last_name': 'Petrov',
+                    },
+                    {
+                        'first_name': 'Alex',
+                        'last_name': 'Morozov',
+                    },
+                    {
+                        'first_name': 'Oleg',
+                        'last_name': 'Oleg',
+                    },
+                ]
+            },
+            {
+                'id': book_2.id,
+                'name': 'Test book 2',
+                'price': '50.00',
+                'author_name': 'Author 2',
+                'annotated_likes': 2,  # будем ожидать 2 лайка
+                'rating': '3.50',
+                'owner_name': 'user2',
+                'readers': [
+                    {
+                        'first_name': 'Ivan',
+                        'last_name': 'Petrov',
+                    },
+                    {
+                        'first_name': 'Alex',
+                        'last_name': 'Morozov',
+                    },
+                    {
+                        'first_name': 'Oleg',
+                        'last_name': 'Oleg',
+                    },
+                ]
+            },
+        ]
+
+        # само тестирование
+        # (ожидаемые данные, данные из сериализатора)
+        self.assertEqual(expected_data, data)</pre>
+        		тест должен пройти
 			</li>
 			<li>
-
-			</li>
-			<li>
-
-			</li>
+				<span class="spec">
+					Есть проблемы с api тестами - реши позже
+				</span>
 		</ol>
 	
 
@@ -2062,17 +3304,112 @@ class BookViewSet(ModelViewSet):
 		<ol>
 
 			<li>
-
+				Кэширующие поля - будем делать кэш рейтинга, чтобы при каждом запросе н было вычислений из базы данных
 			</li>
 			<li>
-
+				В models  - Book - добавим поле рейтинга. models.py
+				<pre>
+class Book(models.Model):
+	# рейтинг 3.68/4.17/5.00
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=None, null=True)</pre>
 			</li>
 			<li>
-
+				Что бы поле можно было добавить необходимо - убрать аннотацию rating - во view.py -  rating=Avg('userbookrelation__rate'),
+				<pre>
+class BookViewSet(ModelViewSet):
+    queryset = Book.objects.all().annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1)))
+        ).select_related('owner').prefetch_related('readers').order_by('id')
+        ....</pre>
 			</li>
 			<li>
+# рейтинг 3.68
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=None, null=True)</li>
+    		<li>
+    			добавим логику в logic.py - предварительно удвалив всё заранее в нём
+    			<pre>
+from store.models import UserBookRelation
 
-			</li>
+from django.db.models import Avg
+from store.models import UserBookRelation
+
+
+# получение рейтинга
+def set_rating(book):
+    # book - это определённая книга
+    # aggregate - сами расчёты
+    # class(models.py) UserBookRelation/ rate это поле - UserBookRelation
+    rating = UserBookRelation.objects.filter(book=book).aggregate(rating=Avg('rate')).get('rating')
+    # записываем в поле rating- переменную rating
+    book.rating = rating
+    book.save()  # сохраняем книгу</pre>
+    		</li>
+    		<li>
+    			Напришем тесты для logic.py
+    		</li>
+    		<li>
+    			В models.py  - class UserBookRelation - добавим def save - в самом низу
+    			<pre>
+from store.logic import set_rating
+
+class UserBookRelation(models.Model):
+	.....
+    def save(self, *args, **kwargs):
+	    # через super - мы обращаемся к родительскому элементу Models
+	    # чтобы не сломать стандартные поля
+	    # делаем super -чтобы наш def save тоже вызвался
+	    super().save(*args, **kwargs)
+	    set_rating(self.book)</pre>
+    		</li>
+    		<li>
+    			Отслеживаем изменение полей, сравнение self.pk
+    			<br>
+    			Там же в def save - добавим old_rating/nen rating
+    			<pre>
+def save(self, *args, **kwargs):
+    # локальный импорт
+    from store.logic import set_rating
+
+    old_rating = self.rate
+
+    # через super - мы обращаемся к родительскому элементу Models
+    # чтобы не сломать стандартные поля
+    # делаем super -чтобы наш def save тоже вызвался
+    super().save(*args, **kwargs)
+
+    new_rating = self.rate
+
+    # если old - не как - new, будем делать пересчёт
+    if old_rating != new_rating:
+        set_rating(self.book)</pre>
+    		</li>
+    		<li>
+    			там же добави сравнение pk записи
+    			<pre>
+def save(self, *args, **kwargs):
+    # локальный импорт
+    from store.logic import set_rating
+
+    creating = not self.pk
+    old_rating = self.rate
+
+    # через super - мы обращаемся к родительскому элементу Models
+    # чтобы не сломать стандартные поля
+    # делаем super -чтобы наш def save тоже вызвался
+    super().save(*args, **kwargs)
+
+    new_rating = self.rate
+
+    # если old - не как - new, будем делать пересчёт
+    if old_rating != new_rating or creating:
+        set_rating(self.book)</pre>
+    		</li>
+    		<li>
+    			Корректируем все тесты
+    		</li>
+    		<li>
+    			Чтобы всё заработало необходимо сделать миграции
+    		</li>
 		</ol>
 	
 
