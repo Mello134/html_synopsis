@@ -25,6 +25,12 @@
 			color: white;
 
 		}
+
+		.all_2{
+			background: black;
+			color: white;
+
+		}
 		
 		body{
 			background: #c1ffcb;
@@ -2219,6 +2225,86 @@ class Comment(models.Model):
 				<hr>
 				<ol>
 					<li>
+						Добавляю модель в models.py для лайков коммтария
+						<pre>
+# Лайки на Комменты
+# Буду считать количество LikeComment.objects.filter(comment=comment.pk)
+class LikeComment(models.Model):
+    # Связь с пользователем
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Лайкнувший пользователь')
+    # Связь c определённым комментарием
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Комментарий для лайка', related_name='comment_like')
+
+    class Meta:
+        verbose_name = "Лайк комментария"
+        verbose_name_plural = "Лайки комментария"
+        # db_table = 'LikeComment'  # для названия таблицы в DB
+
+    def __str__(self):
+        return f'ЛАЙК_К - {self.comment},' \
+               f'Пользователь: {self.user}.'</pre>
+					</li>
+					<li>
+						Создам и сделаю миграции
+					</li>
+					<li>
+						Зарегистрирую модель LikeComment - в admin.py
+						<pre>admin.site.register(LikeComment)</pre>
+					</li>
+					<li>
+						Создал пару фальшивых лайков через админку - (2 записи модели - LikeComment)
+					</li>
+					<li>
+						<span class="spec">
+							Выводим количество лайков в шаблоне
+						</span>
+						<br>В представлении ничего менть не нужно!
+						<br>Шаблон car.html
+						<pre>
+{% for сom_element in car.comment_car.all reversed  %}
+&lt;ul class="list-group">
+	&lt;li class="list-group-item list-group-item-info">
+_______всё что выше без изменения_______
+
+		# если количество лайков больше 0
+		{% if сom_element.comment_like.all|length > 0 %}
+		Количество лайков {{ сom_element.comment_like.all|length }}
+		{% endif %}
+		
+		Автор комментария: {{ сom_element.author_comment }}
+
+	&lt;/li>
+	&lt;li>
+		..Текст коммента
+	&lt;/li>
+	&lt;li>
+		..дата комета
+	&lt;/li></pre>
+						<span class="spec">
+							Что здесь важно - связи related_mane - Сar-->Comment-->LikeComment - т.е через 1 класс можно обратится к третьему!:
+							<br><br>
+							- car.comment_car.all = Записи Сomment-ForeingKey-Car (related_name=comment_car)<br>
+							- &lt;QuerySet><br>
+							-то есть все записи Comment связанные к определённой записи Car
+							<br><br>
+							- сom_element - это одна запись (1 комментарий)
+							<br><br>
+							- сom_element.comment_like.all = Запись LikeComment-ForeignKey-Comment (related_name=comment_car)<br>
+							- &lt;QuerySet><br>
+							- то есть все записи относящиеся к определённому комментарию
+							В нашем случае одна запись это 1 лайк
+							<br>
+							<br>
+							- ...|length }} - длина QuerySeta - то есть количество записей!
+							<br><br>
+						</span>
+					</li>
+					<li>
+						Необходимо добавить 2 функции на добавление и на удаление лайков (По сути записей  модели LikeComment)
+						<br>Для каждой из двух функций необходим будет свой url маршрут
+						<br>-Но сами функции будут возвращать на страницу поста - редирект, то есть мы будем всегда на одной странице - маршруты фикция
+					</li>
+					<li>
 						
 					</li>
 					<li>
@@ -2446,12 +2532,86 @@ class Comment(models.Model):
 
 # Ctrl + Alt + L 
 
+	<br>
+	<br><br><br><br>
 
 
+	<div class="container-md all_2"><!-- container-md all ОБЩИЙ -->
+		<h1 class="title_text border">Полезности</h1><br>
+		<hr>
+		<ol><!-- общий список -->
+			<li>
+				<span class="title_text">
+					Получение динамического маршрута [3 динамических параметра из трёх разных моделей] 
+					<br>.../cat_slug/car_slug/com_id
+					<br>http://127.0.0.1:8000/category/uk/aston-martin-db11-amr/57/
+				</span>
+				<hr>
+				<ol>
+					<li>
+						В модели крайнего параметра - Comment - добавляем метод get_absolute_url
+						<br>models.py - Comment
+						<pre>
+# функция формирования маршрута к ссылке
+def get_absolute_url(self):  # self - ссылка на один экземпляр(строку) таблицы модели
+    # reverse('имя пути', kwargs={ Category-slug, Car-slug, Comment-slug}
+    return reverse('sss_path', kwargs={'cat_slug': self.car_post.cat.slug,
+                                       'car_slug': self.car_post.slug,
+                                       'com_id': self.pk})</pre>
+                        <br>-sss_path - это имя маршрута
+                        <br>-self.car_post.cat.slug = Category - поле slug
+                        <br>-self.car_post.slug = Car - поле slug
+                        <br>-self.self.pk = Comment - поле slug
+                        <br>
+                        <br>
+                        где car_post = ForeignKey Car | cat = ForeignKey Category
+                        <br>То есть самой удалённой модели дошли до первой, с помощью ForeingKey
+					</li>
+					<li>
+						Пишем маршрут для всего этого в urls.py - urlpatterns
+						<pre>path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>/&lt;int:com_id>/', comment, name='sss_path'),</pre>
+						<br>comment - функция представления
+					</li>
+					<li>
+						Делаем функцию представления
+						<pre>
+def comment(request, cat_slug, car_slug, com_id):
+    comment_post = Comment.objects.get(pk=com_id)
+    context = {'comment_post': comment_post}
+    return render(request, 'blog/sss.html', context=context)</pre>
+    					<br>cat_slug, car_slug, com_id - это параметры из get_absolute_url - в модели
+					</li>
+					<li>
+						Создаём шаблон sss.html - в нём пару параметров для понимания
+						<pre>
+Комментарий с ID/PK: {{ comment_post.pk }}
+ТЕКСТ Комментария: {{ comment_post.text_comment }}
+Автор Комментария: {{ comment_post.author_comment }}
+Название статьи, на которую сделан комментарий: {{ comment_post.car_post.title }}
+Название категории, где находится статья, на которой сделан комментарий: {{ comment_post.car_post.cat.name }}</pre>
+						<span class="spec">
+							Причём в контектс шаблона мы отправляли только комментарий - но внетри шаблона через комментарий добрались до статьи, а через статью добрались и до категории!
+						</span><br><br>
+					</li>
+					<li>
+						<span class="spec">Ссылка на страницу с тремя динамическими параметрами</span><br>
+						Получаем url, ссылку на html странице, для того чтобы перейти со страницы статьи на страницу комментария
+						<br>Шаблон car.html (статья)
+						<pre>
+&lt;a href="{% url 'sss_path' car_slug=car.slug cat_slug=car.cat.slug com_id=сom_element.pk %}">Ссылка на каждый комментарий&lt;/a></pre>
+						<br>
+						<span class="spec">
+							-sss_path - имя маршрута<br>
+							-далее без запятых, в любом порядке(вроде) необходимо указать все динамические параметры, до них всегда можно добраться с той страницы где размещаем ссылку<br>
+							-сom_element - это одна статья (элемент цикла for) - я сам назвал её так в шаблоне, ничего трудного
+						</span><br><br>
+					</li>
+				</ol>
+			</li>
+		</ol>
+	</div><!-- общий полезности -->
 
-
-
-
+&lt;
 
 
 
