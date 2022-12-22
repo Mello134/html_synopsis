@@ -2912,7 +2912,49 @@ class ShowCar(SuccessMessageMixin, DataMixin, DetailView, FormMixin):
 						</span>
 					</li>
 					<li>
-						
+						<span class="spec">
+							Добавил форму добавления реакции (рейтинг статьи)
+							<br>Форма рабочая, пока в отдельном шаблоне
+							<br>Но она не проверяет реагировал ли уже пользователь или нет, в итоге при втором реагировании ошибка - нужно сделать так что если уже реакция была, то запись в бд необходимо изменить а не создавать ещё одну!
+						</span>
+						<br>На данные момент
+						<br>
+						views.py
+						<pre>
+# форма рабочая
+def rate_post_form(request, cat_slug, car_slug):
+    car = Car.objects.get(slug=car_slug)
+    if request.method == 'POST':
+        form = UserCarRelationRateForm(request.POST)
+        if form.is_valid():
+            usercarrelation = form.save(commit=False)
+            usercarrelation.user_relation = request.user
+            usercarrelation.car_relation = car
+            usercarrelation.save()
+            return redirect('car', cat_slug, car_slug)
+    else:
+        form = UserCarRelationRateForm()
+
+    qs = UserCarRelation.objects.all()
+    context = {'form': form, 'qs': qs, 'car': car,}
+    return render(request, 'blog/add_rate_post.html', context=context)</pre>
+    					<br><br>
+    					urls.py
+    					<pre>
+    						path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>/rate_car/', rate_post_form, name='rate_car'),
+    					</pre>
+    					<br><br>
+    					отдельны шаблон - add_rate_post.html
+    					<pre>
+&lt;form action="{% url 'rate_car' car_slug=car.slug cat_slug=car.cat.slug %}" method="post">
+    {% csrf_token %}
+    &lt;div class="text-info">{{ form.non_field_errors }}&lt;/div>
+    {{ form.as_ul }}
+    &lt;div class="text-info">{{ form.errors }}&lt;/div>
+    &lt;button type="submit" class="btn btn-primary btn-lg">
+        Сохранить
+    &lt;/button>
+&lt;/form></pre>
 					</li>
 					<li>
 						
