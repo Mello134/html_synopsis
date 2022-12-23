@@ -2956,28 +2956,515 @@ def rate_post_form(request, cat_slug, car_slug):
     &lt;/button>
 &lt;/form></pre>
 					</li>
+					<br><br>
+					<li style="background: black;">
+
+						<span class="title_text">Удаляю/изменяю из проекта всё что ранее делал относительно рейтинга к посту</span>
+						<hr>
+						<ol>							
+							<li>
+								<span class="spec">Удаляю</span>
+								Из шаблона car.html - временно уберу всё что ствязно с рейтингом и лайками к постам -  в отдельный файл html - так как будут проблемы, буду менять функции буду менять модели. Оставлю это дело в отдельном файле - для экономии времени в будущем
+								<br> - Эта информация будет в (hlam)rating_car.html
+							</li>
+							<li>
+								<span class="spec">Удаляю</span>
+								Туда же в - (hlam)rating_car.html  - перенесу информацию из 
+								class ShowCar(SuccessMessageMixin, DataMixin, DetailView, FormMixin):
+								<br>Получение рейтинга общего, получение записей о реакциях пользователя(буду использовать для лайков и закладок)
+								<pre>
+_______________________________________________________
+blog/VIEWS.PY
+
+class ShowCar(SuccessMessageMixin, DataMixin, DetailView, FormMixin):
+	....
+	........
+	.....
+	....
+
+	# метод получения рейтинга поста
+    def get_rating(self, **kwargs):
+        # получение всех записей, отношений к данному посту
+        users_ralations = UserCarRelation.objects.filter(car_relation__slug=self.kwargs['car_slug'])
+        sum_rate = 0  # промежуточная переменная - сумма всех рейтингов
+        # если количество записей отношений больше нуля 0
+        if users_ralations.count() > 0:
+            # перебираем все записи отношений
+            for one_relation in users_ralations:
+                # в промежуточную переменную прибавляем рейтинг отдельной записи
+                sum_rate += one_relation.rate
+            # полную сумму оценок делим на количество оценок и получаем рейтинг
+            rating = sum_rate / users_ralations.count()
+        else:
+            rating = 0
+        return rating
+
+
+    # Личная оценка пользователя
+    def get_my_rel(self, **kwargs):
+        # пробуем получить объект (запись по реакции нашего пользователя)
+        # по конкретной статье и конкретному пользователю
+        try:
+            # если объект найдём - реакция пользователя = этот объект
+            my_rel = UserCarRelation.objects.get(user_relation__pk=self.request.user.pk,
+                                                 car_relation__slug=self.kwargs['car_slug'])
+
+        except UserCarRelation.DoesNotExist:  # если объекта не существует
+            my_rel = 0  # реакции пользователя = 0
+        # возвращаем реакции конкретного пользователя если
+        return my_rel
+
+
+
+    def get_context_data(self, object_list=None, **kwargs):
+    	......
+    	c_def = self.get_user_context(cat_selected=self.kwargs['cat_slug'],
+                                      rating=self.get_rating(),  # получаю рейтинг - УДАЛИЛ
+                                      my_rel=self.get_my_rel())  # получаю реакции - УДАЛИЛ
+
+_______________________</pre>
+							</li>
+							<li>
+								<span class="spec">Удаляю</span>
+								ранее созданные формы (для получения рейтинга)
+								<br>relatepost/forms.py
+								<pre>
+<span class="spec">DELETE</span>
+from django import forms
+from relatepost.models import UserCarRelation
+
+
+# форма рейтинга поста
+class UserCarRelationRateForm(forms.ModelForm):
+    class Meta:
+        model = UserCarRelation
+        fields = ['rate',]</pre>
+							</li>
+							<li>
+								<span class="spec">Удаляю</span> из blog/views.py
+								<pre>
+# форма рабочая (рейтинг статьи)
+def rate_post_form(request, cat_slug, car_slug):
+    car = Car.objects.get(slug=car_slug)
+    if request.method == 'POST':
+        form = UserCarRelationRateForm(request.POST)
+        if form.is_valid():
+            usercarrelation = form.save(commit=False)
+            usercarrelation.user_relation = request.user
+            usercarrelation.car_relation = car
+            usercarrelation.save()
+            return redirect('car', cat_slug, car_slug)
+    else:
+        form = UserCarRelationRateForm()
+
+    qs = UserCarRelation.objects.all()
+    context = {'form': form, 'qs': qs, 'car': car,}
+    return render(request, 'blog/add_rate_post.html', context=context)</pre>
+							</li>
+							<li>
+								Из blog/urls.py удаляю маршрут
+								<pre>path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>/rate_car/', rate_post_form, name='rate_car'),</pre>
+							</li>
+							<li>
+								в relate/models.py Изменяю модель UserCarRelation.
+								<br>Переименую
+								<br>Удалю поле rate
+								<br>Удалю RATE_CHOICES
+								<br>Изменб __str__
+								<br><strong>Отныне данная модель будет отвечать только за лайки и закладки поста!</strong>
+								<pre>
+class UserCarRelation(models.Model): ---> UPDATE
+--->
+
+# Лайки и закладки к посту
+class LikeMarkPost(models.Model):
+    # какой пользователь
+    user_like_mark = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь Л-З')
+    # какой пост
+    post_like_mark = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name='Пост Л-З')
+    # лайк на пост
+    is_like_post = models.BooleanField(default=False, verbose_name='Лайк поста')
+    # добавление в закладки
+    is_bookmarks_post = models.BooleanField(default=False, verbose_name='Пост в закладке')
+
+    class Meta:
+        verbose_name = 'Лайк/Закладка поста'
+        verbose_name_plural = 'Лайки/закладки к посту'
+
+    def __str__(self):
+        return f'Пользователь: {self.user_like_mark.username} - Статья: {self.post_like_mark.slug}.'</pre>
+							</li>
+							<li>
+								В relatepost/admin подкорректирую - отображение модели в админке, включая название моделей!
+								<pre>
+from django.contrib import admin
+from relatepost.models import LikeMarkPost
+
+
+# лайки закладки в админке
+class LikeMarkPostAdmin(admin.ModelAdmin):
+    # список отображаемых столбцов в админ-панели
+    list_display = ('id', 'user_like_mark', 'post_like_mark', 'is_like_post', 'is_bookmarks_post')
+    # список полей на которые можно кликнуть - для редактирования
+    list_display_links = ('user_like_mark', 'post_like_mark')
+    # список полей - ко которым можно вести поиск
+    search_fields = ('user_like_mark', 'post_like_mark')
+    # редактирование поля публикации - в списке - в админке
+    list_editable = ('is_like_post', 'is_bookmarks_post')  # запятая - если 1 поле!
+    # фильтр по полям - публикация, время изменения.
+    list_filter = ('user_like_mark', 'post_like_mark')
+
+
+# Register your models here.
+admin.site.register(LikeMarkPost, LikeMarkPostAdmin)</pre>
+							</li>
+							<li>
+								Создаю и применяю миграции
+							</li>
+						</ol>
+
+					</li>
+
+
+
+<br><br>
 					<li>
-						
+
+						<span class="title_text">Делаю рейтинг с помошью ajax и hoogan.js </span>
+						<hr>
+						<ol>
+							<li>
+								В blog/static/js - создаю файл scripts.js
+							</li>
+							<li>
+								В base.html, в конце перед закрытием body<br>
+								- Добавляем ссылку на наш scritpts.js<br>
+								- Добавляем библиотеку hogan hoogan.js (ссылку нужно брать из интернета)
+								<br>- hogan - это шаблонизатор js , вместо него можно использовать например Vue
+								<br><a href="https://twitter.github.io/hogan.js/">
+									Установка и инструкция по hogan 
+								</a>
+								<br><br>Итого наш base.html
+								<pre>
+...									
+&lt;!-- Наш static -  scripts.js -->
+&lt;script src="{% static 'blog/js/scripts.js' %}">&lt;/script>
+
+&lt;!-- JS шаблонизатор (почти Vue) hogan.js -->
+&lt;script src="http://twitter.github.com/hogan.js/builds/3.0.1/hogan-3.0.1.js">&lt;/script>
+
+&lt;/body>
+....</pre>
+							</li>							
+					
+					</li>
+
+					<li>
+						relatepost/models.py - делаю новую модель - (просто звёзды 1,2,3,4,5)
+						<pre>
+# Просто звёзды от 1 до 5 (одна звезда 1 запись)
+class RatingStar(models.Model):
+    value = models.SmallIntegerField(verbose_name='Значение', default=0)
+
+    def __str__(self):
+        return f'{self.value}'
+    
+    class Meta:
+        verbose_name = 'Звезда рейтинга'
+        verbose_name_plural = 'Звёзды рейтинга'
+        ordering = ['-value']</pre>
 					</li>
 					<li>
-						
+						Зарегистрирую эту модель в админке
+						<br>relatepost/admin.py
+						<pre>
+from relatepost.models import ..., RatingStar
+
+# просто звёзды в админке
+class RatingStarAdmin(admin.ModelAdmin):
+    list_display = ('id', 'value')
+
+
+# Register your models here.
+admin.site.register(RatingStar, RatingStarAdmin)</pre>
 					</li>
 					<li>
-						
+						Создам и мприменю миграции
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
 					</li>
 					<li>
-						
+						Создам в админке 5 записей в этой модели
+						<pre>1 2 3 4 5</pre>
 					</li>
 					<li>
-						
+						Добалю модель Rating в relatepost/models.py
+						<pre>
+# Рейтинг (конкретный пользователь, конкретная статья)
+class Rating(models.Model):
+    user_rate = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Оценивающий пользователь')
+    post_rate = models.ForeignKey(Car, on_delete=models.CASCADE, verbose_name='Оцениваемый пост')
+    star = models.ForeignKey(RatingStar, on_delete=models.CASCADE, verbose_name='Звезда')
+
+    def __str__(self):
+        return f'Звезда: {self.star}, Пост: {self.post_rate}, Юзер: {self.user_rate}'
+
+    class Meta:
+        verbose_name = 'Рейтинг пользователя к посту'
+        verbose_name_plural = 'Рейтинги пользователей к постам'</pre>
 					</li>
 					<li>
-						
+						Зарегистрирую модель Rating в админ панеле
+						<br>relatepost/admin.py
+						<pre>
+from relatepost.models import .., Rating
+
+# Рейтинг в админке (конкретный пользователь, конкретная статья)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user_rate', 'post_rate', 'star')
+    list_display_links = ('user_rate', 'post_rate')
+    search_fields = ('user_rate', 'post_rate')
+    list_editable = ('star',)  # запятая - если 1 поле!
+    list_filter = ('star',)
+
+admin.site.register(Rating, RatingAdmin)</pre>
 					</li>
 					<li>
-						
+						Необходимо удалить поле rating - в модели Car - его мы не использовали, но он выдал ошибку так как поле рейтинг совпадало с именеи модели Rating, при том что из Rating  -> ForeingKey -> Car
 					</li>
+					<li>
+						Создаю и применяю миграции
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						Создаём форму, для изменения рейтинга
+						<br>relatepost/forms.py
+						<pre>
+# форма изменения и добавления рейтинга к посту
+class RatingForm(forms.ModelForm):
+    # где empty_label - это чёрточки при выборе(например категорий)
+    # RadioSelect - это тыканье на кнопку вместо выпадающего списка (есть чек бокс,
+    # queryset - Это все записи, то есть все звёзды 1 2 3 4 5
+
+    # здесь мы переопределяем поле star
+    star = forms.ModelChoiceField(
+        queryset=RatingStar.objects.all(), widget=forms.RadioSelect(), empty_label=None
+    )
+
+    class Meta:
+        model = Rating  # связь с моделью юзер-пост-рейтинг
+        fields = ('star',)</pre>
+					</li>
+					<li>
+						В blog/views.py - добавляем форму в представление одного поста, в контект
+						<br>class ShowCar
+
+						<pre>
+from relatepost.forms import RatingForm
+
+# страница отдельной машины
+class ShowCar(SuccessMessageMixin, DataMixin, DetailView, FormMixin):
+	....
+    def get_context_data(self, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)  # распаковываем изначальный контекст
+
+        context['star_form'] = RatingForm()  # добавлеем нашу форму в контекст (ключ star_form: значение=наша форма)
+
+        c_def = self.get_user_context(cat_selected=self.kwargs['cat_slug'])       
+        return {**context, **c_def}  # в шаблон передаём полный контекст</pre>
+					</li>
+					<li>
+						В car.html - добавляем форму
+						<pre>
+&lt;form action="{% url 'add_rating' %}" method="post" name="rating">
+	&lt;b>Рейтинг&lt;/b>
+	{% csrf_token %}
+
+
+	&lt;input type="hidden" value="{{ car.id }}" name="car">
+
+
+	&lt;span class="rating">
+		{% for k, v in star_form.fields.star.choices %}
+			&lt;input id="rating{{ v }}" type="radio" name="star" value="{{ k }}">
+			&lt;label for='rating{{ v }}'>
+			&lt;!-- {{ k }} Если поставить k - то будет дубликат непонятно почему!-->
+			&lt;/label>
+		{% endfor %}
+	&lt;/span>
+	&lt;span class="editContenr">4.0&lt;/span>
+&lt;/form></pre>
+					</li>
+					<li>
+						В blog/static/blog/imeges добавляю 2 изображения, жёлтая и прозрачная звезда
+						<pre>
+star-off-big.png
+star-on-big.png</pre>
+					</li>
+					<li>
+						В blog/static/blog/css/styles.cc - добавляем стили для формы, добавляем стили
+						<pre>
+/* Чекбоксы ретинга - Звёзды рейтинга */
+.rating {
+  overflow: hidden;
+  vertical-align: bottom;
+  display: inline-block;
+  width: 155px;
+  height: 30px;
+}
+
+.rating > input {
+  opacity: 0;
+  margin-right: -100%;
+}
+
+.rating > label {
+  position: relative;
+  display: block;
+  float: right;
+  background: url('../images/star-off-big.png');
+  background-size: 30px 30px;
+}
+
+.rating > label:before {
+  display: block;
+  opacity: 0;
+  content: '';
+  width: 30px;
+  height: 30px;
+  background: url('../images/star-on-big.png');
+  background-size: 30px 30px;
+  transition: opacity 0.2s linear;
+}
+
+.rating > label:hover:before,  .rating > label:hover ~ label:before,  .rating:not(:hover) > :checked ~ label:before { opacity: 1; }
+/* //Чекбоксы ретинга - Звёзды рейтинга */</pre>
+					</li>
+					<li>
+						Добавляем JS в наш scripts.js
+						<pre>
+// Добавление рейтинга к статьям
+// 1. в файле scripts.js - в документе, с помощью querySelector - ищем форму rating
+const rating = document.querySelector('form[name=rating]');
+
+// 2. когда у формы вызовится событие change
+rating.addEventListener("change", function (e) {
+    // Получаем данные из формы
+    // 3. создавая FormData и передав нашу форму, мы получим значение наших полей
+    let data = new FormData(this);
+    // 4. с помощью fetch, на url из нашей action={% url %}, передаём пост запросы, в теле body нашу data
+    fetch(`${this.action}`, {
+        method: 'POST',
+        body: data
+    })
+    // 5. При успешном ответе - Рейтинг установлен, при отрицательном - Ошибка
+        .then(response => alert("Рейтинг установлен"))
+        .catch(error => alert("Ошибка"))
+});</pre>
+					</li>
+					<li>
+						Создадим urls.py в relatepost (app) и внутри него создадим маршрут
+						<pre>
+from django.urls import path
+from .views import *
+
+urlpatterns = [
+    path('add-rating/', AddStarRating.as_view(), name='add_rating'),
+]</pre>
+					</li>
+					<li>
+						В основной urls.py (avtoblog/urls.py) - включим ранее созданный relatepost/urls.py
+						<pre>
+urlpatterns = [
+    ....('admin/', admin.site.urls),
+	.....
+    path('', include('relatepost.urls')),  # путь к путям приложения relatepost
+]</pre>
+					</li>
+					<li>
+						В relatepost/views.py - добавляем представления ajax
+						<pre>
+from django.http import HttpResponse
+from django.views import View
+from relatepost.forms import RatingForm
+from relatepost.models import Rating
+
+# Добавление рейтинга к Посту
+class AddStarRating(View):
+    def post(self, request):
+        form = RatingForm(request.POST)
+        if form.is_valid():
+            Rating.objects.update_or_create(
+                user_rate=request.user,
+                post_rate_id=int(request.POST.get('car')),
+                defaults={'star_id': int(request.POST.get('star'))}
+            )
+            return HttpResponse(status=201)
+        else:
+            return HttpResponse(status=400)</pre>
+					</li>
+					<li>
+						Полный блок кода, с рейтингом выглядит так
+						<br>car.html (необходимо добавить лайки и комментарии)
+						<pre>
+&lt;span class="text-secondary">Обновлено: {{ car.time_update }}&lt;/span>
+&lt;ul class="list-group">
+	&lt;li class="list-group-item list-group-item bg-dark bg-gradient text-white">
+		&lt;h3>Автор статьи: {{ car.author }}&lt;/h3>
+	&lt;/li>
+	&lt;li class="list-group-item list-group-item-secondary">
+		&lt;div class="d-flex justify-content-between">
+			&lt;div class="pt-2 bd-highlight">
+				&lt;b>Общий рейтинг: 4.73&lt;/b>
+			&lt;/div>
+
+			&lt;!-- кнопки лайк и закдадка -->
+				&lt;div class="p-1 bd-highlight">
+				&lt;a class="btn btn-outline-danger btn-xl" href="#">Закладка&lt;/a>
+    			&lt;a class="btn btn-outline-danger btn-xl" href="#">Лайк&lt;/a>
+			&lt;/div>
+		&lt;/div>
+	&lt;/li>
+
+	&lt;li class="list-group-item list-group-item-success bg-gradient">
+
+		&lt;!-- форма звёзд -->
+	    {% if request.user.is_authenticated %}
+			&lt;form action="{% url 'add_rating' %}" method="post" name="rating">
+				&lt;b>Оцените статью:&lt;/b>
+				{% csrf_token %}
+				&lt;!-- скрытое поле -->
+				&lt;input type="hidden" value="{{ car.id }}" name="car">
+				&lt;span class="rating">
+					&lt;!-- in форма.поля.поле стар -->
+					{% for k, v in star_form.fields.star.choices %}
+						&lt;input id="rating{{ v }}" type="radio" name="star" value="{{ k }}">
+						&lt;label for='rating{{ v }}'>
+							&lt;!-- {{ k }} Если поставить k - то будет дубликат непонятно почему!-->
+						&lt;/label>
+					{% endfor %}
+				&lt;/span>			
+			&lt;/form>
+		{% endif %}
+	&lt;/li>
+&lt;/ul></pre>
 				</ol>
+			</li>
+			<br><br>
+			<li>
+				Лайки к посту
+			</li>
+			<li>
+				Лайки закладки к посту
+			</li>
+			<li>
+				Вывол общего рейтинга
+			</li>
+			<li>
+				Отображение звёзд что после обновления страницы
 			</li>
 
 
