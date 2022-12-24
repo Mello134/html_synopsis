@@ -3455,17 +3455,383 @@ class AddStarRating(View):
 			</li>
 			<br><br>
 			<li>
-				Лайки к посту
+				<span class="title_text">Делаю лайк к посту</span>
+				<ol type="A">
+					<li>
+						Делаю представление, кнопки лайка
+						<br>relatepost/views.py
+						<pre>
+from relatepost.models import .., LikeMarkPost
+from blog.models import Car
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
+
+# кнопка лайка
+@login_required
+def like_post(request, cat_slug, car_slug):
+    try:
+        like_mark_post_object = LikeMarkPost.objects.get(user_like_mark__pk=request.user.pk,
+                                                         post_like_mark__slug=car_slug)
+        # то же самое что [if like_mark_post_object.is_like_post == False:]
+        if not like_mark_post_object.is_like_post:  # если в реакции ЛАЙК = False
+            # !update не работает с get! - работает только c filter!
+            # меняем лайн на True
+            LikeMarkPost.objects.filter(user_like_mark__pk=request.user.pk,
+                                        post_like_mark__slug=car_slug).update(is_like_post=True)
+
+        else:  # если в реакции ЛАЙК = True
+            # меняем лайн на False
+            LikeMarkPost.objects.filter(user_like_mark__pk=request.user.pk,
+                                        post_like_mark__slug=car_slug).update(is_like_post=False)
+    except LikeMarkPost.DoesNotExist:  # Реакцию не нашли (объект не существует)
+        # создаём новую реакцию
+        like_mark_post_object = LikeMarkPost.objects.create(
+            user_like_mark=request.user,
+            post_like_mark=Car.objects.get(slug=car_slug),
+            is_like_post=True,
+            is_bookmarks_post=False
+        )
+        like_mark_post_object.save()
+    return redirect('car', cat_slug, car_slug)</pre><br>
+    					<strong>
+    						Всё достаточно просто и логично!:
+    					</strong>
+    					<br>1) ищем была ли хоть какаято реакция (лайк или закладка), ищем по конкретному пользователю и конкретному посту
+    					<br>- В случае еули реакция была, и лайк не стоит, ставим лайк
+    					<br>- В случае еули реакция была, и лайк уже есть, убираем лайк
+    					<br>- Если реакций до этого не было - добавляем реакция (делаем новую запись реакции = пользователь, статья, поставил лайк, закладку не ставим)
+    					<br>
+					</li>
+					<li>
+						<span class="spec">
+							Способ проверки существует ли запись по конкретным катерогиям, если не нужно 404 в случае неудачи:
+						</span>
+						<br>
+						<br>- 1 способ tru: и except.Model.DoesNotExist: (пример выше) 
+						<pre>
+tru: 
+	пробуем получить запись по параметрам
+	блок кода если запись есть
+except Модель.DoesNotExist: - записи в модели не сушествует
+	блок кода если записи нет</pre>
+						<br>- 2 способ - метод exists()
+						<pre>
+a = Model.objects.get(id=15) (a это QuerySet)
+if a.exists():  # если запись есть True
+	блок кода если запись существует
+else:
+	блок кода если записи не существует</pre>
+					</li>
+					<li>
+						Делаю маршрут для кнопки лайка
+						<br>relatepost/urls.py
+						<pre>
+path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>/like', like_post, name='like_post'),</pre>
+					</li>
+					<li>
+						Необходима переменная, которая будет<span class="spec"> в шаблоне показывать реакции от конкретного пользователя</span>, (для привильного отображения лайка, для отобрадения закладки статьи)<br>
+						Для получения переменной в классе представления добавим свой метод, и добавим переменную в контекст представления.
+						<br>переменная будет кверисетом записи, или строкой 'no' - если никаких реакций данный пользователь не делал к данному посту.
+						<br>blog/views.py - class ShowCar
+						<pre>
+# страница отдельной машины
+class ShowCar(....):
+	....
+	....
+
+# получение реакций пользователя к посту
+def get_user_relation_to_post(self, **kwargs):
+    # пробуем получить реакции (лайк И ИЛИ закладки)
+    # по pk пользователя и slag статьи
+    relation = LikeMarkPost.objects.filter(user_like_mark__pk=self.request.user.pk,
+                                           post_like_mark__slug=self.kwargs['car_slug'])
+    # если количество реакций > 0
+    if relation.count() > 0:
+        return relation  # возвращаем весь QuerySet (запись self.user + self.car)
+    else:
+        relation = 'no'
+        return relation  # возвращаем строку 'no' (для проверки в шаблоне)</pre>
+					</li>
+					<li>
+						Вывод данных в шаблоне. <span class="spec">Указаны сухие данные</span> для понимания как действовать, какие кнопки (активные неактивные указывать), для лайка, для закладки.
+						<br><span class="spec">
+							Итоговый вариант будет ниже
+						</span>
+						<br>Сухое представление и проверки реакций пользователя в шаблоне. car.html
+						<pre>
+&lt;!-- если реакции есть -->
+{% if relation != 'no' %}
+	{% for r in relation %} &lt;!-- перебираем поля реакций -->
+		&lt;h3>Пользователь - {{ r.user_like_mark }}&lt;/h3>
+		&lt;h3>Статья - {{ r.post_like_mark }}&lt;/h3>
+		&lt;h3>Лайк - {{ r.is_like_post }}&lt;/h3>
+		&lt;h3>Закладка - {{ r.is_bookmarks_post }}&lt;/h3>
+		&lt;br>
+		{% if r.is_like_post == True %} &lt;!-- если лайк стоит -->
+			&lt;h3 class="text-info">Лайк есть&lt;/h3>
+		{% else %} &lt;!-- если лайк не стоит -->
+			&lt;h3 class="text-info">Нет лайка&lt;/h3>
+		{% endif %}&lt;!-- если лайк стоит -->
+	{% endfor %} &lt;!-- перебираем поля реакций -->
+
+{% else %} &lt;!-- если нет реакций -->	
+	&lt;h3 class="text-danger">Нет реакции от пользователя&lt;/h3>
+{% endif %} &lt;!-- если реакции есть --></pre>
+					</li>
+				</ol>
 			</li>
 			<li>
-				Лайки закладки к посту
+				<span class="title_text">Поведение кнопки (представление + маршрут), добавить/убрать пост из закладок пользователя</span>
+				<ol type="A">
+				<br>Предаставление и маршрут будут почти такиеме же как и у лайка, за исключением корректироуемого поля в модели
+				<br>Теоретически можно было бы сделать и в одном представлении, но нужнны разные маршруты , а через форму делать не лучшая идея
+					<li>
+						Пишу представление кнопки добавить и и убрать пост из закладки
+						<br>relatepost/views.py
+						<pre>
+# кнопка закладки
+@login_required
+def bookmark_post(request, cat_slug, car_slug):
+    try:
+        like_mark_post_object = LikeMarkPost.objects.get(user_like_mark__pk=request.user.pk,
+                                                         post_like_mark__slug=car_slug)
+        # то же самое что [if like_mark_post_object.is_bookmarks_post == False:]
+        if not like_mark_post_object.is_bookmarks_post:  # если не добавил в закладки
+            # добавляем в закладки
+            LikeMarkPost.objects.filter(user_like_mark__pk=request.user.pk,
+                                        post_like_mark__slug=car_slug).update(is_bookmarks_post=True)
+
+        else:  # если уже в закладках
+            # убираем из закладок
+            LikeMarkPost.objects.filter(user_like_mark__pk=request.user.pk,
+                                        post_like_mark__slug=car_slug).update(is_bookmarks_post=False)
+    except LikeMarkPost.DoesNotExist:  # Реакцию не нашли (объект не существует)
+        # создаём новую реакцию
+        like_mark_post_object = LikeMarkPost.objects.create(
+            user_like_mark=request.user,
+            post_like_mark=Car.objects.get(slug=car_slug),
+            is_like_post=False,
+            is_bookmarks_post=True
+        )
+        like_mark_post_object.save()
+    return redirect('car', cat_slug, car_slug)</pre>
+					</li>
+					<li>
+						Пишу маршрут для кнопки закладки
+						<br>relatepost/urls.py
+						<pre>path('category/&lt;slug:cat_slug>/&lt;slug:car_slug>/bookmark', bookmark_post, name='bookmark_post'),</pre>
+					</li>
+				</ol>
 			</li>
 			<li>
-				Вывол общего рейтинга
+				<span class="title_text">
+					Отображаю кнопки лайк и закладки, активные/неактивные + ссылки на изменение (кнопка лайк, кнопка закладка)
+				</span>
+				<ol type="A">
+					<li>
+						Напоминаю что, ранее в шаблон выводил реакцию для конкретного пользоватея и поста (нет/есть/если да то какие)
+						<br>Смотри blog/views.py - class ShowCar - def get_user_relation_to_post и get_context_data
+					</li>
+					<li>
+						Полный блок кода, для кнопок лайк и закладок, с учётом всех возможных вариантов (залогинен/незалогинен - есть реакции от юзера/нет реакций - стоит лайк/не стоит - в закладках/не в закладках)
+						<br>car.html
+						<pre>
+{% if request.user.is_authenticated %} &lt;!-- если залогинен  для лайк, рейтинг, закладки -->	
+				
+&lt;!-- кнопки лайк и закдадка -->
+	&lt;div class="mb-0 bd-highlight">
+
+&lt;!-- если реакции есть -->
+{% if relation != 'no' %}
+	{% for r in relation %} &lt;!-- перебираем поля реакций -->
+
+	&lt;!-- закладки -->
+	{% if r.is_bookmarks_post == True %} &lt;!-- если в закладках -->
+	&lt;a class="btn" href="{% url 'bookmark_post' car_slug=car.slug cat_slug=car.cat.slug %}">
+		&lt;img src="{% static 'blog/images/bookmark-on.png' %}" height="32" width="32" class="img-fluid">
+	&lt;/a>
+	{% else %} &lt;!-- если НЕ закладках -->
+	&lt;a class="btn" href="{% url 'bookmark_post' car_slug=car.slug cat_slug=car.cat.slug %}">
+		&lt;img src="{% static 'blog/images/bookmark-off.png' %}" height="32" width="32" class="img-fluid">
+	&lt;/a>
+	{% endif %} &lt;!-- если в закладках -->
+
+
+		&lt;!-- лайк -->
+		{% if r.is_like_post == True %} &lt;!-- если лайк стоит -->
+		&lt;a class="btn" href="{% url 'like_post' car_slug=car.slug cat_slug=car.cat.slug %}">
+		&lt;img src="{% static 'blog/images/heart-on.png' %}" height="32" width="32" class="img-fluid">
+	&lt;/a>14!!!
+	{% else %} &lt;!-- если лайк не стоит -->
+	&lt;a class="btn" href="{% url 'like_post' car_slug=car.slug cat_slug=car.cat.slug %}">
+		&lt;img src="{% static 'blog/images/heart-off.png' %}" height="32" width="32" class="img-fluid">
+	&lt;/a>15!!!
+	{% endif %} &lt;!-- если лайк стоит -->
+
+	{% endfor %} &lt;!-- перебираем поля реакций -->
+
+
+
+{% else %} &lt;!-- если реакций от пользователя нет -->
+	&lt;!-- неактивная закладка -->
+	&lt;a class="btn" href="{% url 'bookmark_post' car_slug=car.slug cat_slug=car.cat.slug %}">
+		&lt;img src="{% static 'blog/images/bookmark-off.png' %}" height="32" width="32" class="img-fluid">
+	&lt;/a>
+	&lt;!-- неактивный лайк -->
+	&lt;a class="btn" href="{% url 'like_post' car_slug=car.slug cat_slug=car.cat.slug %}">
+		&lt;img src="{% static 'blog/images/heart-off.png' %}" height="32" width="32" class="img-fluid">
+	&lt;/a>15!!!
+
+{% endif %} &lt;!-- если реакции есть -->
+&lt;/div>	
+
+......
+блок кода для рейтинга звёзд
+{% endif %} &lt;!-- если залогинен  для лайк, рейтинг, закладки --></pre>
+					</li>
+				</ol>
 			</li>
+
 			<li>
-				Отображение звёзд что после обновления страницы
+				<span class="title_text">
+					Делаю и вывожу в шаблон, счётчик рейтинга и счётчик лайков поста.
+				</span>
+				<ol type="A">
+					<li>
+						Добавляю функцию получения рейтинга поста
+						<br>blog/views.py - class ShowCar (представление)
+						<pre>
+class ShowCar(...):
+	....
+    # получение рейтинга поста
+    def get_rating_post(self, **kwargs):
+        # получаем все записи рейтинга к конкретному посту
+        rating_records = Rating.objects.filter(post_rate__slug=self.kwargs['car_slug'])
+        sum_rating = 0  # промежуточная переменная, сумма всех рейтингов
+        # если количество записей рейтинга больше 0
+        if rating_records.count() > 0:
+            # перебираем все записи модели Rating
+            for rec in rating_records:
+                # к переменной прибавляем рейтинг из каждой записи Rating (конкретного поста)
+                # value - потому что поле star не совсем число, и его нужно привести к числу!
+                sum_rating += rec.star.value
+            # сумма всех рейтингов / количество записей по рейтингу
+            rating = sum_rating / rating_records.count()
+            # округляем до 2-х чисел после запятой
+            rating = round(rating, 2)
+        else:  # если к посту рейтинг никто не ставил
+            rating = 0
+        return rating  # возвращаем итоговый рейтинг!
+
+
+	....
+    def get_context_data(....):
+        context = super().get_context_data(**kwargs)  # распаковываем изначальный контекст
+        ....
+        c_def = self.get_user_context(....,  # выбор категории
+                                      ....,  # реакции
+                                      rating=self.get_rating_post())  # рейтинг
+        ...</pre>
+					</li>
+					<li>
+						Выводим в шаблоне рейтинг, если рейтинг = 0 , будем выводит 'нет оценок'
+						<br>car.html
+						<pre>
+&lt;p style="font-size: 1.2em;">
+	Рейтинг: 
+	{% if rating > 0 %} &lt;!-- если рейтинг > 0 -->
+	{{ rating }}
+	{% else %} &lt;!-- если рейтинг 0 -->
+	нет оценок
+	{% endif %} &lt;!-- если рейтинг > 0 -->
+&lt;/p></pre>
+					</li>
+					<li>
+						Добавляю счётчик лайков, в представлении ShowCar  - добавляю свой метод
+						<br>blog/views.py - class ShowCar (представление)
+						<pre>
+class ShowCar(...):
+	....
+    # получение количества лайков к посту
+    def get_total_likes_post(self, **kwargs):
+        # получаю все записи реакций (лайк и/или закладки) относящиеся к конкретному посту
+        likes_or_marks_records = LikeMarkPost.objects.filter(post_like_mark__slug=self.kwargs['car_slug'])
+        total_likes = 0
+        # если реакций (количество записей) лайк и/или закладки больше 0
+        if likes_or_marks_records.count() > 0:
+            # перебираем все записи
+            for rec in likes_or_marks_records:
+                # упрощено от if rec.is_like_post == True:
+                # если в записи в поле лайков стоит True
+                if rec.is_like_post:
+                    # прибавляем к результату единицу
+                    total_likes += 1
+        return total_likes  # возвращаем подсчёт лайков
+
+
+	....
+    def get_context_data(....):
+        context = super().get_context_data(**kwargs)  # распаковываем изначальный контекст
+        ....
+        c_def = self.get_user_context(....,  # выбор категории
+                                      ....,  # реакции
+                                      ....,  # рейтинг
+                                      total_likes=self.get_total_likes_post()  # количество лайков
+                                      )
+            ....</pre>
+					</li>
+					<li>
+						Блок кода в шаблоне, который показывает количество лайков если они есть (если лайко ещё нет ничего показывать не будет)
+						<br>car.html - (этот блок необходимо вставить везде где нужно количество лайков, при разных условиях -логин/активный лайк/неактивный лайк)
+						<pre>
+{% if total_likes > 0 %} &lt;!-- если лайков больше 0 -->
+	{{ total_likes }}
+{% endif %} &lt;!-- если лайков больше 0 --></pre>
+					</li>
+				</ol>
 			</li>
+
+			<li>
+				<span class="spec">
+					На данный момент с добавлением, отображением лайков/закладок/рейтинга всё
+					<br>В перспективе нужно:
+					<br>- Чтобы звёзды рейтинга не пропадали в шаблоне после обновления страницы
+					<br>- Чтобы рейтинг обновлялся через ajax (сейчас только после обновления страницы)
+					<br>- Лайки/закладки через ajax
+					<br><br>Для этого начинай учить JavaScript, jQuery/Vue/React/Angular? + REST
+				</span>
+			</li>
+				</ol><!-- конец по рейтингам лайкам и комментар8им поста -->
+			</li> <!-- конец по рейтингам лайкам и комментар8им поста -->
+		<hr>
+		<br><br>
+
+
+
+
+&lt;
+
+
+
+
+
+			<li>
+				<span class="title_text">Сделай представление вывода записей которые в закладках у пользователя (на основе home.html - используя фильтр в новом представлении - queriset)</span>
+				<hr>
+				<ol type="A">
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+				</ol>
+			</li>
+
 
 
 &lt;
