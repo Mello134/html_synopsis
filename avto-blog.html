@@ -3817,17 +3817,134 @@ class ShowCar(...):
 
 
 			<li>
-				<span class="title_text">Сделай представление вывода записей которые в закладках у пользователя (на основе home.html - используя фильтр в новом представлении - queriset)</span>
+				<span class="title_text">Представление вывода избранных статей закладки пользователя</span>
 				<hr>
 				<ol type="A">
 					<li>
-						
+						Делаю новое представление, для вывода избранных записей (добавленных в закладки), каждого пользователя
+						<br>blog/views.py
+						<pre>
+# вывод машин избранных статей пользователя
+class CarsBookmarksShow(LoginRequiredMixin, DataMixin, ListView):
+    login_url = 'login'  # перенаправление если пользователь не авторизован (LoginRequiredMixin)
+    model = Car
+    template_name = 'blog/home.html'  # тот же шаблон, что и домашняя страницы
+    context_object_name = 'cars'  # objects = cars (просто имя)
+    # allow_empty = True - покажет пустой список если ничего не будет
+    # allow_empty = False - покажет 404, при отсутствии совпадений в get_queryset
+    allow_empty = True  # для отображения 404
+
+    # параметры вывода (выводим записи только из, закладок пользователя)
+    def get_queryset(self):
+        # получаем список всех записей LikeMarkPost ао фильтру (текущий пользователь, есть закладка)
+        bookmarks_post_list = LikeMarkPost.objects.filter(user_like_mark__pk=self.request.user.pk,
+                                                          is_bookmarks_post=True)
+        pk_list_bookmarks_for_user = []  # создал пустой список pk
+        # перебираем все записи по вышеуказанной выборке
+        for one_rec in bookmarks_post_list:
+            # добавляю в наш список, id/pk записей, которые есть в закладки
+            pk_list_bookmarks_for_user.append(one_rec.post_like_mark.pk)
+        # Вывожу только записи из закладок
+        # pk - это Сar.pk,  __in - необходим когда атрибутов одного поля несколько
+        # после __in - атрибуты поиска нужно выводить списком
+        # пример = Model.objects.filter(цвет__in=['белый','чёрный','синий'])
+        return Car.objects.filter(pk__in=pk_list_bookmarks_for_user)
+
+    # полный контекст
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(cat_selected='закладки',
+                                      title=f'Избранные статьи')
+        return {**context, **c_def}</pre>
+        				<br>
+        				<span class="spec">Что здесь интересного:</span>
+        				<ul>
+        					<li>
+        						LoginRequiredMixin - миксин, который разрешает это предсталение только авторизованным пользователем, <span class="spec">LoginRequiredMixin - должен быть первым в списке наследования классов!</span>
+        					</li>
+        					<li>
+        						login_url = 'login' - Это имя маршрута, name='login', куда будет отправлять представление, если им попытается воспользоваться не авторизованный пользователь
+        					</li>
+        					<li>
+        						template_name = 'blog/home.html'  -  Используем тот же шаблон что и при выводе всех записей
+        						<br><span class="spec">Шаблон в итоге поменял на другой, захотел чтобы отображалось по другому</span>
+        					</li>
+        					<li>
+        						allow_empty = True - разрешаем выводить пустой список, если поставить False - выведет 404 при пустом списке
+        					</li>
+        					<li>
+        						<span class="spec">def get_queryset(self): - самое важное здесь</span><br>
+        						get_queryset - определят какие именно записи модели Car будут показаны
+        						<br>Станадартно при model = Car, выведет Car.objects.all()
+        						<ul>
+        							<li>
+        								bookmarks_post_list - здесь получим записи модели LikeMarkPost, они нам нужны только для получении pk записей где есть закладки у конкретного пользователя, уверен что можно сделать более элегантно, без получения этих записей, но пока не стал мудрить
+        							</li>
+        							<li>
+        								Далее перебираем все выбранные записи LikeMarkPost, и записываем все необходимые pk
+        								<br>Напомню LikeMarkPost.post_like_mark --> ForeignKey --> Car
+        							</li>
+        							<li>
+        								<span class="spec">
+        									Далее фильтр по нескольким значениям одного поля!  - Модель.objects.filter(цвет__in=['red','blue','black'])
+        								</span>
+        								<br>return Car.objects.filter(pk__in=pk_list_bookmarks_for_user)
+        							</li>
+        						</ul>
+        					</li>
+        					<li>
+        						В get_context_data - добавлю cat_selected='закладки'  - для отображения кнопки избранное (активно/неактивно) - в шаблоне в sidebar
+        					</li>
+        				</ul>
+					</li>
+					<br><br>
+					<li>
+						Пишу маршрут для представления избранных пользователем статей (на основе классов)
+						<br>blog/urls.py
+						<pre>path('bookmarks/', CarsBookmarksShow.as_view(), name="bookmarks"),</pre>
 					</li>
 					<li>
-						
+						Добавлю ссылку 'Мои закладки' в sidebar
+						<br>sidebar.html - (блок кода кнопки мои закладки)
+						<pre>
+{% if request.user.is_authenticated %} &lt;!-- если залогинен -->		
+		{% if cat_selected != 'закладки' %} &lt;!-- если не 'закладки' -->
+		&lt;li class="nav-item">
+		    &lt;a class="nav-link active pb-4" aria-current="page" href="{% url 'bookmarks' %}">Мои закладки&lt;/a>
+		&lt;/li>
+		{% else %} &lt;!-- если 'закладки' -->
+		&lt;li class="nav-item">
+		    &lt;a class="nav-link disabled pb-4" href="{% url 'bookmarks' %}" tabindex="-1" aria-disabled="true">Мои закладки&lt;/a>
+		&lt;/li>
+		{% endif %}	&lt;!-- если не 'закладки' -->
+{% endif %} &lt;!-- если залогинен --></pre>
 					</li>
 					<li>
-						
+						Скопирую шаблон home.html, переиминую booksmarks.html, подкорректирую формат отображения списка, буду выводить по 4 в ряд. (изменю параметр для стобцы в контейнере class --> col-xl-3)
+					</li>
+					<li>
+						Соответственно поменяю шаблон в классе представления CarsBookmarksShow
+						<br>blog/views.py
+						<pre>
+# вывод машин избранных статей пользователя
+class CarsBookmarksShow(...):
+	...							
+	template_name = 'blog/bookmarks.html'  # шаблон</pre>
+					</li>
+					<li>
+						Добавлю вывод информации на случай если закладок ещё нет, 'Здесь будут храниться ваши избранные статьи'
+						<br>bookmarks.html
+						<pre>
+&lt;!-- если пользователь не нелал закладки -->
+&lt;!-- cars = Queryset Cars.objects.all/get/filter (у нас filter) -->
+{% if cars.count == 0 %}
+	&lt;p class="no_queryset">
+		Здесь будут храниться ваши избранные статьи
+	&lt;/p>
+	&lt;h4 class="text-center text-info">
+		Для добааления в избранное, необходимо перейти на страницу статьи - и добавить её в закладки.
+	&lt;/h4>
+{% endif %}&lt;!-- если пользователь не нелал закладки -->&lt;/pre>
 					</li>
 				</ol>
 			</li>
