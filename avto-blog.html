@@ -62,6 +62,15 @@
 
 
 <body>
+
+<span class="spec">Измени поле url / slug чтобы оно автомотически заполнилось на основании tittle - в форме создания поста с сайта</span>
+<a href="https://qna.habr.com/q/303008">https://qna.habr.com/q/303008</a>
+
+<span class="spec">Добавть поле chit_url в модели YT, при добавления видео, чтобы из "https://youtu.be/_atWFaLnRqs"  получалось  "https://www.youtube.com/embed/_atWFaLnRqs" </span>
+
+
+
+
 <!-- 	<p><a href="https://www.youtube.com/@selfedu_rus">selfedu</a></p>
 	<p><a href="https://www.youtube.com/watch?v=FyTL1bnUx5I&list=PLA0M1Bcd0w8xO_39zZll2u1lz_Q-Mwn1F">Django 3 для Python(плейлист)</a></p> -->
 	<p><a href="https://proproprogs.ru/django">https://proproprogs.ru/django</a></p>
@@ -3952,6 +3961,538 @@ class CarsBookmarksShow(...):
 
 
 &lt;
+
+
+
+			<li>
+				<span class="spec">
+					Добавлюю видео с ютуб (в отдельный шаблон)
+				</span>
+				<hr>
+				<ol type="A">
+					<li>
+						Создаю шаблон video.html
+						<br>blog/templates/blog - video.html
+					</li>
+					<li>
+						Пишу представление, для шаблона с видео
+						<br>blog/views.py
+						<pre>
+# представление шаблона с видео
+class VideoTemplateShow(DataMixin, TemplateView):
+    template_name = 'blog/video.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Видео материалы')
+        return {**context, **c_def}</pre>
+					</li>
+					<li>
+						Пишу маршрут для представления шаблона video.html
+						<br>blog/urls.py
+						<pre>path('video/', VideoTemplateShow.as_view(), name="video"),</pre>
+					</li>
+					<li>
+						<span class="spec">
+							Добавление видео с Youtube - html ссылка
+						</span>
+						<br>-Заходим на Youtube - какое-то видео
+						<br>-Поделиться - Встроить
+						<br>-Настраиваем в youtube (например можно настроить показ с конкретной секунды)
+						<br>-Вставляем в шаблон html ссылку
+						<br><br>video.html
+						<pre>
+{% block content %}
+
+&lt;h1 class="text_shadow">{{ title }}&lt;/h1>
+&lt;hr>
+
+&lt;iframe width="560" height="315" src="https://www.youtube.com/embed/03Sb_K6u8l8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>&lt;/iframe>
+
+
+{% endblock %}</pre>
+					</li>
+					<li>
+						Подключаем адаптацию bootstrap5 (изменение размера при изменении родительского элемента)
+						<br><span class="spec">bootstrap5 .ratio</span>
+						<br>Для видео c Ютуб (и большинства видео) - подходит соотношение 16х9
+						<br>Всё что необходимо обернуть элемент iframe - в div c классом ratio ratio-16x9
+						<pre>
+&lt;div class="ratio ratio-16x9">
+	&lt;iframe информаци с стороннего сайтиа Youtube>&lt;/iframe>
+&lt;/div></pre>
+					</li>
+					<li>
+						Для добавление выдео через модель, можно сделать просто:
+						<br>-Создадим модель Video, создадим поля в модели ['title_video', 'link_video']
+						<br>-Всё пол стандарту, link_video - можно сделать просто полем CharField/TextFielg
+						<br>-В админке в link_video - добавляем полностью ссылку html - со всеми тегами html - от &lt;iframe> до &lt;/iframe> - включительно
+						<br>-Далее в шаблоне при выводе видео, необходимо будет экранировать html теги. 
+						<span class="spec">Экранирование html в шаблоне: {{ link_video|safe }}</span>
+						<br>-<strong>Но этот способ очень кустарный, он подойдёт в том случае, если видео на сайте не планируется много, если видео можно будет добавлять только админу из админ панели</strong>
+						<br>-Более павильный метод реализации, через отдельный пакет -например: <span class="spec">django-embed-video</span>
+					</li>		
+				</ol>
+			</li>
+
+
+&lt;
+			
+			<li>
+				<span class="title_text">
+					Делаю полноценное Видео приложение на сайте, с помощью - django-embed-video
+				</span>
+				<hr>
+				<ol type="A">
+					<li>
+						<span class="spec">Установка - django-embed-video</span>
+						<ul>
+							<li>
+								<a href="https://pypi.org/project/django-embed-video/">https://pypi.org/</a>
+								<br>
+								<a href="https://django-embed-video.readthedocs.io/en/latest/">Официальная документация</a>
+							</li>
+							<li>
+								Устанавливаю в окружение пакет: django-embed-video
+								<pre>pip install django-embed-video</pre>
+							</li>
+							<li>
+								Регистрирую приложение в settings.py - INSTALLED_APPS
+								<pre>
+INSTALLED_APPS = [
+	....,
+	...., # изначаньные приложения django								
+    'embed_video',  # django-embed-video
+    ....,  # наши приложения
+]</pre>
+							</li>
+							<li>
+								В settings.py - в TEMPLATES - в OPTIONS - должен быть включен 'django.template.context_processors.request',  - Изначально это условие в django есть
+								<br><br>
+								<span class="spec">В инструкции написано что необходимо добавить - этого я не делал, должно работать без указанного ниже кода</span>
+								<br>скорее всего информация для старой версии django
+								<pre>
+TEMPLATE_CONTEXT_PROCESSORS = (
+    ...
+    'django.core.context_processors.request',
+)</pre>
+							</li>
+							<li>
+								Так же есть настройка <span class="spec">WSGi + Nginx</span> - То есть при использовании в Продакшене
+								<br>В settings.py добавляю
+								<pre>SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')</pre>
+								<br>В настройках Nginx необходимо добавить
+								<pre>proxy_set_header X-Forwarded-Proto $scheme;</pre>
+							</li>
+							<li>
+								Теперь можно использовать видео со стороннего сайта в нашем проекте
+								<br>Пример модели:
+								<pre>
+from django.db import models
+from embed_video.fields import EmbedVideoField
+
+class Item(models.Model):
+	# поле ссылки на видео
+    video = EmbedVideoField()  # такое же как models.URLField()
+								</pre>
+							</li>
+							<li>
+								В шаблоне необходимо подгрузить
+								<pre>{% load embed_video_tags %}</pre>
+							</li>
+							<li>
+								Пример самого простого вывода видео в шаблоне
+								<pre>{% video item.video 'small' %}</pre>
+								<br>-где small = 480x360
+								<br>-где tiny  = 420x315
+								<br>-где medium  = 640x480
+							</li>
+							<li>
+								Можно размер в лоб
+								<pre>{% video my_video '800x600' %}</pre>
+							</li>
+							<li>
+								Вывод отдельных элеметнов в шаблоне
+								<pre>
+{# or use variables (with embedding, too) #}
+{% video item.video as my_video %}
+    URL: {{ my_video.url }}
+    Thumbnail: {{ my_video.thumbnail }}
+    Backend: {{ my_video.backend }}
+    {% video my_video 'small' %}
+{% endvideo %}</pre>
+							</li>
+							<li>
+								Подробней читай в официальной документации - django-embed-video
+							</li>
+						</ul>
+					</li>
+					<li>
+						Удаляю всё что делал для пробы в видео ранее
+					</li>
+					<li>
+						Создаю новое приложение в проекте 'video'
+						<pre>python manage.py startapp video</pre>
+					</li>
+					<li>
+						Регистрирую приложение 'video' в settings.py - INSTALLED_APPS
+						<pre>
+INSTALLED_APPS = [
+	...
+    'video.apps.VideoConfig',  # наше приложение video
+]</pre>
+					</li>
+					<li>
+						Создам папку для шаблонов в приложении video
+						<br>
+						<pre>avtoblog-project/video/templates/video</pre>
+					</li>
+					<li>
+						Создам собственный urls.py в video (app), напишу первый маршрут и необходимые импорты
+						<br>video/urls.py
+						<pre>
+from django.urls import path
+from .views import *
+
+urlpatterns = [
+    # path('list/', VideoTemplateShow.as_view(), name="video"),
+]</pre>
+					</li>
+					<li>
+						Включу в video/urls.py в основной avtoblog/urls.py
+						<pre>path('video/', include('video.urls')),  # путь к путям приложения video</pre>
+					</li>
+					<li>
+						Сделаю первое представление, для проверки работоспособности приложения:
+						<br>-Пермещу video.html - в video/templates/video
+						<br>-Напишу первое простейшее представленрие в video/views.py
+						<pre>
+from django.shortcuts import render
+from django.views.generic import TemplateView
+from blog.utils import DataMixin
+
+
+# представление шаблона со списком видео
+class VideoListShow(DataMixin, TemplateView):
+    template_name = 'video/video.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Видео материалы')
+        return {**context, **c_def}</pre>
+        				<br>-Пишу маршрут для представления
+        				<pre>path('list/', VideoListShow.as_view(), name="video_list"),</pre>
+        				<br>-Проверяю в браузере, url=http://127.0.0.1:8000/video/list/
+        				<br>Всё работает на данном этапе!
+					</li>
+					<li>
+						Добавлю название приложение на руссом "Приложение Видео"
+						<br>video/apps.py - class VideoConfig
+						<pre>
+class VideoConfig(AppConfig):
+	...
+	verbose_name = 'Приложение Видео'  # отображение названия приложения</pre>
+					</li>
+					<li>
+						Пишу модель для хранения видео (ссылки видео)
+						<br>video/models.py
+						<pre>
+# Сторонние видеофайлы
+class VideoYT(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название видео')
+    video_url = EmbedVideoField()  # ссылка стороннего видео</pre>
+					</li>
+					<li>
+from django.contrib.auth.models import User
+from django.db import models
+from embed_video.fields import EmbedVideoField  # django-embed-video
+
+
+# Сторонние видеофайлы
+class VideoYT(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название видео')
+    video_url = EmbedVideoField(verbose_name='Ссылка на видео')  # ссылка стороннего видео - django-embed-video
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name='Время создания')
+    time_update = models.DateTimeField(auto_now=True, verbose_name='Время изменения')
+    author_video = models.ForeignKey(User, on_delete=models.SET_DEFAULT, verbose_name='Автор', default=1, blank=False)
+
+    def __str__(self):
+        return f'Видео: {self.name}, Автор видео: {self.author_video}'
+
+    class Meta:
+        verbose_name = "Видеофайл"
+        verbose_name_plural = "Видеофайлы"
+        ordering = ['-time_update']</li>
+					<li>
+						Регистрирую модель VideoYT в админ панеле
+						<br>video/admin.py
+						<pre>
+from django.contrib import admin
+from video.models import VideoYT
+
+
+class VideoYTAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'author_video', 'video_url')
+    # список полей - ко которым можно вести поиск
+    search_fields = ('name', 'author_video')
+    # редактирование поля публикации - в списке - в админке
+    list_editable = ('name', 'author_video', 'video_url')  # запятая - если 1 поле!
+    # фильтр по полям - публикация, время изменения.
+    list_filter = ('author_video',)
+    
+    
+# Register your models here.
+admin.site.register(VideoYT, VideoYTAdmin)</pre>
+					</li>
+					<li>
+						Создаю и применяю миграцию
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						Через админку создаю записи модели VideoYT
+					</li>
+					<li>
+						Меняю/создаю модель вывода списка видеофайлов
+						<br>video/views.py
+						<pre>
+from django.views.generic import ListView
+from blog.utils import DataMixin
+from video.models import VideoYT
+
+
+# представление шаблона со списком видео
+class AllVideoListShow(DataMixin, ListView):
+    # paginate_by = 8 пагинация на будущее
+    model = VideoYT
+    template_name = 'video/video.html'
+    context_object_name = 'video'  # objects = video (для обращения в шаблоне)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Видео материалы')
+        return {**context, **c_def}</pre>
+					</li>
+					<li>
+						Корректирую маршрут
+						<br>video/urls.py
+						<pre>path('all/', AllVideoListShow.as_view(), name="video_all"),</pre>
+					</li>
+					<li>
+						Вывожу в шаблоне video.html 
+						<pre>
+{% extends 'blog/base.html' %} 
+
+&lt;!-- django-embed-video -->
+&lt;!-- но и без этого работает(может быть нужно в продакшене) -->
+{% load embed_video_tags %}
+
+
+{% block title %} 
+	{{ title }}
+{% endblock %}
+
+
+{% block content %}
+&lt;h1 class="text_shadow">{{ title }}</h1>
+&lt;hr>
+
+&lt;!-- video = VideoYT.objects.all() -->
+{% for v in video %}
+&lt;hr>
+&lt;h3>Название: {{ v.name }}&lt;/h3>
+&lt;h5>Отправитель: {{ v.author_video }}&lt;/h5>
+	Ссылка на первоисточник: &lt;a href="{{v.video_url}}">{{v.video_url}}&lt;/a>
+
+&lt;div class="ratio ratio-16x9">
+	&lt;iframe src="{{v.video_url}}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>&lt;/iframe>
+&lt;/div>
+&lt;hr>
+&lt;br>&lt;br>
+{% endfor %}
+
+{% endblock %}</pre>
+						Вид в самом простом варианте, в последствии размещю по контейнерам (row/col) и зделаю пагинацию, добавлю лайки и комментарии, Добавить себе (по типу закладок) - если это возможно реализовать в цикле видео
+					</li>
+					<li>
+						<span class="spec">
+							Проблемы при добавлении видео с YouTube:
+						</span>
+						<ol>
+							<li>
+								Не все видео будут показываться с сайта 'Видео не доступно, перейти в Youtube'
+							</li>
+							<li>
+								-При размещениии с YouTube - поделиться - встроить, Youtube даёт html код с сылкой в нутри по типу: src="https://www.youtube.com/embed/aoLVg_RWOFs".  Эти ссылки можно воспроизводить с сайта, если нет ограничения
+								<br>-Но если нажать просто поделится ссылка будет в виде: https://youtu.be/aoLVg_RWOFs, а вот данные ссылки youtube запрещает размещать на всех сайтах
+								<br><br>Необходимо придумать мутод/функцию которая будет автоматически узменять 'youtu.be' в 'www.youtube.com/embed'
+								<br>В модель необходимо добавить метод который будет автоматически изменить ссылку для вставки в ссылку iFrame
+							</li>
+							<li>
+								<span class="spec">Проблемы добавления c RuTube</span>
+									<br>
+									<br>-Ссылка для пользоавтеля - <strong class="text-info">https://<span class="text-danger">youtu.be</span>/aoLVg_RWOFs</strong>
+									<br>-Ссылка для разработчика - <strong class="text-warning">https://<span class="text-danger">www.youtube.com/embed</span>/aoLVg_RWOFs</strong>
+							</li>
+						</ol>
+					</li>
+					<li>
+						django-embed-video - Django-приложение для легкого встраивания видео с YouTube и Vimeo и музыки из SoundCloud.
+						<br><span class="spec">Но по подобному принципу можно добавлять видео и из Rutube VK и тд</span>
+						<br>Для этого поле модели VideoYT - video_url - нужно изменить
+						<pre>
+video_url = EmbedVideoField() 
+изменить на
+--> models.URLField()</pre>
+						Всё остальное по тому же принципу, причём шаблон плеера (iframe) - можно использовать один и тот же, главное это правильная ссылка! внутри src='ссылка'
+					</li>
+					<li>
+						<span class="spec">Проблемы добавления c RuTube</span>
+						<br>
+						Аналочично как у YouTube:
+						<br>-Ссылка для пользоавтеля - <strong class="text-info">https://rutube.ru/<span class="text-danger">video</span>/4fa9c9da04a6803400a73a1b29e3584b/</strong>
+						<br>-Ссылка для разработчика - <strong class="text-warning">https://rutube.ru/<span class="text-danger">play/embed</span>/4fa9c9da04a6803400a73a1b29e3584b</strong>
+					</li>
+					<li>
+						<span class="text-danger">Меняем модель из VideoYT в VideoYouTubeRuTube, меняю тип поля video_url</span>
+						<br>video/models.py
+						<pre>
+# Видеофайлы YouTube/Rutube
+class <span class="text-danger">VideoYouTubeRuTube</span>(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Название видео')
+    video_url = <span class="text-danger">models.URLField</span>(verbose_name='Ссылка на видео')  # ссылка стороннего видео - django-embed-video
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name='Время создания')
+    time_update = models.DateTimeField(auto_now=True, verbose_name='Время изменения')
+    author_video = models.ForeignKey(User, on_delete=models.SET_DEFAULT, verbose_name='Автор', default=1, blank=False)
+
+    def __str__(self):
+        return f'Видео: {self.name}, Автор видео: {self.author_video}'
+
+    class Meta:
+        verbose_name = "Видеофайл c YouTube/RuTube"
+        verbose_name_plural = "Видеофайл c YouTube/RuTube"
+        ordering = ['-time_update']</pre>
+					</li>
+					<li>
+						Корректирую представление/и админ модель (название модели)
+						<br>video/views.py
+						<pre>
+from video.models import <span class="text-danger">VideoYouTubeRuTube</span>
+
+# представление шаблона со списком видео
+class AllVideoListShow(DataMixin, ListView):
+    # paginate_by = 8 пагинация на будущее
+    model = <span class="text-danger">VideoYouTubeRuTube</span>
+    template_name = 'video/video.html'
+    context_object_name = 'video'  # objects = video (для обращения в шаблоне)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='Все видео')
+        return {**context, **c_def}							
+						</pre>
+						<br>video/admin.py
+						<pre>
+from django.contrib import admin
+from video.models import <span class="text-danger">VideoYouTubeRuTube</span>
+
+
+class <span class="text-danger">VideoYouTubeRuTubeAdmin</span>(admin.ModelAdmin):
+    list_display = ('id', 'name', 'author_video', 'video_url')
+    # список полей - ко которым можно вести поиск
+    search_fields = ('name', 'author_video')
+    # редактирование поля публикации - в списке - в админке
+    list_editable = ('name', 'author_video', 'video_url')  # запятая - если 1 поле!
+    # фильтр по полям - публикация, время изменения.
+    list_filter = ('author_video',)
+
+
+# Register your models here.
+admin.site.register(<span class="text-danger">VideoYouTubeRuTube</span>, <span class="text-danger">VideoYouTubeRuTubeAdmin</span>)</pre>
+
+					</li>
+					<li>
+						Делаю и приминяю миграции
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						<span class="spec">Добавляю метод в модель - для корректирования пользовательской ссылки в ссылку для разработчика. Для YouTube и Rutube</span>
+						<br>video/models.py - class VideoYouTubeRuTube
+						<pre>
+# Видеофайлы YouTube/Rutube
+class VideoYouTubeRuTube(models.Model):
+	....
+    # метод будет автоматически конвертировать ссылку, для возможности отображения у себя на сайте
+    # Это политика YouTube/RuTube
+    # по сути берём ссылку пользователя, и конвертируем в ссылку для разработчика!
+    def safe_url(self):
+        url = str(self.video_url)  # получаю обычный url
+        if 'youtu.be' in url:
+            final_url = url[:8] + 'www.youtube.com/embed' + url[16:]
+        elif 'rutube.ru/video' in url:
+            final_url = url[:18] + 'play/embed' + url[23:]
+        else:
+            final_url = url
+        return final_url</pre>
+        				<br>Для отображения метода в шаблоне - {{ запись_модели.safe_url }}
+        				<br>То есть к методу обращаемся точно так же как к любому другому полю модели!
+					</li>
+					<li>
+						Подкорректирую Шаблон video.html
+						<pre>
+{% block content %}
+&lt;h1 class="text_shadow">{{ title }}&lt;/h1>
+
+
+
+&lt;div class="container-fluid">
+	&lt;div class="row">
+
+		&lt;!-- video = VideoYouTubeRuTube.objects.all() -->
+		{% for v in video %}
+		&lt;div class="col-xl-6 pt-5 ps-5 pe-5">
+
+			&lt;hr>
+			&lt;h3>{{ v.name }}&lt;/h3>
+
+				Ссылка на первоисточник:&lt;br> &lt;a href="{{v.video_url}}">{{v.video_url}}&lt;/a>
+
+			&lt;div class="ratio ratio-16x9">
+				&lt;!-- {{ v.safe_url }} - Это метод модели! получение ссылки разработчика -->
+				&lt;iframe src="{{ v.safe_url }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>&lt;/iframe>
+			&lt;/div>
+			&lt;h5>Отправитель: {{ v.author_video }}&lt;/h5>
+			&lt;br>
+			&lt;hr>
+		&lt;/div>
+		{% endfor %}
+	&lt;/div>&lt;!-- row -->
+&lt;/div>&lt;!-- container -->
+
+
+{% endblock %}</pre>
+					</li>
+				</ol>
+			</li>
+
+
+&lt;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
