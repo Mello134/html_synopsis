@@ -1,4 +1,55 @@
-﻿jquery. ajax
+﻿Пользователькие тегги
+-в каталоге приложения создаём подкаталог templatestags
+-в templatestags- python file - __init__.py
+-в templatestags - video_tags.py
+
+simple_tag <________________________________________
+
+-в - video_tags.py:
+register = template.Library()
+
+-Далее пишем уже сам тег
+@register.simple_tag()  (в скобках можно указать name='getcats') - для вызова в шаблоне
+def get_caterories():
+    return Category.objects.all()
+
+@register.simple_tag()
+def get_comments(self.video.pk)
+   return Comment.objects.filter(com_video__pk = self.video.pk)
+
+
+
+В шаблоне
+{% load video_tags %} подгружаем файл с теггами
+
+{% get_caterories%} вызываем тег
+- этот тег вызовет Queryset <Category: Актрисы>.. 
+
+Чтобы можно было перибирать записи из этого тега
+{% get_caterories as catigories %}  # catigories - придумали сами
+{% for cat in catigories %}  # перебираем все записи
+    {{ cat.name }}  # вывдеем название категорий (обычный цикл)
+{% endfor %}  
+simple_tag >________________________________________
+
+Включающий тег (Полностью HTML страницу, обывок страницы)
+
+-в - video_tags.py:
+register = template.Library()
+
+@register.inclision_tag('blog/list_categories.html')  #отдельный шаблон
+def show_categories():
+   cats = Categories.objects.all()
+   return {'cats':cats}
+
+В шаблоне 'blog/list_categories.html' - пишем всё что нужно (просто цикл с перебором имён категорий) - даже не нужно подключатся к base.html
+
+В шаблоне куда хотим вставить наш тег просто
+{% show_categories %}  # добавит в это место весь blog/list_categories.html
+
+
+
+jquery. ajax
 1 - base.html - скрытпы js
 2 - делать отдельную страницу html - форма, лайк и тд  - которая будет обновлятся rating_form.html (от <form> до </form>)
 3 - в полной странице делаем car.html - делаем include - {% include 'blog/rating_form.html' %}

@@ -4478,27 +4478,580 @@ class VideoYouTubeRuTube(models.Model):
 				</ol>
 			</li>
 
+&lt;
+			
+			<li>
+				<span class="title_text">
+					Разделю сайт на отдельные два глобальных приложения (блог и видеоблог)
+				</span>
+				<br>Для каждого сайта будут свои sidebar
+				<ol type="A">
+					<li>
+						Для того что бы соблюсти принцип деления кода, проще всего в приложении video - иметь свой base.html (изменю только sidebar), и свой side bar
+						<br>Итого из blog/templates/blog - копирую в video/templates/video 
+						<br>base.html + sidebar.html
+					</li>
+					<li>
+						<br>перименовываю video_base.html
+						<br>перименовываю video_sidebar.html
+					</li>
+					<li>
+						video_base.html изменю
+						<pre>{% include 'video/video_sidebar.html' %}</pre>
+						<span class="spec">navbar, footer - буду брать из blog!</span>
+						<br>То есть остальное в video_base.html - без изменений!
+					</li>
+					<li>
+						Подкорректирую video_sidebar.html, она будет показывать:
+						<br>-Все видео
+						<br>-Моё видео
+						<br>-Добавленные видео
+						<br>-(возможно) категории видео
+						<br>-(возможно) видео по фильтру пользователей
+					</li>
+					<li>
+						В video.html изменю
+						<pre>{% extends 'video/video_base.html' %}</pre>
+					</li>
+					<li>
+						video.html переименую в video_all.html
+						<br>Сделаю изменения во video/views.py
+						<pre>
+class AllVideoListShow(DataMixin, ListView):
+	...
+	template_name = 'video/video_all.html'</pre>
+					</li>
+					<li>
+						Добавить статью уберу из navbar - в blog/sidebar.html, отобдажаться будет всегде (защита от незарегистрированного есть в самой ссылке)
+						<pre>
+&lt;li class="nav-item">
+    &lt;a class="nav-link active text-warning pb-2" aria-current="page" href="{% url 'add_post' %}">Добавить пост&lt;/a>
+&lt;/li></pre>
+
+					</li>
+					<li>
+						home.html переименовываю в allpost.html
+					</li>
+					<li>
+						Изменю маршруты для blog-а,  127/blog/categoryes/.../...
+						<br>Основной urls.py avtoblog/ursl.py - изменю маршрут к блогу
+						<pre>
+path('blog/', include('blog.urls')),  # путь к путям приложения blog</pre>
+					</li>
+					<li>
+						index.html - которая будет являться главной страницей всего приложения, в ней будут показаны прейти перейти в блог, перейти в видеоблог, зарегистрируйся и тд
+						<br>
+						не буду расширятся от base.html - так как не нужен никакакой sidebar, не хочется менять структуру base.html - очень много переписывать придётся, будут баги.<br>
+						<strong>Так лучше не делать, если бы я знал что буду добавлять видеоблог и ещё что то то структура base.html была бы другой изначально</strong>
+						<br>
+						За основу возьму base.html прямым текстом, добавлю bootstrap, css и всё, так же напрямую расширюсь от navbar и bootstrap
+						<br>Вместо sidebar и block content - напиру вручную html - где будут
+						<br>Ссылки на регистрацию или авторизацию
+						<br>Ссылки и описания блога
+						<br>Ссылки и описание видеоблога
+						<br>Никаких моделей для index.html добавлять не буду, тупо сухой html + css + bootstrap  - (за исключением {% include 'blog/navbar.html' %} / {% include 'blog/footer.html' %} )
+					</li>
+					<li>
+						В blog.html напишу самую простую функцию представления шаблона index.html
+						<pre>
+# http://127.0.0.1:8000
+def show_index(request):
+    return render(request, 'blog/index.html', {'title': 'Вход на сайт'})</pre>
+					</li>
+					<li>
+						В главнов urls.py напишу маршрут, для первой странички
+						<br>avtoblog/urls.py
+						<pre>path('', show_index, name='index'),</pre>
+					</li>
+					<li>
+						Добавлю ссылки в navbar на приложения blog и video (name='home' и  name="video_all")
+						<br>blog/navbar.html (этот navbar общий для всех)
+						<pre>
+&lt;li class="nav-item mx-3">
+    &lt;a class="nav-link active" href="{% url 'home' %}"> Блог &lt;/a>
+&lt;/li>
+&lt;li class="nav-item mx-3">
+    &lt;a class="nav-link active" href="{% url 'video_all' %}"> Видеоблог &lt;/a>
+&lt;/li></pre>
+					</li>
+					<li>
+						Полный index.htm
+						<pre>
+{% load static %}
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	&lt;meta charset="utf-8">
+	&lt;meta name="viewport" content="width=device-width, initial-scale=1">
+
+	&lt;!-- ссыылка BOOTSTRAP CSS -->
+	&lt;link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+	&lt;!-- ссыылка к нашему css файлу -->
+    &lt;link rel="stylesheet" type="text/css" href="{% static 'blog/css/styles.css' %}">
+
+    &lt;!-- загружаем иконку для отоброжения в браузере где titte-->
+    &lt;link rel="shortcut icon" href="{% static 'blog/images/title.png' %}" type="image/x-icon"/>
+
+
+    &lt;!-- Иконки для лайков -->
+    &lt;link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    &lt;!-- Иконки для лайков нажатые -->
+    &lt;link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+	&lt;title>{{ title }}&lt;/title>
+&lt;/head>
+&lt;body>
+
+	{% include 'blog/navbar.html' %}
+
+	&lt;div class="container-fluid bg-gradient content-all">
+
+
+		&lt;div class="row p-5">
+			&lt;div class="col-lg-12">
+{% if not request.user.is_authenticated %} <!-- если пользователь НЕАВТОРИЗОВАН -->
+				&lt;p style="font-size: 1.5em">
+					Для максимального удобства и получения и достпупа к полному функционалу сайта, рекомендуем войти в свой аккаунт или зарегистрироваться если у вас ещё нет аккаунта.
+				&lt;/p>
+
+				&lt;div class="text-center">
+					&lt;a href="{% url 'login' %}" class="btn btn-outline-info btn-lg">
+						Войти
+					&lt;/a>
+					&lt;a href="{% url 'register' %}" class="btn btn-outline-warning btn-lg">
+						Регистрация
+					&lt;/a>
+				&lt;/div>
+{% else %} &lt;!-- если пользователь авторизован -->	
+				&lt;h3 class="text_desc text-center">Добро пожаловать, {{ request.user.username }}!&lt;/h3>
+{% endif %} &lt;!-- если пользователь НЕАВТОРИЗОВАН -->		
+			&lt;/div> <!-- col -->
+		&lt;/div> <!-- row -->
+
+
+		&lt;div class="row">
+			&lt;div class="col-lg-6 p-5">
+				&lt;a href="{% url 'home' %}" class="nav-link active">
+					&lt;h3 class="text_desc text-center">Блог&lt;/h3>				
+					&lt;img src="{% static 'blog/images/blog.png' %}" class="img-fluid rounded">
+				&lt;/a>						
+			&lt;/div> <!-- col -->
+			&lt;div class="col-lg-6 p-5">
+				&lt;a href="{% url 'video_all' %}" class="nav-link active">
+					&lt;h3 class="text_desc text-center">Видеоблог&lt;/h3>
+					&lt;img src="{% static 'blog/images/video.png' %}" class="img-fluid rounded">
+				&lt;/a>								
+			&lt;/div> <!-- col -->
+		&lt;/div> <!-- row -->
+	&lt;/div> <!-- container -->
+
+	{% include 'blog/footer.html' %}
+
+&lt;!-- JS Bootstrap 5 -->
+&lt;script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">&lt;/script>
+&lt;script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous">&lt;/script>
+
+&lt;/body>
+&lt;/html></pre>
+					</li>
+					<li>
+						Дальше можно расщирять эти два отдельных приложения независимо друк от друга.
+						<br><strong>Особое внимание на base.html sidebar.html - они в приложениях разные!</strong>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+			
+			<li>
+				<span class="title_text">
+					Делаю комментарии для видео.
+				</span>
+				<hr>
+				<span class="spec">
+					Форма комментария будет отображаться к каждому видео, на странице списка всех видео! Т.е ListView.  10 видео = 10 форм для комментария = 10 кнопок отправить комментарий!
+					<br>Реализация с помошью собственного тега. inclusion_tag(), Вложенный тег - то есть тег шаблон.
+				</span>
+				<ol type="A">
+					<li>
+						Создаю модель для комментариев 
+						<br> video/models.py
+						<pre>
+# Комментарии для видео
+class CommentVideoYtRt(models.Model):
+    video = models.ForeignKey(VideoYouTubeRuTube, on_delete=models.CASCADE, verbose_name='Видео',
+                              blank=True, null=True, related_name='comment_video')
+    author_comment = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Автор комментария',
+                                       blank=True, null=True)
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name='Время создания комментария')
+    text_comment = models.TextField(verbose_name='Текст комментария')
+    # видно/не видно
+    status_comment = models.BooleanField(verbose_name='Видимость комментария', default=True)
+
+    class Meta:
+        verbose_name = 'Комментарий к видео'
+        verbose_name_plural = 'Комментарии к видео'
+        ordering = ['time_create']  # сортировка по дате
+
+    # отображение записи при обращении
+    def __str__(self):
+        return f'Видео: {self.video}, ' \
+               f'Комментатор: {self.author_comment}'</pre>
+					</li>
+					<li>
+						Регистрирую модель в админке
+						<br>video/admin.py
+						<pre>
+from video.models import .., CommentVideoYtRt
+
+# модель комментариев к видео (в админке)
+class CommentVideoYtRtAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'video', 'author_comment', 'text_comment', 'status_comment')
+
+admin.site.register(CommentVideoYtRt, CommentVideoYtRtAdmin)</pre>
+					</li>
+					<li>
+						Создаю и применяю миграции
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						создаю форму создания комментария
+						<br>video/forms.py
+						<pre>
+from video.models import CommentVideoYtRt
+
+
+# форма создания комментария к видео
+class CommentVideoYtRtForm(forms.ModelForm):
+    class Meta:
+        model = CommentVideoYtRt
+        # поля отображаемые в форме
+        fields = ['text_comment']
+        # widgets = атрибуты в html, rows = строк в форме, form-control = bootstrap5 class
+        widgets = {
+            'text_comment': forms.Textarea(attrs={'rows': 1, 'class': 'form-control'}),
+        }</pre>
+					</li>
+					<li>
+						<span class="spec">
+							Делаю и регистрирую файл для своих теггов!
+						</span>
+						<ul>
+							<li>
+								В папке приложения видео создаю папку пакет (с __init__.py внутри) - Python Package
+							</li>
+							<li>
+								avtoblog-project/video --> templatetags (Python Package)
+							</li>
+							<li>
+								В templatetags - создаю файл, в котором буду писать свои тегги
+								<br>video/templatetags --> video_tags.py
+							</li>
+							<li>
+								В video_tags.py - регистрирую файл для теггов video_tags.py в библиотеке
+								<br>video/templatetags/video_tags.py
+								<pre>
+from django import template
+
+# регистрируем этот файл в библиотеке
+register = template.Library()</pre>
+								<strong>Теперь можно создавать свои теги в этом файле!</strong>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<span class="spec">Делаю вложенный тег inclusion_tag, то есть шаблон, который буду выводить в цикле всех видео, то есть 10 видео = 10 тегов, шаблоны в шаблоне!<br>В самом теге будет форма добавления комментария, будет список комментариев для определенного видео!</span>
+						<br>video/templatetags/video_tags.py (полный файл)
+						<pre>
+from django import template
+from django.contrib import messages
+from django.shortcuts import redirect
+from video.forms import CommentVideoYtRtForm
+from video.models import VideoYouTubeRuTube, CommentVideoYtRt
+
+# регистрируем этот файл в библиотеке
+register = template.Library()
+
+
+# тег получение формы комментария + самих комментариев для каждого видео (в списке видео)
+@register.inclusion_tag('video/comments_and_comment_form_self_video.html')  # в скобках шаблон тега
+# pk_video - (необходимо будет указывать в шаблоне, при вызове тега, думаю в цикле)
+# pk_video в шаблоне равно pk_video=v.pk (VideoYouTubeRuTube.objects.get(pk=pk_video).pk)
+def show_comments_and_form_comment_self_video(request, pk_video=None):
+    # получаем одну запись видео, по параметру pk
+    video_obj = VideoYouTubeRuTube.objects.get(pk=pk_video)
+
+    # стандартная обработка формы
+    if request.method == 'POST':
+        form = CommentVideoYtRtForm(request.POST)
+        if form.is_valid():
+            # comment_for_self_video по сути одна запись комментария, назвать как угодно.
+            # comment_for_self_video - название нигде не фигурирует, кроме этого метода
+            comment_for_self_video = form.save(commit=False)  # commit=False, чтобы вписать автора и видео в модель комментария
+            comment_for_self_video.author_comment = request.user  # вписываем автора в CommentVideoYtRt.author_comment
+            comment_for_self_video.video = video_obj  # вписываем видео в CommentVideoYtRt.video
+            comment_for_self_video.save()  # после проверки валидности сохраняем запись комментария
+            # всплывающее окно при успешном создании коммента (отображу сверху страницы)
+            messages.info(request, f'{request.user.username}! Комментарий к видео: "{video_obj.name}" - создан!')
+            # при успешной отправке перенаправит на все видео, т.е останемся на той же странице
+            return redirect('video_all')
+    else:  # если ещё ничего не отправляли из формы
+        form = CommentVideoYtRtForm()  # изначально просто пустая форма
+
+    # получение всех комментариев к конкретному видео!
+    all_comments_for_video = CommentVideoYtRt.objects.filter(video__pk=video_obj.pk)
+    # то что необходимо передать в шаблон
+    context = {
+               'form': form,  # форма для отправки комментария
+               'all_comments_for_video': all_comments_for_video,  # все комментарии к видео (модель комментарии к видео)
+               'video_obj': video_obj,  # одна запись модели Видео
+               # 'pk_video': pk_video,
+               }
+    return context  # передаём контекст, обрати внимание здесь без render, без request и без шаблона</pre>
+    					<span class="spec">
+    						Что здесь важно (почти всё!):
+    					</span>
+    						<br><span class="text-danger">-@register.inclusion_tag('шаблон с содержимым тега')</span>
+    						<br><span class="text-danger">-(request, pk_video=None)</span> 1) параметр реквест 2) параметр id - видео,  эти параметры необходимо указать в том шаблоне, в котором будем вызывать этот шаблон
+    						<br>-video_obj = VideoYouTubeRuTube.objects.get(pk=pk_video) - это экземпляр модели видео
+    						<br>-form = CommentVideoYtRtForm(request.POST) - это форма из video/forms.py  - форма создания комментариясписка всех видео
+    						<br>- messages.info .. - вспылвающее собщение при успешном отработки формы (добавление комментария)
+    						<br>- return redirect('video_all') - при обработке формы перенаправит на страницу 
+    						<br>-all_comments_for_video = CommentVideoYtRt.objects.filter(video__pk=video_obj.pk) - <span class="text-danger">получение всех комментариев к конкретному видео!</span>
+    						<br>-context - создал словарь со всеми объектами которые нужно передать в шаблон этого тега
+    						<br>-<span class="text-danger">return context</span> - передаём контекст, обрати внимание здесь без render, без request и без шаблона
+					</li>
+					<li>
+						<span class="spec">
+							Для отработки формы создания комментария (нажатие кнопки добавить комментарий) - необходим маршрут!
+						</span>
+						<br>
+						По этому маршруту будет отправлятся и записываться информация в бд в модель комментариев к видео
+						<br>video/urls.py
+						<pre>
+# путь на добавление комментария, для запуска функции, в нашем случае тега show_comments_and_form_comment_self_video
+path('add-comment/&lt;int:pk_video>/', show_comments_and_form_comment_self_video, name='add_comment')</pre>	
+						<span class="spec">
+							Обрати внимание что &lt;int:pk_video> - это динамическая переменная
+						</span>
+						<br>http://127.0.0.1:8000/add-comment/ид отдельного видео/
+					</li>
+					<li>
+						<span class="spec">
+							Вызываю наш тег в шаблоне video_all.html
+						</span>
+						<pre>
+&lt;!-- вызов файла с собстенными тегами -->
+{% load video_tags %} <span class="spec">Обязательно, при использовании своих шаблонов</span>		
+&lt;!-- video = VideoYouTubeRuTube.objects.all() -->
+{% for v in video %}  # перебираем все видео
+	{{ v.name }}  # имя видео
+	{{ v.author_video }}  # отправитель видео
+	.....  # любые другие поля модели Видео
+	&lt;!-- вызываем вложенный тег = show_comments_and_form_comment_self_video -->
+	&lt;!-- request - обязательный первый параметр вложенного тега -->
+	&lt;!-- v.pk - второй параметр тега, т.е делаем из pk_video=None -> в pk_video=v.pk -->
+	{% show_comments_and_form_comment_self_video request v.pk %}
+
+{% endfor %}</pre>
+						<span class="spec">
+							Что здесь важно!:
+						</span>
+							<br>-{% show_comments_and_form_comment_self_video <span class="text-danger">request</span> <span class="text-info">v.pk</span> %} - вызываем наш тег! и передаём 2 параметра (request, pk_video=None)
+							<br>-<span class="text-danger">request</span> - первый пареметр
+							<br>-<span class="text-info">v.pk - это второй параметр pk_video=v.pk</span>
+							<br>-То есть в каждой итерации цикла, (каждой записи модели Video) - будет вкладываться наш шаблон, для каждого видео будет своя форма добавления комментария, своя кнопка для создани комментария, и список уже имеющихся комментариев
+						
+					</li>
+					<li>
+						В video/templates/video - создаю шаблон (сам тег comments_and_comment_form_self_video.html)
+					</li>
+					<li>
+						<span class="spec">
+							Пишу шаблон - вложенный тег
+						</span>
+						<br>comments_and_comment_form_self_video.html
+						<pre>
+<div class="text-danger">						
+&lt;!-- Вывод списка комментариев, относящихся к каждому видео --></div>
+&lt;h5 class="text-warning">
+	Все комментарии к видео:&lt;br>
+	&lt;!-- перебор всех комментариев к конкретному видео -->
+	{% for com in all_comments_for_video %}
+		{{ com.author_comment }}: &lt;br>
+		{{ com.text_comment}}
+		&lt;br>&lt;br>
+	{% endfor %}
+&lt;/h5>
+
+
+
+	&lt;!-- Гипер важно, в action - url = 127/add-comment/&lt;int:pk_video>/ - этой страницы даже не существует, но путь нужен для того чтобы выполнить функцию, в нашем случае функция это вложенный тег! - show_form_comment_video -->
+	&lt;!-- pk_video в action - взято имено из urls.py, там оно взято из вложенного тега -->
+	&lt;!-- video_obj - это одна запись конкретного видео -->
+	&lt;!-- video_obj = VideoYouTubeRuTube.objects.get(pk=pk_video) -->
+	&lt;!-- video_obj.pk - id записи видео -->
+	&lt;!-- video_obj.name - имя записи видео -->
+	&lt;!-- id="{{ video_obj.name }}" = &lt;button form="{{ video_obj.name }}" здесь условие обязательное, это отношение конкретной кнопки к конкретной форме, а у нас на странице video_all - много кнопок и много форм! -->
+<div class="text-danger">
+&lt;!-- форма для создания комментария к каждому видео --></div>
+&lt;form action="{%  url 'add_comment' pk_video=video_obj.pk %}" method="post" id="{{ video_obj.name }}">
+{% csrf_token %}
+	&lt;div class="col-12" >{{ form.as_p }}&lt;/div>
+&lt;/form>
+
+&lt;!-- кнопка для создания комментария к каждому видео -->
+&lt;button form="{{ video_obj.name }}" type="submit" class="btn btn-outline-info btn-md">
+	Добавить комментарий
+&lt;/button>
+&lt;br>
+&lt;br></pre>
+						<span class="spec">
+							Что здесь важно:
+						</span>
+						<br>-video_obj - это одна запись конкретного видео - передавали в контектсте вложенного тега
+						<br>-all_comments_for_video - QuerySet - все записис с комментариями к конкретному видео, так же передавали в контексте вложенного тега
+						<br><span class="text-danger">- Важно присвоить id к форме и присвоить ворму кнопке</span> Так как форм и кнопок на странице множество. Здесь id формы будет равно имени видео.  То есть у каждого видео собственная форма и кнопка с id формы = имени этого видео
+						<br><span class="text-danger">-action='путь для работы формы'</span> путь не совпадает с путём где форма отображается, путь разный для каждый формы, сздесь путь равен 127/add-comment/&lt;int:pk_video>/<br>То есть для каждого видео будет свой путь на обработку своей формы, динамический параметр pk видео
+					</li>
+					<li>
+						<span class="spec">
+							Добавляю сворачиваемый контент (сворачивать/разворачивать комментарии к определённому видео)
+						</span>
+						<br>video/comments_and_comment_form_self_video.html
+						<pre>
+&lt;!-- если у видео есть комментарии -->
+{% if all_comments_for_video.all.count > 0 %}
+
+&lt;!-- логика и кнопка разворачивания списка комментариев -->
+
+  &lt;button class="btn btn-outline-dark ps" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ video_obj.pk }}" aria-expanded="false" aria-controls="collapse{{ video_obj.pk }}">
+    Посмотреть комментарии
+  &lt;/button>
+
+&lt;!-- сворачиваемое содержимое bootstrap -->
+&lt;div class="collapse" id="collapse{{ video_obj.pk }}">
+
+	&lt;!-- Вывод списка комментариев, относящихся к каждому видео -->
+	&lt;p style="font-size: 1.2em">Все комментарии к видео:</p>
+	&lt;!-- перебор всех комментариев к конкретному видео -->
+	{% for com in all_comments_for_video %}
+	&lt;ul class="list-group">
+		
+		&lt;li class="list-group-item list-group-item-dark"> 
+			&lt;div class="d-flex justify-content-between"> &lt;!-- внешний флекс -->
+				&lt;div class="bd-highlight">&lt;!-- автор к -->
+					{{ com.author_comment }}:
+				&lt;/div>&lt;!-- автор к -->
+
+				&lt;!-- дата | лайк -->
+				&lt;div class="bd-highlight text-secondary">
+					&lt;div class="d-flex flex-row bd-highlight">
+						&lt;div class="pe-2 bd-highlight">&lt;!-- дата -->
+						{{ com.time_create |date:'d.m.Y H:i' }}
+						&lt;/div>&lt;!-- дата -->
+
+						&lt;div class="ps-2 bd-highlight">&lt;!-- лайк -->
+							Лайк
+						&lt;/div>&lt;!-- лайк -->
+					&lt;/div>
+				&lt;/div>
+			&lt;/div><!-- внешний флекс -->
+		&lt;/li>
+		&lt;li class="list-group-item list-group-item-light">{{ com.text_comment}}&lt;/li>
+	&lt;/ul>
+	&lt;br>
+	{% endfor %}&lt;!-- переблр комментариев к видео -->
+&lt;/div>
+
+{% endif %}&lt;!-- если у видео есть комментарии --></pre>
+						<br><span class="spec">Сворачиваемый контент - кратко</span>
+						<pre>
+<!-- логика и кнопка разворачивания списка комментариев -->							
+&lt;button class="btn btn-outline-dark ps" type="button" data-bs-toggle="collapse" 
+data-bs-target="<span class="text-danger">#collapse{{ video_obj.pk }}</span>" aria-expanded="false" 
+aria-controls="<span class="text-danger">collapse{{ video_obj.pk }}</span>">
+Посмотреть комментарии
+&lt;/button>
+
+&lt;!-- сворачиваемое содержимое bootstrap -->
+&lt;div class="collapse" id="<span class="text-danger">collapse{{ video_obj.pk }}</span>">
+	Контент который можно развернуть
+&lt;/div></pre>
+						<span class="spec">
+							Логика такая же как и для связи кнопка-форма, для каждой кнопки разворачивания и его контента - должен быть свой id
+						</span>
+					</li>
+					<li>
+						Добавлю проверку аутентификации пользователя
+						<br>
+						<span class="spec">
+							По дефолту в шаблон тега request не передаётся!
+						</span>
+						<br>1) В video/templatetads/video_tags.py - в контекст добавляю request!
+						<pre>
+@register.inclusion_tag('video/comments_and_comment_form_self_video.html')						def show_comments_and_form_comment_self_video(request, pk_video=None):
+	....
+	....	
+    context = {
+               ....,  # форма для отправки комментария
+               ....,  # все комментарии к видео (модель комментарии к видео)
+               ....,  # одна запись модели Видео
+               'request': request,  # для того чтобы можно было сделать проверку аутентификации
+               }</pre>
+               			<br>2) В шаблоне тега  - video/comments_and_comment_form_self_video.html
+               			<pre>
+{% if request.user.is_authenticated %} &lt;!-- авторизован ли? -для добавление коммментария -->
+	Форма и кнопка для добавления комментария
+	(есть подробно выше)
+{% else %} &lt;!-- НЕ авторизован -для добавление коммментария -->
+
+&lt;p style="font-size: 1.2em" class="text-info">
+	Авторизуйтесь чтобы добавить комментарий.
+&lt;/p>
+
+{% endif %} &lt;!-- авторизован ли? -для добавление коммментария --></pre>
+					</li>
+				</ol>
+			</li>
+
+
+<br><br><br><br>
+<hr>
+<h3>Видео</h3>
+<br>-добавить лайки к видео					
+<br>-добавить добаить видео в закладки (закладки)
+<br>-Добавить удалить видео, если ты автор
+<br>-Добавить добавить новую запись видео
+<br>-Добавить редактировать видео (кроме ссылки)
+<br>-добавить отображение моих закладок (фильтр)
+<br>-добавить отображение моих видео (фильтр)
+<br>-добавить отображение видео разных пользователей (фильтр)
+<br>-добавить редирект при добавлении комментария??? сейчас редирект на все видео, а как сделать если коммент остваили со странице по фильтрам? - скорее всего только через ajax
+<hr>
+<hr>
+<h3>Комментарии</h3>
+<br>-добавить лайки к комментарию
+<br>-добавить удаление комментария
+<br>-добавить проверку авторизованности (в самом представлении, в функции тега?)
+<br>-добавить проверку автора комментария (для его удаления)
+
+<hr>				
+<br><br><br><br>
+
+
+
+
 
 &lt;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 			<br><br><br><br><br><br><br><br><br>
 			<li>
-				<span class="title_text">Сделаю на сайте отдельное приложение магазина (глобально! - подкорректирую шаблоны для магазина, добавлю цены, корзину, модели корзины  итд)</span>
+				<span class="title_text">Сделаю на сайте отдельное приложение магазина (глобально! - подкорректирую шаблоны для магазина, добавлю цены, корзину, модели корзины  итд)</span> 
+				<hr>
 				<br>
 				<span class="spec">В разделе будет много полезной информации: информация сессии, добавление количеста чегото (оставаяь на той же странице), расчёты в моделях и так далее</span>
 				<hr>
@@ -4674,6 +5227,157 @@ class VideoYouTubeRuTube(models.Model):
 		<h1 class="title_text border">Полезности</h1><br>
 		<hr>
 		<ol><!-- общий список -->
+
+
+			<li>
+				<span class="title_text">
+					Пользовательские Теги шаблонов
+					<br>@register.simple_tag()
+					<br>@register.inclision_tag(шаблон-тег.html')
+				</span>
+				<hr>
+				<ol>
+					<li>
+						<span class="spec">simple_tag - Простой тег (QuerySet)</span>
+						<ul>
+							<li>
+								В каталоге приложения создаём подкаталог templatestags
+							</li>
+							<li>
+								В templatestags  - создаём файл - python file - __init__.py
+							</li>
+							<li>
+								В templatestags создаём файл в котором будем писать теги, например video_tags.py
+							</li>
+							<li>
+								В video_tags.py пишем превый simple_tag()
+								<pre>
+register = template.Library()  # регистрируем наш файл  video_tags в Library	
+
+# пишем сам тег
+@register.simple_tag()  (в скобках можно указать name='getcats') - для вызова в шаблоне как getcats
+def get_caterories():
+    return Category.objects.all()</pre>
+							</li>
+							<li>
+								В шаблоне где хотим вызвать тег
+								<pre>
+{% load video_tags %}  # подгружаем файл с теггами
+
+{% get_caterories%}  # вызываем тег (выведет QuerySet)
+
+Лучше сделать так, Чтобы можно было перибирать записи из этого тега
+{% get_caterories as catigories %}  # catigories - придумали сами
+{% for cat in catigories %}  # перебираем все записи
+    {{ cat.name }}  # вывдеем название категорий (обычный цикл)
+{% endfor %}</pre>
+						</ul>
+					</li>
+
+
+
+					<li>
+						<span class="spec">Добавление пареметров, фильтов в simple_tag</span>
+						<ul>
+							<li>
+								Передаём параметры в простой тег. В video_tags
+								<pre>
+@register.simple_tag()
+def get_caterories(filter=None):
+	if not filter:
+    	return Category.objects.all()
+    else
+    	return Category.objects.filter(pk=filter)</pre>
+							</li>
+							<li>
+								Передаём параметр filter в шаблоне
+								<pre>
+QuerySet									
+{% get_caterories filter=1 %}  # Category.objects.filter(pk=1)</pre>
+								Или ещё проще
+								<pre>
+QuerySet
+{% get_caterories 2 %}  # Category.objects.filter(pk=2)</pre>
+							</li>
+						</ul>								
+					</li>
+
+
+
+
+					<li>
+						<span class="spec">inclision_tag - Вложенный тег (шаблон)</span>
+
+						<ul>
+							<li>
+								В video_tags.py пишем включающий тег
+								<pre>
+register = template.Library()  - это обязательно, 1 раз в файле тего сверху
+
+#Включающий тег, который возввратит html шаблон, внутри другого шаблона
+@register.inclision_tag('blog/list_categories.html')  #отдельный шаблон
+def show_categories():
+   cats = Categories.objects.all()
+   return {'cats':cats}</pre>
+							</li>
+							<li>
+								В шаблоне blog/list_categories.html - Пишем html - например список который будет через цикл выводить все названия категорий, со всеми дивами и так далее
+							</li>
+							<li>
+								В шаблоне, в который хотим вставить вложенный тег
+								<pre>
+{% show_categories %}  # в это место целиком будет вставлен шаблон blog/list_categories.html</pre>
+							</li>
+						</ul>
+					</li>
+
+
+					<li>
+						<span class="spec">Передача нескольких параметров во вложенный тег</span>
+						<ul>
+							<li>
+								video_tags.py
+								<pre>
+#Включающий тег, который возввратит html шаблон, внутри другого шаблона
+@register.inclision_tag('blog/list_categories.html')  #отдельный шаблон
+def show_categories(sort=None, cat_selected=0):
+	if not sort:
+		cats = Category.objects.all()
+	else:
+		cats = Category.objects.all(sort)
+
+   return {'cats':cats, 'cat_selected': cat_selected}</pre>
+							</li>
+							<li>
+								В шабллоне - blog/list_categories.html, Вывод имени категорий через цикл for
+								<pre>
+{% for c in cats %}
+	&lt;li>{{ c.name }}&lt;/li>
+{% endfor %}</pre>
+							</li>
+							<li>
+								Вывод в шаблоне
+								<pre>
+{% show_categories '-name' cat_selected %}
+# вывделет все имена категорий
+# cat_selected - в шаблоне уже должно быть!</pre>
+							</li>
+							<li>
+								Есл сортировка не нужна, в шаблоне можно указать просто
+								<pre>{% show_categories cat_selected=cat_selected %}</pre>
+							</li>
+						</ul>
+					</li>
+				</ol>
+			</li>
+
+
+
+
+
+
+
+
 			<li>
 				<span class="title_text">
 					Получение динамического маршрута [3 динамических параметра из трёх разных моделей] 
@@ -4829,90 +5533,6 @@ else:
 	</div><!-- общий полезности -->
 
 &lt;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<ol>
-	<li>
-		Получение данных о пользователи (какой пользователь аутентифицирован) в views.py - из реквеста
-		<pre>
-def sample_view(request):
-    current_user = request.user
-    print current_user.id</pre>
-	</li>
-	<li>
-		Получение записи одного пользователя в request - из модели User
-		<pre>
-def show_profile(request):
-    current_user = request.user
-
-    user_info = User.objects.get(username=current_user)</pre>
-    	<br>Передача в шаблон
-    	<pre>
-def show_profile(request):
-    current_user = request.user
-
-    user_info = User.objects.get(username=current_user)
-
-    all_user = User.objects.all()
-    context = {
-        'all_user': all_user,
-        'current_user': current_user,
-        'user_info': user_info,
-    }
-    return render(request, 'account/profile.html', context=context)</pre>
-    	<br>Отображение в шаблоне
-    	<pre>
-login: {{ user_info.username }}
-мыло: {{ user_info.email }}
-Имя: {{ user_info.first_name }}
-Фамилия: {{ user_info.last_name }}
-Пароль: {{ user_info.password }}</pre>
-	</li>
-	<li>
-		Проверка аутетефицирован ли пользователь в функции представления
-		<pre>
-if request.user.is_authenticated:
-    # Do something for authenticated users.
-else:
-    # Do something for anonymous users.</pre>
-    <li>
-    	Проверка аутентефицирован ли пользователь внутри шаблона
-    	<pre>
-{% if request.user.is_authenticated %}
-блок кода покажета если пользователь щалогинен</pre>
-    </li>
-    <li>
-    	Получение id пользоватьеля из request
-    	<pre>request.user.id</pre>
-    </li>
-    <li>
-    	<span class="spec">ПЕРЕДАВАТЬ ЗНАЧЕНИЯ ПОЛЬЗОВАТЕЛЯ В ШАБЛОН НЕ ОБЯЗАТЕЛЬНО</span>
-    	его передаёт request.   (requuest.user) 
-    	<br>Можно просто сразу обращаться в шаблоне {{user}} {{user.id}} {{user.last_name}} и тд
-    </li>
-    <li>
-    	<span class="spec">Что хранится в request? - полный список</span>
-    </li>
-
-
-</ol>
-
 
 
 
