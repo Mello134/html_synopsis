@@ -62,12 +62,22 @@
 
 
 <body>
+<span class="spec">
+	Добавь redirect на ту страницу с которой был сделан комментарий/лайк или закладка.<br>
+	Проверка HttpRequest.path?  if in request....name = 'имя': redirect 'имя'
+	<br><br>
+	ИЛИ даже лучше.  rerirect('HttpRequest.path.name')!!!
+</span>
+<a href="https://djangodoc.ru/3.2/ref/request-response/">request-response</a>
+<br>
+
 
 <span class="spec">Измени поле url / slug чтобы оно автомотически заполнилось на основании tittle - в форме создания поста с сайта</span>
 <a href="https://qna.habr.com/q/303008">https://qna.habr.com/q/303008</a>
+<br>
 
 <span class="spec">Добавть поле chit_url в модели YT, при добавления видео, чтобы из "https://youtu.be/_atWFaLnRqs"  получалось  "https://www.youtube.com/embed/_atWFaLnRqs" </span>
-
+<br>
 
 
 
@@ -5018,12 +5028,408 @@ aria-controls="<span class="text-danger">collapse{{ video_obj.pk }}</span>">
 				</ol>
 			</li>
 
+&lt;		
+
+
+
+			<li>
+				<span class="title_text">
+					Делаю лакйки и добавить к себе(закладки) - для видео
+				</span>
+				<hr>
+				<span class="spec">
+					Особенность в том что они будут в цикле - ListView, скорее всего это будет вложенный тег, скорее всего в том же тегге что и комментарии к видео
+				</span>
+				<ol class="A">
+					<li>
+						Пишу модель для лайков и закладок видел
+						<br>video.models.py
+						<pre>
+# лайки + закладки к видео
+class LikeMarkVideo(models.Model):
+    """ Модель лайк + закладки для видео. 
+    Поля:
+    1)пользователь, совершающий действия; 2)видео над которым совершают действие;
+    3)лайк = нет/да; 4)В закладках у пользователя = нет/да."""
+    user_lm_video = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    video_lm = models.ForeignKey(VideoYouTubeRuTube, on_delete=models.CASCADE, verbose_name='Видел',
+                                 related_name='video_to_lmv')
+    is_like_video = models.BooleanField(default=False, verbose_name='Лайк видео')
+    is_bookmarks_video = models.BooleanField(default=False, verbose_name='Видео в закладки')
+
+    class Meta:
+        verbose_name = 'Лайк/Закладка видео'
+        verbose_name_plural = 'Лайки/закладки к видео'
+
+    def __str__(self):
+        return f'Пользователь: {self.user_lm_video}, Видео: {self.video_lm}'</pre>
+					</li>
+					<li>
+						Регистрирую модель в админке
+						<br>video/admin.py
+						<pre>
+from video.models import ..., ..., LikeMarkVideo
+
+# модель лайков и закладок к видео (в админке)
+class LikeMarkVideoAdmin(admin.ModelAdmin):
+    # отображаемые поля в таблице админки
+    list_display = ('user_lm_video', 'video_lm', 'is_like_video', 'is_bookmarks_video')
+    # поля по которым можно вести поиск
+    search_fields = ('user_lm_video', 'video_lm')
+    # редактирование в таблице всех реакций (не заходя в конкретную запись)
+    list_editable = ('is_like_video', 'is_bookmarks_video')
+    # фильтр по полям
+    list_filter = ('user_lm_video', 'video_lm')
+
+admin.site.register(LikeMarkVideo, LikeMarkVideoAdmin)</pre>
+					</li>
+					<li>
+						Создам и применю миграцию
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						
+						<span class="spec">
+							Вывожу информацию о лайках и закладках в пользовательский  вложенный тег.
+						</span>
+						<ul>
+							<li>
+								Через админ панель, добавлю пару реакций, пользователь-видео = лайк/закладка
+							</li>
+							<li>
+								В video/templatetags/video_tags.py - пишу отдельную функцию  получения реакции
+								<pre>
+# реакция(лайк, закладка) пользователя на конкретное видео (нет или запись самой реакции)
+def get_likemarks_to_video(request, pk_video):
+    # пробуем получить реакцию пользователя на видео (была ли)
+    likemarks_to_video = LikeMarkVideo.objects.filter(user_lm_video__pk=request.user.pk,
+                                                      video_lm__pk=pk_video)
+    if likemarks_to_video.count() > 0:  # если реакция уже была (от пользователя к видео)
+        return likemarks_to_video  # возвращаем Queryset - запись из LikeMarkVideo
+    else:  # реакции не было
+        likemarks_to_video = 'no'  # меняем relation_video на 'no'
+        return likemarks_to_video  # возвращаем no</pre>
+							</li>
+							<li>
+								Передаю параметры с функции (вызываю функцию внутри пользовательского вложенного тега). Нужно добавить в контекст тега
+								<pre>
+@register.inclusion_tag('video/comments_and_comment_form_self_video.html')  # в скобках шаблон 
+def show_comments_and_form_comment_self_video(request, pk_video=None):
+	....							
+    context = {
+        'likemarks_to_video': get_likemarks_to_video(request, pk_video),  # получение реакции лайк, закладка
+        ....,  # форма для отправки комментария
+        ....,  # все комментарии к видео (модель комментарии к видео)
+        ....,  # одна запись модели Видео
+        'request': request,  # для того чтобы можно было сделать проверку аутентификации
+    }
+    .
+    return context</pre>
+							</li>
+							<li>
+								Вызываю инфу по реакциям в шаблоне тега video/comments_and_comment_form_self_video.html
+								<br>(Сухие данные без верстки)
+								<pre>
+&lt;span class="h5 text-warning">
+	{% if likemarks_to_video == 'no' %} &lt;!-- не было реакций от пользователя -->
+	&lt;p>Нет реакции 
+		{{ request.user.username }}
+	  к
+	  {{ video_obj.name }}
+	&lt;/p>
+	{% else %} &lt;!-- БЫЛИ реакций от пользователя -->
+	&lt;p>
+		{% for lm in likemarks_to_video  %} &lt;!-- перебираю поля записи реакции -->
+			Лайк: {{ lm.is_like_video }} &lt;!-- Лайк True/False -->
+			&lt;br>
+			Закладка: {{ lm.is_bookmarks_video }} &lt;<!-- Закладка True/False -->
+		{% endfor %}
+	&lt;/p>
+	{% endif %} &lt;!-- не было реакций от пользователя -->				
+&lt;/span></pre>
+							</li>
+							<li>
+								Должно всё работать
+							</li>
+						</ul>
+					</li>
+					<li>
+						<span>
+							Переименую вложенный тег show_comments_and_form_comment_self_video - в show_all_ralations_to_video
+							<br>
+							comments_and_comment_form_self_video.html - в all_ralations_to_video
+						</span>
+						<ul>
+							<li>
+								В video_tags.py
+								<pre>
+@register.inclusion_tag('video/all_ralations_to_video.html')
+def show_all_ralations_to_video(request, pk_video=None):
+	....
+	....</pre>
+							</li>
+							<li>
+								В video/urls.py
+								<pre>
+from .templatetags.video_tags import show_all_ralations_to_video
+
+urlpatterns = [
+    # show_all_ralations_to_video - Это вложенный тег(шаблон all_ralations_to_video,
+    # В ней находится вывод и обработка формы для комментариев
+    # по этому для добавления комментария нужно вызвать эту функцию = вложенный шаблон
+    path('add-comment/&lt;int:pk_video>/', show_all_ralations_to_video, name='add_comment'),
+    ...,
+]</pre>
+							</li>
+							<li>
+								Переименовываю сам шаблон
+								В - all_ralations_to_video.html
+							</li>
+							<li>
+								В шаблоне video_all.html меняем вызов вложенного тега
+								<pre>
+&lt;!-- вызываем вложенный тег = show_all_ralations_to_video -->
+&lt;!-- request - обязательный первый параметр вложенного тега -->
+&lt;!-- v.pk - второй параметр тега, т.е делаем из pk_video=None -> в pk_video=v.pk -->
+{% show_all_ralations_to_video request v.pk %}</pre>
+							</li>
+						</ul>	
+					</li>
+
+					<li>
+						<span class="spec">
+							Добавляю действия для кнопки лайк
+						</span>
+						<br>Все функции по реакциям к отдельным видео (лайк, закладки, комментарии) - всё пишу в video_tags.py - так как всё это идёт через вложенный тег. (1 вложенный тег - это все реакции к одному видео),
+						Вложенный тег вызывается в каждой итерации цикла перебора видео.
+						<ul>
+							<li>
+								video/templatetags/video_tags.py
+								<pre>
+# поведение кнопки лайк
+@login_required
+def like_video(request, pk_video):  # эти параметры будут браться из вложенного тега show_all_ralations_to_video
+    video_obj = VideoYouTubeRuTube.objects.get(pk=pk_video)  # оцениваемое видео
+    try:  # пробуем получить лайк и/или закладку авторизованного пользователя + на конкретное видео
+        like_mark_video_object = LikeMarkVideo.objects.<span class="spec">get</span>(video_lm__pk=pk_video,
+                                                           user_lm_video__pk=request.user.pk)
+        # тоже самое что и like_mark_video_object.is_like_video == False:
+        if not like_mark_video_object.is_like_video:  # если лай не стоит
+            # ставим лайк
+            LikeMarkVideo.objects.<span class="spec">filter</span>(video_lm__pk=pk_video,
+                                         user_lm_video__pk=request.user.pk).update(is_like_video=True)
+            messages.info(request, f"{request.user.username}! - вам понравилось видео: '{video_obj.name}'")
+        else:  # если лайк стоит
+            # убираем лайк
+            LikeMarkVideo.objects.<span class="spec">filter</span>(video_lm__pk=pk_video,
+                                         user_lm_video__pk=request.user.pk).update(is_like_video=False)
+            messages.info(request, f"{request.user.username}! - вам больше не нравится видео: '{video_obj.name}'")
+    except LikeMarkVideo.DoesNotExist:  # исключение (пользователь никогда не лайкал и не добавлял в закладки видео)
+        # создаём новую реакцию
+        like_mark_video_object = LikeMarkVideo.objects.create(
+            user_lm_video=request.user,
+            video_lm=video_obj,
+            # video_obj = VideoYouTubeRuTube.objects.get(pk=pk_video)
+            is_like_video=True,  # ставим лайк
+            is_bookmarks_video=False  # закладку не создаём
+        )
+        like_mark_video_object.save()  # сохраняем запись в БД (LikeMarkVideo)
+        messages.info(request, f"{request.user.username}! - вам понравилось видео: '{video_obj.name}'")
+    return redirect('video_all')  # остаёмся на странице</pre>
+							</li>
+							<li>
+								Пишу маршрут для кнопки лайк
+								<br>video/urls.py - urlpatterns
+								<pre>
+# pk_video = video_obj.pk (определяю в шаблоне/вложенном теге)
+path('like_video/&lt;int:pk_video>/', like_video, name='like_video')</pre>
+							</li>
+							<li>
+								Выводу кнопку лайк в шаблоне=вложенном теге (сухие данные, без зависимостей лайкнул или нет) - функционал работает изчачально в независимости от исходных данных
+								<br>all_ralations_to_video.html
+								<pre>
+&lt;!-- кнопка лайк -->
+&lt;a href="{%  url 'like_video' pk_video=video_obj.pk %}" class="btn btn-outline-danger">Кнопка лайк&lt;/a></pre>
+							</li>
+						</ul>
+					</li>
+					<li>
+						<span class="spec">
+							Добавляю действия для кнопки добавить/убрать видео из закладок
+						</span>
+						<ul>
+							<li>
+								video/templatetags/video_tags.py - пишу повидение для кнопки закладки добавить/убрать
+								<pre>
+# поведение кнопки закладки
+@login_required
+def bookmarks_video(request, pk_video):  # эти параметры будут браться из вложенного тега show_all_ralations_to_video
+    video_obj = VideoYouTubeRuTube.objects.get(pk=pk_video)  # оцениваемое видео
+    try:  # пробуем получить лайк и/или закладку авторизованного пользователя + на конкретное видео
+        like_mark_video_object = LikeMarkVideo.objects.<span class="spec">get</span>(video_lm__pk=pk_video,
+                                                           user_lm_video__pk=request.user.pk)
+        # тоже самое что и like_mark_video_object.is_bookmarks_video == False:
+        if not like_mark_video_object.is_bookmarks_video:  # если не в закладках
+            # Добавляем в закладки
+            LikeMarkVideo.objects.<span class="spec">filter</span>(video_lm__pk=pk_video,
+                                         user_lm_video__pk=request.user.pk).update(is_bookmarks_video=True)
+            messages.info(request, f"{request.user.username}! - Видео: '{video_obj.name}' - добавлено в ваши закладки")
+        else:  # если уже в закладках
+            # убираем из закладок
+            LikeMarkVideo.objects.<span class="spec">filter</span>(video_lm__pk=pk_video,
+                                         user_lm_video__pk=request.user.pk).update(is_bookmarks_video=False)
+            messages.info(request, f"{request.user.username}! - Видео: '{video_obj.name}' - удалено из закладок")
+    except LikeMarkVideo.DoesNotExist:  # исключение (пользователь никогда не лайкал и не добавлял в закладки видео)
+        # создаём новую реакцию
+        like_mark_video_object = LikeMarkVideo.objects.create(
+            user_lm_video=request.user,
+            video_lm=video_obj,
+            # video_obj = VideoYouTubeRuTube.objects.get(pk=pk_video)
+            is_like_video=False,  # Лайк не делаем
+            is_bookmarks_video=True  # Добавляем в закладки
+        )
+        like_mark_video_object.save()  # сохраняем запись в БД (LikeMarkVideo)
+        messages.info(request, f"{request.user.username}! - Видео: '{video_obj.name}' - добавлено в ваши закладки")
+    return redirect('video_all')  # остаёмся на странице</pre>
+							</li>
+							<li>
+								Добавляю маршрут для функции убрать/добавить в закладки
+								<br>video/urls.py
+								<pre>
+path('bookmarks_video/&lt;int:pk_video>/', bookmarks_video, name='bookmarks_video'),  # ЗАКЛАДКА ВИДЕО</pre>
+							</li>
+							<li>
+								Вывожу кнопку в закладки в шаблоне-вложенном теге
+								<br>all_ralations_to_video.html
+								<pre>
+&lt;a href="{%  url 'bookmarks_video' pk_video=video_obj.pk %}" class="btn btn-outline-danger"> Кнопка Закладки&lt;/a></pre>
+							</li>
+						</ul>	
+					</li>
+					<li>
+						<span class="spec">
+							Отображаю количество лайков к видео, если они есть 
+						</span>
+						<ul>
+							<li>
+								Пишу функцию подсчёта количества лайков отдельно
+								<br>video_tags.py
+								<pre>
+# Количество лайков на видео
+def get_total_likes_video(video_obj):
+    total_likes_video = LikeMarkVideo.objects.filter(video_lm__pk=video_obj.pk,
+                                                     is_like_video=True).count()
+    return total_likes_video</pre>
+							</li>
+							<li>
+								Передаю результат функции в контектс пользовательского вложенного тега - show_all_ralations_to_video
+								<br>video_tags.py - show_all_ralations_to_video
+								<pre>
+@register.inclusion_tag('video/all_ralations_to_video.html')
+def show_all_ralations_to_video(request, pk_video=None):
+	....
+    context = {
+        'total_likes_video': get_total_likes_video(video_obj),  # количество лайков на видео
+        ....
+    }
+    return context</pre>
+							</li>
+							<li>
+								Отображаю количество лайков в шаблоне
+								<br>all_ralations_to_video.html
+								<pre>Количество лайков = {{ total_likes_video }}</pre>
+							</li>
+						</ul>
+					</li>
+					<li>
+						Оформляю шаблон all_ralations_to_video.html - отображаю кнопки лайк и закладки как нужно и где нужно, в зависимости от условий:
+						<br>-Авторизован ли пользователь
+						<br>-Стоит ли лайк на видео
+						<br>-Добавлено ли видео в закладки
+						<br>-Отображаю количество лайков, если количество больше 0
+						<br><br>
+						Полный блок кода в шаблоне all_ralations_to_video.html - для лайков и закладок, с полным функционалом со всмеми проверками
+						<pre>
+{% load static %}
+
+&lt;div class="d-flex justify-content-between"> &lt;!-- внешний флекс для строчки 'Комментарии: 7     Закл | Лайк' -->
+	&lt;div class="bd-highlight mt-2">
+		&lt;!-- Колличество комментариев -->
+		&lt;span class="h5">Комментарии: {{ all_comments_for_video.all.count }}&lt;/span>
+	&lt;/div>
+
+{% if request.user.is_authenticated %} &lt;!-- авторизован ли? - для лайков и комментариев -->
+
+	{% if likemarks_to_video == 'no' %} &lt;!-- если не было реакций от пользователя -->	
+		
+		&lt;div class="bd-highlight">
+
+			&lt;!-- кнопка закладки НЕАКТИВНАЯ -->
+			&lt;a class="btn" href="{%  url 'bookmarks_video' pk_video=video_obj.pk %}">
+				&lt;img src="{% static 'blog/images/bookmark-off.png' %}" height="32" width="32" class="img-fluid">
+			&lt;/a>
+
+			&lt;!-- кнопка лайк НЕАКТИВНАЯ -->
+			&lt;a class="btn" href="{%  url 'like_video' pk_video=video_obj.pk %}">
+				&lt;img src="{% static 'blog/images/heart-off.png' %}" height="32" width="32" class="img-fluid">
+			&lt;/a>			
+
+			{% if total_likes_video > 0 %} &lt;!-- если лайки есть -->
+				{{ total_likes_video }} &lt;!-- количество лайков -->
+			{% endif %}	&lt;!-- если лайки есть -->	
+
+		&lt;/div>
+
+	{% else %} &lt;!-- если были реакций от пользователя -->	
+		{% for lm_one in likemarks_to_video %} &lt;!-- перебираем поля реакций -->
+			&lt;div class="bd-highlight">
+				
+				{% if lm_one.is_bookmarks_video == True %} &lt;!-- если в закладках -->
+					&lt;!-- кнопка закладки АКТИВНАЯ -->
+					&lt;a class="btn" href="{%  url 'bookmarks_video' pk_video=video_obj.pk %}">
+						&lt;img src="{% static 'blog/images/bookmark-on.png' %}" height="32" width="32" class="img-fluid">
+					&lt;/a>
+				{% else %} <!-- если не в закладках -->
+					<!-- кнопка закладки НЕ АКТИВНАЯ -->
+					&lt;a class="btn" href="{%  url 'bookmarks_video' pk_video=video_obj.pk %}">
+						&lt;img src="{% static 'blog/images/bookmark-off.png' %}" height="32" width="32" class="img-fluid">
+					&lt;/a>
+				{% endif %} &lt;!-- если в закладках -->
+
+				{% if lm_one.is_like_video == True %} &lt;!-- если ЛАЙК стоит -->
+					&lt;!-- кнопка лайе АКТИВНАЯ -->
+					&lt;a class="btn" href="{%  url 'like_video' pk_video=video_obj.pk %}">
+						&lt;img src="{% static 'blog/images/heart-on.png' %}" height="32" width="32" class="img-fluid">
+					&lt;/a>
+				{% else %} &lt;!-- если НЕ стоит ЛАЙК-->
+					&lt;a class="btn" href="{%  url 'like_video' pk_video=video_obj.pk %}">
+						&lt;img src="{% static 'blog/images/heart-off.png' %}" height="32" width="32" class="img-fluid">
+					&lt;/a>
+				{% endif %} &lt;!-- если ЛАЙК стоит -->
+
+				{% if total_likes_video > 0 %} &lt;!-- если лайки есть -->
+					{{ total_likes_video }} &lt;!-- количество лайков -->
+				{% endif %}	&lt;!-- если лайки есть -->	
+
+			&lt;/div>
+		{% endfor %} &lt;!-- перебираем поля реакций -->
+
+	{% endif %}	&lt;!-- если не было реакций от пользователя -->	
+
+{% endif %}	&lt;!-- авторизован ли? - для лайков и комментариев -->
+
+&lt;/div>&lt;!-- внешний флекс для строчки 'Комментарии: 7     Закл | Лайк' --></pre>
+					</li>	
+				</ol>
+			</li>
+
 
 <br><br><br><br>
 <hr>
 <h3>Видео</h3>
-<br>-добавить лайки к видео					
-<br>-добавить добаить видео в закладки (закладки)
+			
 <br>-Добавить удалить видео, если ты автор
 <br>-Добавить добавить новую запись видео
 <br>-Добавить редактировать видео (кроме ссылки)
@@ -5367,14 +5773,14 @@ def show_categories(sort=None, cat_selected=0):
 								<pre>{% show_categories cat_selected=cat_selected %}</pre>
 							</li>
 						</ul>
-					</li>
+					</li>			
 				</ol>
 			</li>
 
 
 
 
-
+&lt;
 
 
 
