@@ -5426,6 +5426,511 @@ def show_all_ralations_to_video(request, pk_video=None):
 			</li>
 
 
+&lt;
+
+
+
+			<li>
+				<span class="title_text">
+					Делаю лайки для комментраия
+				</span>
+				<hr>
+				<span class="spec">
+					Буду выводить через вложенный тег.  (1 тег = 1 лайк/нелайк на конеретный комментарий комментарий), тег будет вызываться в цикле, перебора всех комментариев к видел
+				</span>
+				<br>
+				Входные параметры для вложенного тега будут , request + pk комментария
+				<ol type="A">
+					<li>
+						Делаю модель для лайка комментария
+						<br>video/models.py
+						<pre>
+# Лайк для комментария к видео
+class LikeCommentVideoYtRt(models.Model):
+    # лайкнувший пользователь
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Лайкнувший пользователь')
+    # Лайкнутый комментарий
+    comment = models.ForeignKey(CommentVideoYtRt, on_delete=models.CASCADE, verbose_name='Лайкнутый комментарий')
+
+    class Meta:
+        verbose_name = 'Лайк комментария к видео'
+        verbose_name_plural = 'Лайки комментариев к видео'
+        # db_table = 'Название таблицы в БД'
+
+    def __str__(self):
+        return f'Лайк_Ком_Видео - {self.comment},' \
+               f'Лайк_Юзер - {self.user}.'</pre>
+					</li>
+					<li>
+						Регистрирую модель LikeCommentVideoYtRt - в админ панеле
+						<br>video/admin.py
+						<pre>
+admin.site.register(LikeCommentVideoYtRt)</pre>
+					</li>
+					<li>
+						Создаю и делаю миграцию
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						Через админку создам пару лайков к комментарию
+					</li>
+					<li>
+						Созадю шаблон вложенного тега, для получения информации и отображении в шаблоне лайка, в зависимости, лайкнул ли пользователь коммент, авторизован ли пользователь, количество лайков комментария - если их больше 0.
+						<br>video/templates/video --> like_to_comment_video.html
+					</li>
+					<li>
+						Пишу представление вложенный тег для блока лайка комментария
+						<br>video/templatetags/video_tags.py
+						<pre>
+# вложенный тег получение (отображения) блока лайка на отдельный комментарий к видео
+@register.inclusion_tag('video/like_to_comment_video.html')  # в скобках шаблон тега
+# pk_com - (необходимо будет указывать в шаблоне, при вызове тега в цикле перебора комментариев)
+# pk_video в шаблоне равно pk_video=v.pk (VideoYouTubeRuTube.objects.get(pk=pk_video).pk)
+def show_like_to_comment_video(request, pk_com=None):
+
+    # получаем количество лайков для конкретного поста.
+    like_comment_count = LikeCommentVideoYtRt.objects.filter(comment__pk=pk_com).count()
+
+    # Получаем объект лайка (конкретный пользователь/конкретный комментарий)
+    like_obj = LikeCommentVideoYtRt.objects.filter(user__pk=request.user.pk,
+                                                   comment__pk=pk_com)
+
+    # получаем информацию лайкнул ли авторизованный пользователь конкретный комментарий
+    if like_obj.count() > 0:  # если нашли запись в модели LikeCommentVideoYtRt (лайк есть)
+        is_liked_comment = True  # Лайкал
+    else:  # ели записи нет (то есть пользователь не лайкал этот коммент)
+        is_liked_comment = False  # НЕ лайкал
+
+    # запишу в словарь все параметры которые нужно передать в шаблон тега
+    context = {
+        'request': request,  # для того чтобы можно было сделать проверку аутентификации
+        'is_liked_comment': is_liked_comment,  # лайкнул ли пользователь коммент
+        'like_comment_count': like_comment_count,  # количество лайков на комменте от всех пользователей
+        'pk_com': pk_com,  # id комментария
+    }
+
+    # передаю словарь в шаблоне тега
+    return context</pre>
+					</li>
+					<li>
+						Вызываю вложенный тег блока лайков комментария, внутри вложенного тега по всем реакциям к видео
+						<br>вызываю - show_like_to_comment_video
+						<br>внутри шаблона другого тега - шаблон video/all_ralations_to_video.html
+
+						<br>
+						<br><span class="text-danger">Обязательно подгрузи файл с тегами в шаблоне video_tags.py</span>
+						<br>video/all_ralations_to_video.html
+						<pre>
+{% load video_tags %} &lt;!-- вызов файла с собстенными тегами -->
+
+
+&lt;!-- НАЧАЛО ТЕГА ЛАЙК НА КОММЕНТАРИЙ-->
+	&lt;div class="ps-2 bd-highlight">&lt;!-- лайк -->
+
+		&lt;!-- Вызываю вложенный тег для блока лайк комметанрие -->
+		&lt;!-- ТЕГ ВНУТРИ ТЕГА -->
+		&lt;!-- (request, pk_com=com.pk -->
+		{% show_like_to_comment_video request com.pk %} &lt;!-- ВЫЗОВ БЛОКА ЛАЙК_КОМ -->
+
+	&lt;/div>&lt;!-- лайк -->
+&lt;!-- КОНЕЦ ЛАЙК НА КОММЕНТАРИЙ --></pre>
+					</li>
+					<li>
+						В шаблон тега лайков комментария переношу всю инфу по лайкам и дописываю её
+						<br><span class="text-danger">СУХИЕ ДАННЫЕ в шаблоне</span>
+						<br>templates/vieo/like_to_comment_video.html
+						<pre>
+{% load static %} <!-- для отображения иконки лайка -->
+
+
+<span class="text-danger">СУХИЕ ДАННЫЕ:</span>
+Лайкнул ли пользоваетель комент - is_liked_comment - {{is_liked_comment}}
+Количество лайков комента - like_comment_count - {{ like_comment_count }}
+ID комента(для url) - pk_com - {{ pk_com }}</pre> 
+					</li>
+					<li>
+						Пишу логику для кнопки лайк комментария
+						<br>video/templatetags/video_tags.py
+						<pre>
+# логика кнопки лайк для комментария
+@login_required
+def like_button_comment_video(request, pk_com):
+    # пробую получить запись комментария
+    comment = get_object_or_404(CommentVideoYtRt, pk=pk_com)
+
+    # LikeCommentVideoYtRt
+    # получаю или создаю запись лайка к комментарию, если её нет создаю
+    like_comment_video, created = LikeCommentVideoYtRt.objects.get_or_create(
+        comment=comment,
+        user=request.user
+    )
+
+    # проверка создался ли комментарий
+    if not created:  # Если запись не создалась (т.е. она уже была)
+        like_comment_video.delete()  # удаляем запись = удаляем лайк
+        messages.info(request, f"Вам больше не нравиться комментарий, пользователя: {comment.author_comment}.")
+    else:  # если запись создалась (т.е поставили лайк)
+        like_comment_video.save()  # сохраняем в БД запись лайка
+        messages.info(request, f"Вам понравился комментарий, пользователя: {comment.author_comment}.")
+
+    # перенаправляемся/остаёмся на странице списка видео
+    return redirect('video_all')</pre>
+					</li>
+					<li>
+						Пишу маршрут для кнопки лайк комментария
+						<pre>path('like_comment/&lt;int:pk_com>/', like_button_comment_video, name='like_comment'),  # Лайк комментария</pre>
+					</li>
+					<li>
+						Отображаю кнопку/ссылку добавить убрать комментарий (сухие данные)
+						<br>шаблон тега templates/vieo/like_to_comment_video.html
+						<pre>
+&lt;a href="{% url 'like_comment' pk_com %}" class="btn btn-outline-dark">Лайк комментария&lt;
+/a></pre>
+					</li>
+					<li>
+						Весь функционал работает, делаю оформление, и все проверки:
+						<br>-проверка авторизован ли, если нет просто серое сердечно и количество лайков если они есть
+						<br>-елси авторизован показываю лайк по разному, в зависимости от того стоит ли он от конкретного пользователя или нет
+						<br>-отображаю количество лайков если их больше 0 в любом случае (авторизован ли/ стоит ли лайк от пользователя)
+						<br>
+						<br>Весь код в templates/vieo/like_to_comment_video.html
+						<pre>
+{% load static %} &lt;!-- для отображения иконки лайка -->
+
+
+{% if not request.user.is_authenticated %} &lt;!-- Если не авторизован -->
+	
+	&lt;!-- Неактивный лайк без ссылки -->
+	&lt;img src="{% static 'blog/images/heart-off.png' %}" height="20" width="20" class="img-fluid">
+
+	&lt;!-- количество лайков -->
+	{% if like_comment_count > 0 %} &lt;!-- Если вообще есть лайки -->
+		{{ like_comment_count }} &lt;!-- количество лайков -->
+	{% endif %} &lt;!-- Если вообще есть лайки -->
+
+{% else %} &lt;!-- Если Авторизован -->
+
+	{% if is_liked_comment == False %} &lt;!-- Если Нет лайка -->
+		&lt;!-- Неактивный лайк -->
+		&lt;a class="btn p-0 m-0" href="{% url 'like_comment' pk_com %}">
+			&lt;img src="{% static 'blog/images/heart-off.png' %}" height="20" width="20" class="img-fluid pb-1">
+		&lt;/a>
+	{% else %} &lt;!-- Если лайк стоит -->
+		&lt;!-- Активный лайк -->
+		&lt;a class="btn p-0 m-0" href="{% url 'like_comment' pk_com %}">
+			&lt;img src="{% static 'blog/images/heart-on.png' %}" height="20" width="20" class="img-fluid pb-1">
+		&lt;/a>
+	{% endif %} &lt;!-- Если Нет лайка -->
+
+	&lt;!-- количество лайков -->
+	{% if like_comment_count > 0 %} &lt;!-- Если вообще есть лайки -->
+		{{ like_comment_count }} &lt;!-- количество лайков -->
+	{% endif %} &lt;!-- Если вообще есть лайки -->
+
+
+{% endif %} &lt;!-- Если не авторизован --></pre>
+					</li>
+				</ol>
+			</li>
+&lt;
+
+
+			<li>
+				<span class="title_text">
+					Добавляю удаление комментария
+				</span>
+				<hr>
+				(если пользователь админ или комментатор)
+				<ol type="A">
+					<li>
+						Пишу функцию для удаления комментария
+						<br>video/templatetags/video_tags.py	
+						<pre>
+# логика кнопки удаления комментария
+@login_required
+def delete_comment_video_button(request, pk_com):
+    # пробую получить запись комментария
+    comment = get_object_or_404(CommentVideoYtRt, pk=pk_com)
+    
+    # если вы автор комментария или админ
+    if comment.author_comment.pk == request.user.pk or request.user.pk == 1:
+        comment.delete()  # удаляю запись комментарий
+        messages.info(request, f"{request.user.username} - удалил комментарий!")
+    else:
+        messages.info(request, f"{request.user.username} - вы не можете удалить чужой комментарий!")
+        
+    # перенаправляемся/остаёмся на странице списка видео
+    return redirect('video_all')</pre>				
+					</li>
+					<li>
+						Пишу маршрут для удаления комментария
+						<br>video/urls.py
+						<pre>path('delete_comment/&lt;int:pk_com>/', delete_comment_video_button, name='delete_comment'),  # удалить коммент к видео</pre>
+					</li>
+					<li>
+						Отображаю кнопку удаления комментария, в шаблоне тега
+						<br>video/all_ralations_to_video.html
+						<pre>
+&lt;div class="bd-highlight">&lt;!-- автор к и удалить к -->
+&lt;!-- Если пользователь автор коммента или админ (id 1) -->
+{% if request.user.pk == com.author_comment.pk or request.user.pk == 1 %}
+	&lt;!-- кнопка Удаления комментария -->
+	&lt;span class="pe-2">
+		&lt;a class="btn p-0 m-0" href="{% url 'delete_comment' pk_com=com.pk %}">
+			&lt;img src="{% static 'blog/images/delete.png' %}" height="20" width="20" class="img-fluid pb-1">
+		&lt;/a>							
+	&lt;/span>
+{% endif %} &lt;!-- Если пользователь автор коммента или админ (id 1) -->
+
+	&lt;span>{{ com.author_comment }}:&lt;/span>
+&lt;/div>&lt;!-- автор к и удалить к --></pre>
+					</li>
+					<li>
+						Проверяем в разных условиях - всё должно работать!
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+			<li>
+				<span class="title_text">
+					Добавляю возможность добавить видео, пользователем с сайта
+				</span>
+				<hr>
+				<ol type="A">
+					<li>
+						Делаю метод get_absolute_url() в модели VideoYouTubeRuTube (необходим при работе с CreateView, UpdateView, DeleteView)
+						<br><span class="text-danger">Хотя на него переходить я даже не буду (не предполагаю что будет DetailView) - у меня всё через ListView</span>
+						<br>video/models.py  - class VideoYouTubeRuTube
+						<pre>
+# Видеофайлы YouTube/RuTube
+class VideoYouTubeRuTube(models.Model):
+	....
+
+    # функция формирования маршрута к ссылке
+    def get_absolute_url(self):
+        return reverse('update_video', kwargs={'pk_video': self.pk})</pre>
+					</li>
+					<li>
+						Делаю шаблон для обработки формы добавления поста, расширяюсь от video.base.html. (набросок того что нужно)
+						<br>video/tyemplates/video --> video_add.html
+						<pre>
+{% extends 'video/video_base.html' %} 
+
+{% block title %} 
+	{{ title }}
+{% endblock %}
+
+{% block content %}
+
+Инструкция как добавить видео с YouTube
+Инструкция как добавить видео с RuTube
+
+Если залогинен
+Форма
+Кнопка для формы внутри формы
+
+Если незалогинен
+Кнопки на регистрацию или авторизацию
+
+{% endblock %}</pre>
+					</li>
+					<li>
+						Делаю форму создания видеопоста. (не буду выводить автора поста, необходимо автоматизировать этот процесс)
+						<br>
+						Аналогично с time_create и time_update
+						<br>video/forms.py
+						<pre>
+# форма создания нового видеопоста
+class VideoYouTubeRuTubeForm(forms.ModelForm):
+    class Meta:
+        model = VideoYouTubeRuTube
+        fields = ['name', 'video_url']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control, col-5'}),
+            'video_url': forms.URLInput(attrs={'class': 'form-control, col-5'}),
+        }</pre>
+					</li>
+
+					<li>
+						Доабвляю путь для представления шаблона создания вилеопоста
+						<pre>path('video_add/', AddVideo.as_view(), name='video_add'),  # Добавление видео</pre>
+					</li>
+
+					<li>
+						Пишу представление на основе классов
+						<br>video/views.py
+						<pre>
+							
+Вьюха
+
+						</pre>
+					</li>
+					<li>
+						Пробую форму в шаблоне video_add.html
+						<pre>
+{% extends 'video/video_base.html' %} 
+
+{% block title %} 
+	{{ title }}
+{% endblock %}
+
+{% block content %}
+
+&lt;h1>{{ title }}&lt;/h1>
+&lt;hr>&lt;br>&lt;br>
+
+&lt;form method="post">
+	{% csrf_token %}
+
+	&lt;div class="form-error">{{ form.non_field_errors }}&lt;/div> &lt;!-- общая ошибка формы -->
+
+	{% for f in form %}  &lt;!-- перибираем поля формы -->
+	&lt;!-- f.label-название поля / f - само поле -->
+	&lt;p>
+		&lt;label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: &lt;/label>{{ f }}
+	&lt;/p>
+	&lt;div class="form-error">{{ f.errors }}&lt;/div> &lt;!-- ошибка в поле -->
+	{% endfor %} &lt;!-- перибираем поля формы -->
+	&lt;br>
+	&lt;button type="submit" class="btn btn-outline-primary btn-lg">
+		Добавить видео
+	&lt;/button>
+&lt;/form>
+
+{% endblock %}</pre>
+						Всё должно работать! Осталось только немного оформить!
+					</li>
+					<li>
+						В оформлении:
+						<br>-Если пользователь авторизован, форма добавления нового поста
+						<br>-Если пользователь авторизован, инфструкция добавления видео
+						<br>-Инструкция - скрываемый паратметр - collapse - bootstrap 5
+						<br>-Если пользователь не авторизован - ссылки на войти и регистрация
+						<br>
+						<br>Полный блок кода в шаблоне video_add.html
+						<pre>
+{% extends 'video/video_base.html' %}
+{% load static %}
+{% block title %} 
+	{{ title }}
+{% endblock %}
+{% block content %}
+
+&lt;h1 class="text-center">{{ title }}&lt;/h1>
+&lt;hr>&lt;br>&lt;br>
+
+{% if request.user.is_authenticated %} &lt;!-- авторизован ли? -->
+
+&lt;form method="post">
+	{% csrf_token %}
+
+	&lt;div class="form-error">{{ form.non_field_errors }}&lt;/div> &lt;!-- общая ошибка формы -->
+
+	{% for f in form %}  &lt;!-- перибираем поля формы -->
+	&lt;!-- f.label-название поля / f - само поле -->
+	&lt;p>
+		&lt;label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: &lt;/label>{{ f }}
+	&lt;/p>
+	&lt;div class="form-error">{{ f.errors }}&lt;/div> &lt;!-- ошибка в поле -->
+	{% endfor %} &lt;!-- перибираем поля формы -->
+	&lt;br>
+	&lt;button type="submit" class="btn btn-outline-info btn-lg">
+		Добавить видео
+	&lt;/button>
+&lt;/form>
+&lt;br>
+
+&lt;!-- логика и кнопка разворачивания списка комментариев -->
+&lt;button class="btn btn-outline-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTutorial" aria-expanded="false" aria-controls="collapseTutorial">
+Посмотреть инструкцию
+&lt;/button>
+
+&lt;br>&lt;br>
+
+&lt;!-- сворачиваемое содержимое bootstrap -->
+&lt;div class="collapse" id="collapseTutorial">
+
+	&lt;h3 class="text-center">Инструкция добавления видео с YouTube&lt;/h3>
+	&lt;hr>
+	&lt;br>
+	&lt;div class="container-fluid">
+		&lt;ol>
+			&lt;div class="row"> &lt;!-- row для для Инструкции -->
+				&lt;div class="col-xl-4">
+					&lt;li>
+						Перейдите на страничку видео в &lt;a href="https://www.youtube.com/" class="link-info">https://www.youtube.com/&lt;/a> и наждмите - "Поделиться". 
+						&lt;br>&lt;br>
+						&lt;img src="{% static 'blog/images/add_vid_1.png' %}" class="img-fluid rounded">
+						&lt;br>&lt;br>
+					&lt;/li>					
+				&lt;/div> &lt;!-- col для для Инструкции -->
+
+				&lt;div class="col-xl-4">					
+						&lt;li>
+							Нажмите - "Копировать".
+							&lt;br>&lt;span class="text-info">Важно чтобы ссылка была именно в таком виде, в котором платформа YouTube нам её передаёт!&lt;/span> 
+							&lt;br>&lt;br>
+							&lt;img src="{% static 'blog/images/add_vid_2.png' %}" class="img-fluid rounded">
+							&lt;br>&lt;br>
+						&lt;/li>					
+				&lt;/div>
+
+				&lt;div class="col-xl-4">
+					
+					&lt;li>
+						Вставьте ссылку в поле "Ссылка на видео:" - на нашем сайте!
+						&lt;br>&lt;br>
+						&lt;img src="{% static 'blog/images/add_vid_3.png' %}" class="img-fluid rounded">
+						&lt;br>&lt;br>
+					&lt;/li>
+					&lt;li>
+						Придумайте название к добавляемому видео, и напишете в поле "Название видео:" - на нашем сайте!
+					&lt;/li>
+					&lt;li>
+						Жмём кнопку "Добавить видео". Готово!
+					&lt;/li>
+					
+				&lt;/div> &lt;!-- col для Инструкции -->
+			&lt;/div> &lt;!-- row для для Инструкции -->
+		&lt;/ol>
+	&lt;/div> &lt;!-- container для для Инструкции -->
+
+	&lt;p style="font-size: 1.2em" class="text-info">
+		- Способ добавления видео с Rutube - полностью аналогичен инструкции на примере YouTube.
+	&lt;/p>
+
+&lt;/div> &lt;!-- collaps для для Инструкции -->
+
+{% else %} &lt;!-- НЕ авторизован -->
+
+&lt;p style="font-size: 1.2em">
+	- Только авторизованные пользователи могут добавить видео пост, пожалуйста авторизуйтесь или загеристрируйте новый аккаунт.
+&lt;/p>
+&lt;a href="{% url 'login' %}" class="btn btn-outline-info btn-lg">Войти&lt;/a>
+&lt;a href="{% url 'register' %}" class="btn btn-outline-warning btn-lg">Регистрация&lt;/a>
+
+{% endif %} &lt;!-- авторизован ли -->
+
+{% endblock %}</pre>
+					</li>
+					<li>
+						Добавлю ссылку - добавить видео - в video_sidebar.html
+						<pre>
+&lt;li class="nav-item">
+    &lt;a class="nav-link active text-warning pb-2" aria-current="page" href="{% url 'video_add' %}">Добавить видео&lt;/a>
+&lt;/li></pre>
+					</li>
+				</ol>
+			</li>
+
+
+&lt;
+
+
 <br><br><br><br>
 <hr>
 <h3>Видео</h3>
@@ -5437,13 +5942,7 @@ def show_all_ralations_to_video(request, pk_video=None):
 <br>-добавить отображение моих видео (фильтр)
 <br>-добавить отображение видео разных пользователей (фильтр)
 <br>-добавить редирект при добавлении комментария??? сейчас редирект на все видео, а как сделать если коммент остваили со странице по фильтрам? - скорее всего только через ajax
-<hr>
-<hr>
-<h3>Комментарии</h3>
-<br>-добавить лайки к комментарию
-<br>-добавить удаление комментария
-<br>-добавить проверку авторизованности (в самом представлении, в функции тега?)
-<br>-добавить проверку автора комментария (для его удаления)
+
 
 <hr>				
 <br><br><br><br>
@@ -5622,6 +6121,42 @@ def show_all_ralations_to_video(request, pk_video=None):
 		</ol><!-- общий список -->
 	</div><!-- container-md all -->
 &lt; &lt; &lt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Ctrl + Alt + L 
 
