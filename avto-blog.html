@@ -62,22 +62,15 @@
 
 
 <body>
-<span class="spec">
-	Добавь redirect на ту страницу с которой был сделан комментарий/лайк или закладка.<br>
-	Проверка HttpRequest.path?  if in request....name = 'имя': redirect 'имя'
-	<br><br>
-	ИЛИ даже лучше.  rerirect('HttpRequest.path.name')!!!
+
+
+<span class="text-dark">
+	Ajax - для лайков, комментариев, закладок
 </span>
-<a href="https://djangodoc.ru/3.2/ref/request-response/">request-response</a>
-<br>
+<br><br>
 
-
-<span class="spec">Измени поле url / slug чтобы оно автомотически заполнилось на основании tittle - в форме создания поста с сайта</span>
-<a href="https://qna.habr.com/q/303008">https://qna.habr.com/q/303008</a>
-<br>
-
-<span class="spec">Добавть поле chit_url в модели YT, при добавления видео, чтобы из "https://youtu.be/_atWFaLnRqs"  получалось  "https://www.youtube.com/embed/_atWFaLnRqs" </span>
-<br>
+<hr>
+<br><br><br><br><br><br>
 
 
 
@@ -5927,22 +5920,493 @@ class VideoYouTubeRuTubeForm(forms.ModelForm):
 				</ol>
 			</li>
 
+&lt;
+
+			<li>
+				<span class="title_text">
+					Добавляю - редактировать видеопост.
+				</span>
+				<hr>
+				<ol type="A">
+					<li>
+						Добавляю форму обновления поста (там будет только поле название)
+						<br>video/forms.py
+						<pre>
+# форма редактирования видеопоста
+class VideoYouTubeRuTubeUpdateForm(forms.ModelForm):
+    class Meta:
+        model = VideoYouTubeRuTube
+        fields = ['name']
+        widgets = {'name': forms.TextInput(attrs={'class': 'form-control, col-6'})}</pre>
+					</li>
+					<li>
+						В моделе VideoYouTubeRuTube, удалю метод get_absolute_url
+						<br>video/models.py
+						<pre>
+# Видеофайлы YouTube/RuTube
+class VideoYouTubeRuTube(models.Model):
+	....
+<span class="text-danger">
+	Удаляю весь метод
+    # функция формирования маршрута к ссылке
+    def get_absolute_url(self):
+        return reverse('video_update', kwargs={'pk_video': self.pk})</span></pre>
+
+					</li>
+					<li>
+						Добавляю представление формы редактирования поста
+						<br>video/views.py
+						<pre>
+# представление для редактирования видеопоста (только поле имя поста)
+class UpdateVideo(UpdateView):
+    model = VideoYouTubeRuTube
+    form_class = VideoYouTubeRuTubeUpdateForm
+    pk_url_kwarg = 'pk_video'  # переопределили, стандартно: [pk_url_kwarg = "pk"]
+    template_name = 'video/video_update.html'
+    success_url = reverse_lazy('video_all')  # перенаправление после обработки формы
+
+    # добавляю в контекст свои параметры
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)  # в контексте сейчас только форма и pk
+        context['title'] = 'Редактирование видеопоста'
+        return {**context}</pre>
+					</li>
+					<li>
+						Пишу маршрут для представления обновления видеопоста
+						<br>video/urls.py
+						<pre>path('video_update/&lt;int:pk_video>/', UpdateVideo.as_view(), name='video_update'),  # Обновить видео пост</pre>
+					</li>
+					<li>
+						В шаблоне добавляю ссылку video_list.html - добавляю ссылку на редактирования поста
+						<pre>
+&lt;!-- Если пк пользователя = пк автора статьи или 1 -->
+{% if request.user.pk == v.author_video.pk or request.user.pk == 1 %}
+&lt;a class="btn" href="{% url 'video_update' pk_video=v.pk %}">
+	&lt;img src="{% static 'blog/images/update.png' %}" height="24" width="24" class="img-fluid pb-2">
+&lt;/a>
+{% endif %} &lt;!-- Если пк пользователя = пк автора статьи или 1 --></pre>
+					</li>
+					<li>
+						Вывожу форму в шаблоне video_update.html (предварительно создав файл шабона)
+						<pre>
+{% extends 'video/video_base.html' %}
+{% load static %}
+{% block title %} 
+	{{ title }}
+{% endblock %}
+{% block content %}
+
+&lt;h1>{{ title }}: "{{ object.name }}"&lt;/h1>
+&lt;hr>
+&lt;br>&lt;br>
+
+&lt;!-- Если пк пользователя = пк автора статьи или 1 -->
+{% if request.user.pk == videoyoutuberutube.author_video.pk or request.user.pk == 1 %}
+
+&lt;form method="post">
+	{% csrf_token %}
+	&lt;div class="form-error">{{ form.non_field_errors }}&lt;/div> &lt;!-- общая ошибка формы -->
+	{% for f in form %}  &lt;!-- перибираем поля формы -->
+	&lt;!-- f.label-название поля / f - само поле -->
+	&lt;p>
+		&lt;label class="form-label" for="{{ f.id_for_label }}">{{f.label}}: &lt;/label>{{ f }}
+	&lt;/p>
+	&lt;div class="form-error">{{ f.errors }}&lt;/div> <!-- ошибка в поле -->
+	{% endfor %} &lt;!-- перибираем поля формы -->
+	&lt;br>
+	&lt;button type="submit" class="btn btn-outline-info btn-lg">
+		Применить редактирование
+	&lt;/button>
+&lt;/form>
+
+{% else %} &lt;!-- Если пк пользователя != пк автора статьи или 1 -->
+
+&lt;div class="form-error">
+	&lt;p>Только автор статьи - может редактировать статью.&lt;/p>
+	&lt;p>Если вы содавали эту статью с другого акканутра, войдите в него.&lt;/p>
+	&lt;br>&lt;br>
+	&lt;p>
+		Пройдите авторизацию: &lt;a href="{% url 'login' %}" class="btn btn-primary btn-sm">Войти&lt;/a>
+	&lt;/p>
+&lt;/div>
+
+{% endif %} &lt;!-- Если пк пользователя = пк автора статьи или 1 -->
+
+{% endblock %}</pre>
+					</li>
+				</ol>
+			</li>
+&lt;
+
+			<li>
+				<span class="spec">
+					Добавлю - удалить видеопост.
+				</span>
+				<ul type="A">
+					<li>
+						Пишу представление, для удаления определённого поста.
+						<br>video/views.py
+						<pre>
+# представление для удаления видеопоста
+class DeleteVideo(DeleteView):
+    model = VideoYouTubeRuTube
+    template_name = 'video/video_delete.html'
+    pk_url_kwarg = 'pk_video'  # переопределили, стандартно: [pk_url_kwarg = "pk"]
+    success_url = reverse_lazy('video_all')  # перенаправление после обработки формы
+
+    # добавляю в контекст свои параметры
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)  # в контексте сейчас только форма, объект
+        context['title'] = 'Удаление видеопоста'
+        return {**context}</pre>
+					</li>
+					<li>
+						Пишу маршрут, для представления удаления видеопоста
+						<pre>path('video_delete/&lt;int:pk_video>/', DeleteVideo.as_view(), name='video_delete'),  # Удалить видео</pre>
+					</li>
+					<li>
+						В шаблоне video_list.html - добавляю ссылку на страницу удаленияпоста
+						<pre>
+&lt;!-- Если пк пользователя = пк автора статьи или 1 -->
+{% if request.user.pk == v.author_video.pk or request.user.pk == 1 %}
+
+..ссылка на редактирование..
+
+&lt;a class="btn btn-sm ps-0" href="{% url 'video_delete' pk_video=v.pk %}">
+	&lt;img src="{% static 'blog/images/delete.png' %}" height="24" width="24" class="img-fluid pb-2">
+&lt;/a>
+
+{% endif %} &lt;!-- Если пк пользователя = пк автора статьи или 1 --></pre>
+					</li>
+					<li>
+						Делаю шаблон для удаления поста. video_delete.html
+						<pre>
+{% extends 'video/video_base.html' %}
+{% load static %}
+
+{% block title %} 
+	{{ title }}
+{% endblock %}
+
+{% block content %}
+
+
+&lt;h1>{{ title }}&lt;/h1>
+&lt;hr>
+&lt;br>&lt;br>
+
+&lt;!-- Если пк пользователя = пк автора статьи или 1 -->
+{% if request.user.pk == videoyoutuberutube.author_video.pk or request.user.pk == 1 %}
+
+&lt;div class="form-error">Удалить видео: "{{ object.name }}"!?&lt;/div>
+&lt;br>
+
+&lt;!-- По факту формы никакой нет (удаление) -->
+&lt;form method="post">
+	{% csrf_token %}
+	&lt;button type="submit" class="btn btn-outline-danger btn-lg">
+		Удалить
+	&lt;/button>
+&lt;/form>
+
+{% else %} &lt;!-- Если пк пользователя != пк автора статьи или 1 -->
+
+&lt;div class="form-error">
+	&lt;p>Только автор статьи - может удалить видео.&lt;/p>
+	&lt;p>Если вы добавляли это видео с другого акканутра, войдите в него.&lt;/p>
+	&lt;br>&lt;br>
+	&lt;p>
+		Пройдите авторизацию: &lt;a href="{% url 'login' %}" class="btn btn-primary btn-sm">Войти&lt;/a>
+	&lt;/p>
+ 
+	&lt;/p>
+&lt;/div>
+
+{% endif %} &lt;!-- Если пк пользователя = пк автора статьи или 1 -->
+
+{% endblock %}</pre>
+					</li>
+				</ul>
+			</li>
+
+
 
 &lt;
 
+			<li>
+				<span class="spec">Корректирую представление всех видео</span>
+				<br>Нужен параметр (sidebar_selected) - для отображения ссылок в video_sisebar, автивно/неактивно, в зависимости от того на какой странице мы находимся
+				<br>video/views.py
+				<pre>
+# представление шаблона со списком видео
+class AllVideoListShow(ListView):
+    # paginate_by = 4 пагинация на будущее
+    model = VideoYouTubeRuTube
+    template_name = 'video/video_list.html'
+    context_object_name = 'video'  # objects = video (для обращения в шаблоне)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)  # в контексте сейчас только форма, объект
+        context['title'] = 'Все видео'
+        context['sidebar_selected'] = 'all'
+        return {**context}</pre>
+        		<br><br>
+        		В video_sidebar.html - отображаю ссылку Все видео, в зависимости на какой странице мы находимся
+        		<pre>
+{% if sidebar_selected == 'all' %}		
+&lt;li class="nav-item">
+	&lt;a class="nav-link disabled" href="{% url 'video_all' %}" tabindex="-1" aria-disabled="true">Все видео&lt;/a>
+&lt;/li>
+{% else %}
+&lt;li class="nav-item">
+	&lt;a class="nav-link active" aria-current="page" href="{% url 'video_all' %}">Все видео&lt;/a>
+&lt;/li>
+{% endif %}</pre>
+			</li>
+
+&lt;
+
+			<li>
+				<span class="title_text">
+					Делаю отображения фильмов добавленных в закладки.
+				</span>
+				<hr>
+				<br>Делаю аналогично как делал и с постами, немного коряво я думаю, полюбому есть реализация логичней, может быть через related_name, может быть через ManyTomMany
+				<ol type="A">
+					<li>
+						Пишу представление отображения видеозаписей добавленных пользователем в закладки
+						<br>Все вильтры будут на основе одного шаблона video_all.html, будут меняться только настройки queriset (filter)
+						<br>video/views.py
+						<pre>
+# представление шаблона со списком видео (добавленных в закладки пользователем)
+class BookmarksVideoListShow(LoginRequiredMixin, ListView):
+    login_url = 'login'  # перенаправление если пользователь не авторизован (LoginRequiredMixin)
+    model = VideoYouTubeRuTube
+    template_name = 'video/video_list.html'
+    context_object_name = 'video'  # objects = video (для обращения в шаблоне)
+    # allow_empty = True - покажет пустой список если ничего не будет
+    # allow_empty = False - покажет 404, при отсутствии совпадений в get_queryset
+    allow_empty = True  # для отображения 404
+
+    # параметры вывода (выводим записи видео только из, закладок пользователя)
+    def get_queryset(self):
+        # список записей модели LikeMarkVideo (пользователь=request пользователь, стоит в закладках)
+        bookmarks_video_list = LikeMarkVideo.objects.filter(user_lm_video__pk=self.request.user.pk,
+                                                            is_bookmarks_video=True)
+        pk_list_bookmarks_for_user = []  # создал пустой список
+        # перебираю все записи по нужным параметрам для пользователя
+        for one_rec in bookmarks_video_list:
+            # в созданный список, добавляю pk записей, на каждой итерации цикла
+            # по итогу будет список всех необходимых pk
+            pk_list_bookmarks_for_user.append(one_rec.video_lm.pk)
+        # Вывожу только записи из закладок
+        # pk - это VideoYouTubeRuTube.pk,
+        # __in - необходим когда атрибутов одного поля несколько (список значений одного аттрибута)
+        # пример = Model.objects.filter(цвет__in=['белый','чёрный','синий'])
+        return VideoYouTubeRuTube.objects.filter(pk__in=pk_list_bookmarks_for_user)
+
+    # добавляю свои параметры в контекст, для передачи в шаблон
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Добавленные видео'
+        context['sidebar_selected'] = 'bookmarks'
+        return {**context}</pre>
+					</li>
+					<li>
+						Пишу маршрут для отображения списка видео (добавленных пользователем в закладки)
+						<br>video/urls.py
+						<pre>path('bookmarks/', BookmarksVideoListShow.as_view(), name='video_bookmarks'),  # отображение списка по закладкам</pre>
+					</li>
+					<li>
+						Отображаю ссылку в video_sidebar.html - в зависимости от того находимся ли мы на это странице или нет
+						<pre>
+{% if request.user.is_authenticated %} &lt;!-- если залогинен -->
+
+	{% if sidebar_selected == 'bookmarks' %}		
+	&lt;li class="nav-item">
+		&lt;a class="nav-link disabled" href="{% url 'video_bookmarks' %}" tabindex="-1" aria-disabled="true">Добавленные&lt;/a>
+	&lt;/li>
+	{% else %}
+	&lt;li class="nav-item">
+		&lt;a class="nav-link active" aria-current="page" href="{% url 'video_bookmarks' %}">Добавленные</a>
+	&lt;/li>
+	{% endif %}
+
+	.....
+	.....
+
+{% endif %}	&lt;!-- если залогинен --></pre>
+					</li>
+					<li>
+						Добавлю проверку в video_list.html (если список пуст, 'здесь пока нет записей.')
+						<pre>
+{% if video.all.count == 0 %} &lt;!-- если записей нет -->
+&lt;hr>
+&lt;p class="h4">
+	Здесь ещё нет записей.
+&lt;/p>
+{% endif %} &lt;!-- если записей нет --></pre>
+					</li>
+				</ol>
+			</li>
+&lt;
+			
+			<li>
+				<span class="title_text">
+					Отображаю видео, которые добавлил пользователь (мои видео)
+				</span>
+				<hr>
+				<ol type="A">
+					<li>
+						Пишу представление (работа в одном шаблоне video_list.html), просто поменяю queryset - по фильтру
+						<br>video/views.py
+						<pre>
+# представление шаблона со списком видео (добавленных в закладки пользователем)
+class MyVideoListShow(LoginRequiredMixin, ListView):
+    login_url = 'login'
+    model = VideoYouTubeRuTube
+    template_name = 'video/video_list.html'
+    context_object_name = 'video'
+    allow_empty = True  # разрешаю пустой список
+
+    # меняю параметры вывода по фильтру
+    def get_queryset(self):
+        # список видео, где автором видеопоста является текущий пользователь
+        return VideoYouTubeRuTube.objects.filter(author_video=self.request.user)
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Мои видео'
+        context['sidebar_selected'] = 'my'
+        return {**context}</pre>
+					</li>
+					<li>
+						Пишу маршрут
+						<br>video/urls.py
+						<pre>path('my/', MyVideoListShow.as_view(), name='video_my'),  # отображение собственных видео</pre>
+					</li>
+					<li>
+						Отображаю ссылку в video_sidebar.html - в зависимости от того, нахожусь ли я на этой странице или нет
+						<pre>
+{% if sidebar_selected == 'my' %}		
+&lt;li class="nav-item">
+	&lt;a class="nav-link disabled" href="{% url 'video_my' %}" tabindex="-1" aria-disabled="true">Мои видео&lt;/a>
+&lt;/li>
+{% else %}
+&lt;li class="nav-item">
+	&lt;a class="nav-link active" aria-current="page" href="{% url 'video_my' %}">Мои видео&lt;/a>
+&lt;/li>
+{% endif %}</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<span class="title_text">
+					Перенаправление на предыдущую страницу (HttpResponseRedirect)
+				</span>
+				<hr>
+				<br>Пример, перенаправления для кнопки лайка:
+				<br>1 - мы находимся например на странице - http://127.0.0.1:8000/video/bookmarks/
+				<br>2 - при нажатии лайка, наш путь будет примерно - http://127.0.0.1:8000/video/like_video/9/
+				<br>3 - нам нужно вернуться на первый путь - http://127.0.0.1:8000/video/bookmarks/
+				<br>3 - для этого - return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+				<ol type="A">
+					<li>
+						Меняем редирект, для кнопки лайка, для добавить комментарий, для кнопки добавить в закладки в templatetags/video_tags.py
+						<pre>
+def show_all_ralations_to_video.. - добавление комментария к видео
+def like_video.. - лайк на фидео
+def bookmarks_video.. - закладка на видео
+def like_button_comment_video.. - лайк на коммент видео
+def delete_comment_video_button.. - удаление комент видео
+
+<span class="text-danger">return HttpResponseRedirect(request.META.get('HTTP_REFERER'))</span># остаёмся на странице предыдущей!</pre>
+					</li>
+
+				</ol>
+			</li>
+
+
+&lt;
+
+&lt;
+
+
+			<li>
+				<span class="title_text">
+					Автозаполнение slug (при добавлении с сайта)
+					<br>slugify('текст')
+				</span>
+				<hr>
+				<ol type="A">
+					<li>
+						Убираю поле slug, в форме добавления поста
+						<br>blog/forms.py - class CarAddForm(forms.ModelForm)
+						<pre>
+fields = ['slug', ..] - удаляю
+widgets = {'slug':...} - удаляю</pre>
+					</li>
+					<li>
+						Корректирую представление добавления поста, т.е корректирую сохранение формы - <span class="text-danger">commit=False, slugify(unidecode(car.title))</span>
+						<br><br>
+						<span class="spec">
+							- unidecode('строка') - преобразование всех символов в допустимые для слага (русские в английские например)
+							<br>
+							- slugify('строка, с английскими символами') - преобразование строки с английскими символами в слаг
+						</span>
+						<br>
+						<br>blog/views.py
+						<pre>
+from unidecode import unidecode  # преобразование символов в UTF8
+from django.template.defaultfilters import slugify  # преобразование строки в slug
+
+def show_add_post(request):
+	if request.method == 'POST':
+	....							
+		if form.is_valid():
+		car = form.save(commit=False)	
+		....				
+		car.slug = slugify(unidecode(car.title))  # Автозаполнение slug/слага! по заполненному в форме полю title  # Автозаполнение slug/слага! по заполненному в форме полю title
+		car.save()  # сохраняем модель
+		....
+	...</pre>
+				</ol>
+			</li>
+
+
+&lt;
+
+
+&lt;
+
+
+			<li>
+				<span class="title_text">
+					
+				</span>
+				<hr>
+				<ol type="A">
+					<li>
+						
+					</li>
+				</ol>
+			</li>
+
+
+&lt;
+
+
+&lt;
 
 <br><br><br><br>
 <hr>
 <h3>Видео</h3>
 			
-<br>-Добавить удалить видео, если ты автор
-<br>-Добавить добавить новую запись видео
-<br>-Добавить редактировать видео (кроме ссылки)
-<br>-добавить отображение моих закладок (фильтр)
-<br>-добавить отображение моих видео (фильтр)
 <br>-добавить отображение видео разных пользователей (фильтр)
-<br>-добавить редирект при добавлении комментария??? сейчас редирект на все видео, а как сделать если коммент остваили со странице по фильтрам? - скорее всего только через ajax
-
 
 <hr>				
 <br><br><br><br>
