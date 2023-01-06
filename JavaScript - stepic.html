@@ -953,13 +953,104 @@ for (i = 0; i < 5; i = i + 1) {  //i от 1 до 4
 				</span>
 				<ul>
 					<li>
-						
+						<p>
+							Функции в JavaScript - это блоки кода, которые имеют свое имя (кроме анонимных) и могут быть вызваны по этому имени.
+							<br><br>Функции  в JavaScript бывают встроенными, например alert() и пользовательскими, которые программист создает сам.
+							<br><br>В Функции в JavaScript могут передаваться некоторые параметры, например необходимые для вычисления возвращаемых значений.
+							<br><br>Основное назначение функции заключается в том, чтобы избавить программу от дублирования кода. Записав определенную последовательность команд можно вызывать ее сколько угодно раз
+						</p>						
 					</li>
 					<li>
-						
+						<strong>Создание/определений функции и вызов без параметров</strong>
+						<br>-function имя_функции(параметры_НЕ_ОБЯЗАТЕЛЬНО)
+						<br>-{ Тело функци };
+						<pre>
+function printText() {                   //Определение функции
+  document.write("Hello World!");        //Тело функции - вывод текста в документ
+};
+
+
+printText(); //Вызов функции
+--> Hello World!</pre>
 					</li>
 					<li>
-						
+						<strong>Создание/определений функции и вызов С папаметром</strong>
+						<pre>
+function printText(a) {           //Определение функции
+  document.write(a);              //Тело функции - вывод содержимого переменной "а" в документ
+};
+
+
+printText("Hello World!"); --> 	Hello World!</pre>
+					</li>
+					<li>
+						<strong>Создание функци в переменной, при создании переменной, в одну строчку</strong>
+						<pre>
+// создаём функцию
+var printText = function(a) {document.write(a);};			
+
+// вызываю функцию
+printText('Привет') --> в html будет Привет</pre>
+					</li>
+					<li>
+						<strong>Самовызывная функция</strong>
+						<pre>
+var printText = function(a) {document.write(a);}('Здравствуйте!');
+-->  Здравствуйте
+
+<span class="text-danger">Но лучше сделать так</span>
+var printText = (function(a) {document.write(a);}('Здравствуйте!'));
+-->  Здравствуйте</pre>
+					</li>
+					<li>
+						<strong>return</strong>
+						Возврат резкльтата работы функции
+						<pre>
+function mySquare(x) {
+    return x*x;
+};
+
+alert (mySquare(5)); --> 25 (5*5=25)</pre>
+						<br>return может быть несколько
+						<pre>
+function divideOneTo(x) {
+    if (x != 0) {
+        return 1/x;
+    } else {
+        return 'На ноль делить нельзя!';
+    }
+}
+
+alert (divideOneTo(10)); // 0.1
+alert (divideOneTo(0)); // На ноль делить нельзя!</pre>
+					</li>
+					<li>
+						Однако, использование ключевого слова return не является обязательным. Если в теле функции его нет, то после выполнения всех команд интерпретатор закончит выполнение функции. Значение, которое возвращает эта функция будет "undefined".
+					</li>
+					<li>
+						<strong>Рекурсивная функция - </strong>функция которая может вызывать саму себя.
+						<br>Пример вычисление факториала
+						<pre>
+function factorial(x) {        //Объявление функции
+  if (x <= 1) return 1;        //Проверка условия окончания расчета
+  return x * factorial(x-1);   //Вызов этой же функции с уменьшенным на 1 аргументом
+}
+
+console.log(factorial(5)); // 120 (1*2*3*4*5=120)</pre>
+					</li>
+					<li>
+						Отночительно сложное задание, рекурсивная функция, из 10 получить 1 2 3 4 5 6 7 8 9 10
+						<pre>
+function my_function(n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return my_function(n-1) + ' ' + n;
+    }
+}
+
+console.log(my_function(10));
+-->1 2 3 4 5 6 7 8 9 10</pre>
 					</li>
 				</ul>
 			</li>
@@ -973,13 +1064,172 @@ for (i = 0; i < 5; i = i + 1) {  //i от 1 до 4
 				</span>
 				<ul>
 					<li>
-						
+						 JavaScript является объектно-ориентированным языком программирования
+						 <br><br>Объект - это особый вид данных, обладающий свойствами, описывающими его состояние, и методами, позволяющими работать с объектом.
+						 <br><br>Объект в JavaScript представляет собой ассоциативный массив, то есть фактически является набором пар "ключ: значение". Например, у строкового объекта String, коим является любая строковая переменная, есть свойство length - длина. В частности, у объекта textString, созданного командой var textString = "Hello World!"; будет свойство length, ключом в паре будет имя "length", а его значение будет число 12 - фактическая длина строки.
+						 <br><br>length - ключ, значение lengt - значение
 					</li>
 					<li>
-						
+						<strong>Свойства объекта</strong> - это некоторые значения, связанные с этим объектом.
+						<br><strong>имяОбъекта.имяСвойства</strong> - Синтаксис доступа к свойству объекта
+						<pre>
+var textString = "Hello world!";
+console.log(<strong>textString.length</strong>); --> 12</pre>
 					</li>
 					<li>
-						
+						<strong>Методы</strong> - это действия, которые могут быть выполнены над объектом. Они могут присутствовать у объекта, а могут и не присутствовать.
+						<br><br>
+						<strong>имяОбъекта.имяМетода();</strong><br>(В скобках указываются параметры, которые необходимо передать в метод. Их еще называют "аргументами".)
+					</li>
+					<li>
+						Вывод текста заглавными буквами - <strong>toUpperCase()</strong>
+						<pre>
+var textString = "Hello world!";
+console.log(textString.toUpperCase()); 
+--> HELLO WORLD!</pre>
+					</li>
+					<li>
+						<strong>Создание объекта:</strong>
+						<br>Первый способ - создание непосредственно экземпляра объекта
+						<pre>
+var person = new Object();
+	или
+var person = {};</pre>
+						<br>Второй способ - <strong>Создание объекта через конструктор</strong>. Т.е. мы должны описать функцию, которая будет создавать объект и присваивать значения его свойствам.
+						<br><br>
+						<strong>Создаём функцию, которая будет создавать объект, и присваивать значения его свойствам</strong>
+						<br><span class="text-danger">this - обращение к текущему экземпляру (self - в Python)</span>
+						<pre>
+function Person(name, age, year) {
+  this.name = name;
+  this.age = age;
+  this.year = year;
+}</pre>
+						<strong>Создаём несколько экземпляров объекта (записей)</strong>
+						<pre>
+var men1 = <span class="text-danger">new</span> Person('Александр', '30', '1992');
+var men2 = <span class="text-danger">new</span> Person('Брэд', '50', '1972');</pre>
+						<strong>Обращаемся к каждому полю записи men1</strong>
+						<pre>
+alert ('Имя: ' + men1.name);  --> Имя: Александр
+alert ('Возраст: ' + men1.age);  --> Возраст: 30
+alert ('Год рождения: ' + men1.year); --> Год рождения: 1992</pre>
+					</li>
+					<li>
+						<strong>Создание объекта без функции</strong>
+						<pre>
+var Car = {};  // создали пустой объект
+Car.name = 'BMW'  // добавили поле name со значением BMW
+console.log(Car) // {name: 'BMW'}
+console.log(Car.name) // BMW</pre>
+					</li>
+					<li>
+						<strong>Создание объекта со множеством пар ключ: значение</strong>
+						<pre>
+// Создаю объект
+var Animal = {
+    view: 'Птица',
+    name: 'Кеша',
+    age: 2
+}
+
+// обращаюсь к объекту
+console.log(Animal) --> {view: 'Птица', name: 'Кеша', age: 2}
+
+// обращаюсь к полю объекта
+console.log(Animal.name);
+	ИЛИ
+console.log(Animal['name']);
+--> Кеша</pre>
+					</li>
+					<li>
+						<strong>Удаление свойства объекта(поле)</strong>
+						<br>Тот же объект (Animal)
+						<pre>
+// удаляю свойство(поле) - view
+delete Animal.view;
+
+// обращаюсь к объекту
+console.log(Animal); --> {name: 'Кеша', age: 2}
+
+// обращаюсь к удалённому свойству объекта
+console.log(Animal.view); --> undefined ('неопределённое значение')</pre>
+					</li>
+					<li>
+						<strong>Добавление метода в объект</strong> - это фактически присвоение функции некоторому свойству объекта.
+						<pre>
+var person = {}; // создали пустой объект
+person.sayAge = function(age) { // объявляем метд sayAge для объекта person
+    console.log('Человеку ' + age + ' лет');
+};
+
+person.sayAge(40); // вызываем метод sayAge, объекта person
+--> Человеку 40 лет</pre>
+					</li>
+					<li>
+						<strong>Добавление метода к объекту</strong> (добавить поле с функцией в объект)
+						<pre>
+var person = {  // созание объекта
+    name: 'Александр',
+    age: 25,
+    lenght: 173
+};
+
+console.log(person); // {name: 'Александр', age: 25, lenght: 173}
+
+person.sayName = function() {
+    console.log("Моё имя - " + this.name);
+}; // создали метод получение строки с именем для объекта
+
+console.log(person); // {name: 'Александр', age: 25, lenght: 173, sayName: ƒ}
+person.sayName(); // вызываем метод получения строки с именем</pre>
+					</li>
+					<li>
+						<strong>Перебор всех свойств и методов объекта (полей)</strong>
+						<br><br>
+						<strong>for (key in object){}</strong>
+						<br>где key - совйство, object - объект
+						<br>object[key] - обращение к содержимому поля, обхекта
+						<pre>
+var car = {  // создаём объект
+    name : 'Lexus',
+    category : 'Japan',
+    power : '512ph',
+    year : 2018
+}
+
+console.log(car); --> {name: 'Lexus', category: 'Japan', power: '512ph', year: 2018}
+
+// перебираем все поля объекта и выводим в тексте
+//<span class="text-danger">i - ключ : car[i] - значение</span>
+for (i in car) {
+    console.log(i + ' is ' + car[i]);
+};
+
+-->
+name is Lexus
+category is Japan
+power is 512ph
+year is 2018</pre>
+					</li>
+					<li>
+						Добавлю метод получения всех полей в тексте, для вышеуказанного объекта
+						<pre>
+car.sayAll = function() {  // создаём в поле обхекта функцию
+    for (var i in this) {  // перебираем все поля объекта
+        if (!(this[i] instanceof Function))  // если поле не функция
+        console.log(i + ' объекта ' + this[i]);  // выводим в консоль
+    }
+};
+
+console.log(car); // {name: 'Lexus', category: 'Japan', power: '512ph', year: 2018, sayAll: ƒ}
+car.sayAll(); // вызываем функцию нашего объекта
+
+-->
+name объекта Lexus
+category объекта Japan
+power объекта 512ph
+year объекта 2018</pre>
 					</li>
 				</ul>
 			</li>
@@ -994,13 +1244,278 @@ for (i = 0; i < 5; i = i + 1) {  //i от 1 до 4
 				</span>
 				<ul>
 					<li>
-						
+						Создание строки, и <span class="text-danger">строкового объекта</span>
+						<pre>
+myString = 'Привет' // typeof string, создание строки
+var myString = new String('Привет');	// typeof object - <span class="text-danger">создание строкового объекта</span>
+var myString = String('Привет');	// typeof string - создание строки</pre>
+						<strong>Строковому объекту, можно напрямую назначать дополнительные свойства и методы</strong>
 					</li>
 					<li>
-						
+					 У строки есть одно стандартное <span class="text-danger">свойство</span> - длина.
+					 <br><strong>Получение длины строки</strong>
+					 <pre>
+var text = 'Привет, меня зовут Александр';
+console.log(text.length); //28</pre>
 					</li>
 					<li>
-						
+						Получение длины двух строк, но вводе могут быть и числа!
+						<pre>
+function testStr(a, b) {
+    a = String(a);  // на случай если введут число
+    b = String(b);  // на случай если введут число
+    return a.length + b.length;  // возвращаем сумму длины строк
+}
+
+alert(testStr(123, 456));  // на вводе числа!
+// результат будет 6</pre>
+					</li>
+					<li>
+						<strong><span class="text-danger">Методы</span> строки</strong>
+						<br>Методов у строк много (свойство одно)
+						<br><strong>Метод получения символа по индексу</strong>
+						<pre>
+var text = 'Cat';
+
+console.log(text.charAt(0)); --> C
+console.log(text.charAt(1)); --> a
+console.log(text.charAt(2)); --> t</pre>
+						Или
+						<pre>
+var text = 'Cat';
+
+console.log(text[0]); --> C
+console.log(text[1]); --> a
+console.log(text[2]); --> t</pre>
+						<strong>Получение строки задом наперёд</strong>
+						<pre>
+var text = 'Cat';
+text = text[2] + text[1] + text[0];
+console.log(text); --> taC</pre>
+					</li>
+					<li>
+						Получение 19 символа строки (индекс 18!)
+						<pre>
+function testStr(str, n) {
+    return str[n-1];
+};
+
+console.log(testStr('Ithardlycousinmealways', 19));
+--> w</pre>
+					</li>
+					<li>
+						<strong>Слияние строк - string1.concat(string2, ..., stringN)</strong>
+						<pre>
+var a = 'Первая';
+var b = 'Вторая';
+var c = 'Третья';
+
+// к строке а, добавляем строку b и строку c
+result = a.concat(b, c);
+console.log(result)
+--> ПерваяВтораяТретья</pre>
+					</li>
+					<li>
+						<strong>split - разделение строк</strong>
+						<br>split('разделитель') - разделяет строки на массив подстрок по указанному разделителю
+						<br><strong>При разбитии строки - получиться массив(список) Array</strong>
+						<pre>
+var myString = 'кот,собака,попугай';
+var myArray = myString.split(',');
+console.log(myArray);  // (3) ['кот', 'собака', 'попугай']</pre>
+						<br>Если разделитель не будет найден, то получится массив из одного элемента
+						<pre>
+var myString = 'кот,собака,попугай';
+var myArray = myString.split('.');
+console.log(myArray);  // массив ['кот,собака,попугай']</pre>
+						<br><strong>Разбитие строки на элементы в массив, с указанием параметра - максимальное количество элементов в массиве</strong>
+						<pre>
+var myString = 'кот:собака:попугай';
+var myArray = myString.split(':', 2);
+console.log(myArray);  // массив (2) ['кот', 'собака']</pre>
+					</li>
+					<li>
+						<strong>Преобразование регистра</strong>
+						<br><strong>- toLowerCase()</strong> - преобрахование всех букв в строке в нижний регистр
+						<br><strong>- toUpperCase(</strong> - преобрахование всех букв в строке в верхний регистр
+						<br><strong>- toLocaleLowerCase()</strong> - преобрахование всех букв в строке в нижний регистр
+						<br><strong>- toLocaleUpperCase()</strong> - преобрахование всех букв в строке в верхний регистр
+						<pre>
+var catName = 'Симба';
+
+console.log(catName.toLowerCase()); --> симба
+console.log(catName.toUpperCase()); --> СИМБА
+console.log(catName.toLocaleLowerCase()); --> симба
+console.log(catName.toLocaleUpperCase()); --> СИМБА</pre>
+					</li>
+					<li>
+						Задание, преобразование первой строки в верхний регистр, второй - в нижний, + слияние этих строк.
+						<pre>
+function testStr(a, b) {
+    return a.toUpperCase().concat(b.toLowerCase());
+}
+
+console.log(testStr('Hello', 'World!'));
+// --> HELLOworld!</pre>
+					</li>
+					<li>
+						<strong>Возвращение части строки (как слайсинг в Python)</strong>
+						<br><strong>substring(indexA[, indexB])- </strong> возвращает часть строки начиная с позиции indexA, но не включая indexB
+						<br><strong>substring - не принимает отричательные аргуметы, точнее приравнивает их к нулю</strong>
+						<pre>
+var myString = 'Это просто строка!';
+console.log(myString.substring(4,17));
+// покажет строку от 4 вимвола до 16.
+// просто строка
+
+console.log(myString.substring(4));
+// от четвёрного символа до конца
+// просто строка!
+
+console.log(myString.substring(4, 0));
+// до четрёвтного включительно
+// просто строка!
+
+console.log(myString.substring(0, 4));
+// до четрёвтного включительно
+// просто строка!
+
+console.log(myString.substring(0));
+// полная строка
+// Это просто строка!
+
+console.log(myString.substring(-2));
+// -2 = 0, т.е полная строка!
+// Это просто строка!</pre>
+					</li>
+					<li>
+						<strong>
+							slice( indexA[, indexB] ) - 
+						</strong>
+						возвращает часть строки начиная с позиции indexA, но не включая indexB, т.е то же самое
+						<br><strong>Но slice - работает с отрицательными аргументами!</strong>
+						<pre>
+var myString = 'Это просто строка!';
+
+console.log(myString.slice(4,-1));
+// от четвёртого символа до последнего не включительно
+// просто строка
+
+console.log(myString.slice(-1));
+// последний символ с конца
+// !
+
+console.log(myString.slice(-10));
+// от десятого с конца до конца
+// то строка!
+
+console.log(myString.slice(-10, -1));
+// от десятого с конца до конца не включая последний символ
+// то строка</pre>
+					</li>
+					<li>
+						<strong>substr(indexA[, length]) - </strong>возвращает часть строки начиная с позиции indexA, в количестве length
+						<pre>
+var myString = 'Это просто строка!';
+console.log(myString.substr(4, 5));
+// от 4 символа по индексу - 5 символов
+// прост</pre>
+					</li>
+					<li>
+						<strong>
+							replace(regexp, newSubString|function) - 
+						</strong>возвращает новую строку после замен, указанных в regexp, или функцию, которая ее возвращает.
+						<br>Рассмотрим позже - регулярные выражения
+					</li>
+					<li>
+						<strong>
+							Поиск подстроки в строке:
+							<br> - indexOf(searchValue[, fromIndex])
+							<br> - lastIndexOf(searchValue[, fromIndex])
+							<br> - search(regExp)
+							<br> - match(regExp)
+						</strong>
+					</li>
+					<li>
+						<strong>indexOf(searchValue[, fromIndex]) - </strong>ищет подстроку searchValue начиная с позиции fromIndex (аргументы, указанные в квадратных скобках не являются обязательными).
+						<pre>
+var myString = 'Это просто проверочная строка!';
+
+console.log(myString.indexOf('про'));
+//ищет индекс начала 'про', начиная с начала строки
+// 4 (это ПРОсто проверочная строка!)
+
+console.log(myString.indexOf('про', 0));
+//ищет индекс начала 'про', начиная с начала строки
+// 4 (это ПРОсто проверочная строка!)
+
+console.log(myString.indexOf('про', 5));
+//ищет индекс начала 'про', начиная с пятого индекса
+// 11 (это просто ПРОверочная строка!)
+
+console.log(myString.indexOf('про', 12));
+//ищет индекс начала 'про', начиная с двенадцатого индекса
+// -1 (-1 когда не ношли подстроку по условиям)</pre>
+					</li>
+					<li>
+						<strong>lastIndexOf(searchValue[, fromIndex]) - </strong>ищет последнюю подстроку  searchValue начиная с позиции fromIndex (внимание! поиск фактически будет в "обратную" сторону - т.е. первое вхождение от индекса fromIndex или конца строки в сторону начала строки)
+						<pre>
+var myString = 'Это просто проверочная строка!';
+
+console.log(myString.lastIndexOf('про'));
+// начало последнего про поиск с конца
+// 11
+
+console.log(myString.lastIndexOf('про', 10));
+// начало последнего про поиск с конца, начиная с 10 символа
+// 4</pre>
+					</li>
+					<li>
+						<strong>
+							search(regExp) - 
+						</strong>возвращает индекс первого сопоставления с регулярным выражением внутри строки. В противном случае метод вернёт -1.
+						<br>Рассмотрим позже
+					</li>
+					<li>
+						<strong>
+							match(regExp) - 
+						</strong> выдает массив всех совпадений с аргументом
+						<br>Рассмотрим позже
+					</li>
+					<li>
+						<strong>Преобразоание типов</strong>
+						<br><strong>-fromCharCode(num1, num2,...,numN) </strong>
+						<br><strong>-toString() </strong>
+						<br><strong>-valueOf() </strong>
+					</li>
+					<li>
+						<strong>fromCharCode(num1, num2,...,numN)</strong> - преобразование значение(цифры) - Юникода в Символ
+						<pre>
+myString = String.fromCharCode(65, 66, 67);
+console.log(myString);
+// ABC</pre>
+					</li>
+					<li>
+						<strong>toString()</strong> - преобразование обычной строки в строковый объект
+						<br>
+						<strong>valueOf()</strong> - возвращает элементарную строку вместо объекта String, эквивалентно toString()
+						<pre>
+myString = new String('Привет');
+console.log(typeof(myString));  // object
+console.log(typeof(myString.toString())); // string
+
+console.log(typeof(myString));  // object
+console.log(typeof(myString.valueOf())); // string</pre>
+					</li>
+					<li>
+						Задание: найти индекс вхождения второй строки в первую (если втророй строки в первой нет, тогда -1)
+						<pre>
+function testStr(a,b) {
+    return a.indexOf(b);
+}
+
+alert (testStr('This is a test string', 'test'));
+// 10</pre>
 					</li>
 				</ul>
 			</li>
