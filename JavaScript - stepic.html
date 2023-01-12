@@ -1878,18 +1878,278 @@ function testArray(a, b) {
 				</span>
 				<ul>
 					<li>
-						
+						Для работы с датой и временем в JS - объект Date
 					</li>
 					<li>
-						
+						<strong>Создание обхекта при помощи конструктора Date()</strong>
+						<br>
+						Вариант 1  - создаёт объект по текущей даде и времени
+						<pre>
+var myDate = new Date();
+console.log(myDate);
+// Thu Jan 12 2023 10:43:28 GMT+0300 (Волгоград, стандартное время)</pre>
+						<br>Вариант 2 - создаёт объект по запросу (самми вводим дату и время)
+						<pre>
+var myDate = new Date("December 14, 1975 12:10:00");
+console.log(myDate);
+// Sun Dec 14 1975 12:10:00 GMT+0400 (Волгоград, стандартное время)</pre>
+						<br>Вариант 3 - создаёт обхект по запросу (сами вводим дату)
+						<pre>
+var myDate = new Date(1989, 6, 14);
+console.log(myDate);
+// Fri Jul 14 1989 00:00:00 GMT+0400 (Волгоград, летнее время)</pre>
+						<br>
+						Вариант 4 - создаёт объект по запросу (сами вводим дату и время)
+						<pre>
+var myDate = new Date(1992, 5, 12, 11, 20, 0);
+console.log(myDate);
+// ОБРАТИ ВНИМАНИЕ 0 - ЭТО ЯНВАРЬ, 5 - ЭТО ИЮНЬ
+// Fri Jun 12 1992 11:20:00 GMT+0400 (Волгоград, летнее время)</pre>
+						<br>
+						<strong>Вывод на страницу всех вариантов - document.write(myDate + '&lt;br/>fd'):</strong>
+						<pre>
+document.write(myDate + <span class="text-danger">'&lt;br/></span>');
+<span class="text-danger">новая строка</span></pre>
 					</li>
 					<li>
-						
+						<strong>Шпаргалка по созданию обхекта Date</strong>
+						<pre>
+var x = new Date() //В объект попадут текущие дата и время
+var x = new Date(миллисекунды) //Количество миллисекунд отсчитывая с 1 января 1970г
+var x = new Date(строкаДаты)
+var x = new Date(год, месяц, день[, часы, минуты, секунды, миллисекунды])
+
+
+где - параметры, указанные в квадратных скобках являются необязательными.
+
+год - формат YYYY
+месяц - от 0 до 11
+день - от 1 до 31
+часы - от 0 до 23
+минуты - от 0 до 59
+секунды - от 0 до 59
+миллисекунды - от 0 до 999</pre>
+					</li>
+					<li>
+						Создаём обхект Date, присваиваем свое значение, прибавляем 10 дней (месяц, год прибавятся автоматически если необходимо)
+						<br><strong>myDate.setFullYear</strong> - присваивание своей даты (своей)
+						<br><strong>myDate.setDate</strong> - установка значения своего значения даты
+						<br><strong>myDate.getDate()</strong> - получение текущего значение даты
+						<br>myDate - это переменная, объект Date()
+						<pre>
+var myDate = new Date(); // создаём объект Date() - текущее время и дата
+myDate.setFullYear(2017, 4, 22); // Присваеваем объекту значение - 22 мая 2017
+myDate.setDate(myDate.getDate() + 10); // Получаем значение и прибавляем 10 дней
+console.log(myDate);
+// Fri Jun 02 2017 11:14:14 GMT+0300 (Волгоград, стандартное время)</pre>
+					</li>
+					<li>
+						<strong>Сравнение двух дат</strong>
+						<pre>
+var currentDate = new Date(); // создали объект1 (текущая дата)
+var nextNewYear = new Date(); // создали объект2 (текущая дата)
+nextNewYear.setFullYear(2018, 0, 1); // измениели объект 2 на нг 2018
+
+if (+currentDate == +nextNewYear) { // сравниваем 2 даты
+    alert('Сегодня новый 2018 год!'); // выведет если сегодня 1 янв 2018
+} else {
+    alert('Сегодня не новый 2018 год(('); // выведет в любом другом случае
+}</pre>
+					</li>
+					<li>
+						<strong>Основные методы (получения значения) объекта Date():</strong><hr>
+						<strong>getDay()</strong> -  возвращает день недели от 0 до 6, 0 - воскресенье, 1 - понедельник и т.д.
+						<br><strong>getTimezoneOffset()</strong> - возвращает смещение часового пояса  относительно UTC, в минутах с противоположным знаком.
+						<br><strong>getYear()</strong> - возвращает значение года минус 1900, к использованию не очень рекомендуется.
+						<br><strong>getFullYear()</strong> - возвращает значение года.
+						<br><strong>getMonth()</strong> - возвращает месяц, от 0 до 11 
+						<br><strong>getDate()</strong> - возвращает число месяца от 1 до 31
+						<br><strong>getHours()</strong> -  возвращает час, от 0 до 23
+						<br><strong>getMinutes()</strong> - возвращает количество минут, от 0 до 59
+						<br><strong>getSeconds()</strong> - возвращает количество секунд, от 0 до 59
+						<br><strong>getMilliseconds()</strong> - возвращает количество миллисекунд, от 0 до 999
+						<br><strong>getTime()</strong> - возвращает количество миллисекунд, прошедших с полуночи 1 января 1970г GMT.
+						<hr>
+					</li>
+					<li>
+						<strong>Запись данных в объект Date():</strong><hr>
+						<strong>setYear()</strong> -  устанавливает значение года минус 1900, к использованию не очень рекомендуется.
+						<br><strong>setFullYear()</strong> -  устанавливает значение года.
+						<br><strong>setMonth()</strong> -  устанавливает месяц, от 0 до 11
+						<br><strong>setDate()</strong> - устанавливает день месяца, от 1 до 31
+						<br><strong>setHours()</strong> - устанавливает час, от 0 до 23
+						<br><strong>setMinutes()</strong> - устанавливает количество минут, от 0 до 59
+						<br><strong>setSeconds()</strong> - устанавливает количество секунд, от 0 до 59
+						<br><strong>setMilliseconds()</strong> -  устанавливает количество миллисекунд, от 0 до 999
+						<br><strong>setTime()</strong> - устанавливает количество миллисекунд, прошедших с полуночи 1 января 1970г GMT.
+						<hr>
+					</li>
+					<li>
+						<strong>Преобразование данных объекта Date()</strong>
+						<br>
+						<strong>Date.parse()</strong> - Преобразование дата в милисекунды.
+						<br>Если строку не получилось преобразовать - например это строка не дата, вернёт NaN.
+						<pre>
+var myDate = new Date();
+document.write(myDate.setTime(Date.parse("22 May 2017 11:11")));
+// 1495440660000
+
+document.write('&lt;/br>'); // Новая строка
+
+document.write(myDate);
+// Mon May 22 2017 11:11:00 GMT+0300 (Волгоград, стандартное время)</pre>
+						<br><strong>toLocaleString()</strong> - возвращает дату в формате, в соответствии с региональными натройками операционной системы.
+						<pre>
+var myDate = new Date();  // текущая дата и время
+document.write(myDate.toLocaleString());  // вывод в документе
+console.log(myDate.toLocaleString());  // вывод в консоле
+// 12.01.2023, 11:55:30</pre>
+						<br><strong>toLocaleTimeString()</strong> - преобразовывает данные о времени в строку, используя настройки форматирования операционной системы, в которой выполняется скрипт.
+						<br><strong>toLocaleDateString()</strong> - выполняет преобразование, аналогичное предыдущему, но с датой.
+						<br><br>Примеры по последним трём методам преобразования - (по локальным настройкам ОС)
+						<pre>
+var myDate = new Date();  // создали объект - текущая дата и время
+// дата + время
+console.log(myDate.toLocaleString());
+// 12.01.2023, 11:59:44
+
+// время
+console.log(myDate.toLocaleTimeString());
+// 11:59:44
+
+// дата
+console.log(myDate.toLocaleDateString());
+// 12.01.2023</pre>
+					</li>
+					<li>
+						Задание: 
+						<br>создать функцию, которая получит 2 строки вида "03 November 2017 04:17"
+						<br>Строки нужно превратить в дату;
+						<br>Даты нужно сравнить;
+						<br>Для даты которая больше необходимо вернуть день ндели в виде строки на руссом языке - 'Понедельник'
+						<br><br>Задание без функции - подробно для понимания
+						<pre>
+// строки
+var a = "19 October 1909 10:27";
+var b = "28 March 1909 00:59";
+
+// преобразование строк в дату и время
+var aDate = new Date(a);
+var bDate = new Date(b);
+console.log(aDate);
+console.log(bDate);
+
+// создание переменной для большей даты
+var bigDate = aDate;
+
+
+// сравнение даты и времени
+if (+aDate > +bDate) {  // если первая дата больше второй
+    var bigDate = aDate;  // в переменную большая дата присваиваем значение первой даты
+} else if (+aDate < +bDate) { // если первая дата меньше второй
+    var bigDate = bDate; 
+} else { // иначе - если даты равны
+    var bigDate = aDate; // чтобы не было ошибок
+};
+
+
+// получение числа дня недели от 0 до 6 (большей даты)
+var numDay = bigDate.getDay();
+
+
+// Вывод строки по руссики - в зависимости от числа
+switch(numDay) {
+    case 0:  // если число 0
+        var ruStringDay = 'Воскресенье'; // строка = Восересенье
+        break;
+    case 1:  
+        var ruStringDay = 'Понедельник';
+        break;
+    case 2:  
+        var ruStringDay = 'Вторник';
+        break;
+    case 3:  
+        var ruStringDay = 'Среда';
+        break;
+    case 4:  
+        var ruStringDay = 'Четверг';
+        break;
+    case 5:  
+        var ruStringDay = 'Пятница';
+        break;
+    case 6:  
+        var ruStringDay = 'Суббота';
+        break;
+}
+
+// Вывод строки длня недели большей даты на русском
+alert(ruStringDay);
+//Вторник</pre>
+						<br>Задание (в функции);
+						<pre>
+// создаём функцию, которая принимает 2 строки
+function testDataTime(a, b) {
+    // преобразование строк в дату и время
+    var aDate = new Date(a);
+    var bDate = new Date(b);
+
+    // создание переменной для большей даты
+    var bigDate = new Date();
+
+    // сравнение двух дат и запись большей в переменную
+    if (+aDate > +bDate) {
+        bigDate = aDate;
+    } else if (+aDate < +bDate) {
+        bigDate = bDate;
+    } else {
+        bigDate = aDate;
+    }
+
+    // получение числа дня недели от 0 до 6 (большей даты)
+    var numDay = bigDate.getDay();
+
+    // Вывод строки по руссики - в зависимости от числа
+    switch(numDay) {
+        case 0:  // если число 0
+            var ruStringDay = 'Воскресенье'; // строка = Восересенье
+            break;
+        case 1:  
+            var ruStringDay = 'Понедельник';
+            break;
+        case 2:  
+            var ruStringDay = 'Вторник';
+            break;
+        case 3:  
+            var ruStringDay = 'Среда';
+            break;
+        case 4:  
+            var ruStringDay = 'Четверг';
+            break;
+        case 5:  
+            var ruStringDay = 'Пятница';
+            break;
+        case 6:  
+            var ruStringDay = 'Суббота';
+            break;
+    }
+
+    // возвращаем результат по условию
+    return ruStringDay;
+}
+
+
+// выводим результат во всплывающее окно
+// строки
+var a = "19 October 1909 10:27";
+var b = "28 March 1909 00:59";
+
+alert(testDataTime(a,b));
+// Вторник</pre>
 					</li>
 				</ul>
 			</li>
 
-
+&lt;
 
 			<li>
 				<span class="spec">
