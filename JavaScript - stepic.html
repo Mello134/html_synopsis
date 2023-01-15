@@ -2609,36 +2609,6 @@ var myPattern = /q$/;</pre>
 						<br><strong>g</strong> - указывает что поиск должен быть глобальным, т.е. должны быть найдены ВСЕ соответствия в строке
 						<br><strong>m</strong> - указывает на то, что поиск должен производиться в многострочном режиме.
 					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
-					<li>
-						
-					</li>
 				</ul>
 			</li>
 
@@ -2652,13 +2622,156 @@ var myPattern = /q$/;</pre>
 				</span>
 				<ul>
 					<li>
-						
+						<strong>Методы класса String, позволяющие использовать регулярные выражения</strong>
+						<hr>
+						<strong>search(regexp)</strong>
+						<br><strong>replace(regexp, newString)</strong>
+						<br><strong>match(regexp)</strong>
+						<br><strong>split(divider)</strong>
+						<hr>
 					</li>
 					<li>
-						
+						<strong>search(regexp)</strong> - В качестве аргумента мы передаем ему регулярное выражение, а он нам в ответ возвращает номер позиции, с которой найдено соответствие шаблону, либо "-1" если соответствие не найдено.
+						<pre>
+var myString = "This is just test string";
+result = myString.search(/is/);
+
+//В указанном примере в переменной result окажется число 2 (отсчет позиций начинается с 0).</pre>
+						<strong>1. Метод search() не поддерживает глобальный поиск (про него чуть позже) и флаг g в составе регулярного выражения будет игнорирован.</strong>
+						<br>
+						<strong>2.  Если аргумент не является регулярным выражением, то он будет преобразован в него передачей конструктору RegExp. (Объекты RegExp мы рассмотрим чуть позже).</strong>
 					</li>
 					<li>
-						
+						<strong>replace(regexp, newString) - поиск с заменой</strong>
+						<br>В качестве аргументов он принимает регулярное выражение и строку замены.
+
+						<pre>
+var myString = "This is just test string";
+result = myString.replace(/is/,"as");
+
+// Th<span class="text-danger">as</span> is just test string</pre>
+						<strong>Метод поддерживает глобальный поиск и при использовании флага "g" поменяет все найденные соответствия.</strong>
+						<pre>
+var myString = "This is just test string";
+result = myString.replace(/is/g,"us");
+
+// Th<span class="text-danger">us us</span> just test string</pre>
+						В качестве второго аргумента метода replace() может использоваться функция, в этом случае мы получим возможность динамического изменения строки замены.
+					</li>
+					<li>
+						<strong>match(regexp)</strong> - Превращение в массив всех найденных соответствий
+						<br>Пример, найти все числа в строке состоящие из двух цифр и поместить в массив
+						<pre>
+var myString = "У дедушки в деревне было 12 яблонь, 5 кустов смородины, 10 кур и 33 коровы";
+var result = myString.match(/\d{2}/g);
+
+console.log(result);
+// ['12', '10', '33']</pre>
+						<strong>Важно, здесь стоит глобальный поиск /g, то есть в массив попадут все совпадения, если флаг убрать - то попадёт только первое попавшееся, то есть только ['12']</strong>
+					</li>
+					<li>
+						<strong>split(divider)</strong> - разбитие строки на массив подстрок.
+						<pre>
+var myString = "http://www.example.com/download/pictures";
+result = myString.split(/\/{2}/g);
+
+console.log(result);
+// ['http:', 'www.example.com/download/pictures']</pre>
+						<pre>
+var myString = "1234567890987654321"
+result = myString.split(/\B/g);
+
+console.log(result);
+// ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '9', '8', '7', '6', '5', '4', '3', '2', '1']</pre>
+					</li>
+					<li>
+						<strong>Конструктор RegExp</strong> - может принимать на вход строку, содержимое которой будет преобразовано в регулярное выражение. В строке должно быть содержимое регулярного выражения, т.е. тот текст, который обычно находится между двух слэшей.
+						<pre>
+// Создаем шаблон, находящий букву "q" в конце строки						
+var myPattern = new RegExp("q$"); </pre>
+						Указание вторым аршументом флага (в конструктор)
+						<pre>
+// Создаем такой же шаблон, но добавляем флаг глобального поиска
+var myPattern = new RegExp("q$","g");</pre>
+						Важный момент! Если в тексте присутствует символ обратного слэша "\", то его необходимо предварять таким же символом (т.е. писать "\\"), поскольку, как мы помним, обратный слэш используется в регулярных выражениях для указания управляющих символов.
+					</li>
+					<li>
+						<strong>Свойства объекта RedExp</strong>
+						<hr>
+						<strong></strong> - текст регулярного выражения
+						<br><strong></strong> - логическое значение обозначающее наличие флага "i", доступно только для чтения
+						<br><strong></strong> - логическое значение обозначающее наличие флага "g",  доступно только для чтения
+						<br><strong></strong> - логическое значение обозначающее наличие флага "m",  доступно только для чтения
+						<br><strong></strong> - счетчик, указывающий, с какой позиции в строке начинать поиск
+						<hr>
+					</li>
+					<li>
+						<strong>Методы RegExp</strong>
+						<hr>
+						<strong>exec(text)</strong> - выполнение поиска в строке, указанной в качестве параметра, возвращает массив найденных соответствий.
+						<br><strong>test(text)</strong> - проверка соответствия регулярному выражению, возвращает true\false.
+						<hr>
+					</li>
+					<li>
+						<strong>exec(text)</strong> - выполняет регулярное выражение по отношению к строке-аргументу, результатом его работы является массив, в который попадают соответствия. Если соответствий не найдено, то результатом будет null. А если соответствие есть, то оно попадает в массив нулевым элементом, при этом свойство lastIndex объекта сместится на позицию, следующую непосредственно за найденной подстрокой.
+						<pre>
+var myString = "This is just a test text";  // Задаем строку для поиска
+var myPattern = /te|is/g;                   // Задаем шаблон - либо "te" либо "is"
+
+result = myPattern.exec(myString);
+console.log(result);
+// ['is', index: 2, input: 'This is just a test text', groups: undefined]
+
+result = myPattern.exec(myString);
+console.log(result);
+// 'is', index: 5, input: 'This is just a test text', groups: undefined]
+
+result = myPattern.exec(myString);
+console.log(result);
+// ['te', index: 15, input: 'This is just a test text', groups: undefined]
+
+result = myPattern.exec(myString);
+console.log(result);
+// ['te', index: 20, input: 'This is just a test text', groups: undefined]
+
+result = myPattern.exec(myString);
+console.log(result);
+// null</pre>
+					</li>
+					<li>
+						<strong>Метод test()</strong> - выполняет регулярное выражение по отношению к строке-аргументу, результатом его работы является логическое значение - true если совпадение есть, и false если нет. Свойство lastIndex объекта также как и у метода exec() сместится на позицию, следующую непосредственно за найденной подстрокой.
+						<br><br>Важный момент! Если совпадение не найдено, то lastIndex будет смещен на позицию 0 и поиск можно будет начинать сначала.
+						<pre>
+var myString = "This is just a test text";  // Задаем строку для поиска
+var myPattern = /te|is/g;                   // Задаем шаблон - либо "te" либо "is"
+
+result = myPattern.test(myString);          
+
+// result будет равен true, поскольку будет найдено первое совпадение, свойство lastIndex примет значение 4
+
+result = myPattern.test(myString); // result == true, lastIndex == 7
+result = myPattern.test(myString); // result == true, lastIndex == 17
+result = myPattern.test(myString); // result == true, lastIndex == 22
+result = myPattern.test(myString); // result == false, lastIndex == 0</pre>
+					</li>
+					<li>
+						Задание. 
+						<br>Первым параметром передается случайная строка(переменная s), а вторым - случайная подстрока(переменная sub_s), ), которую нужно использовать в качестве шаблона регулярного выражения
+						<br>
+						Нужно вернуть из функции строку, в которой будут перечислены через запятую все совпадения шаблона с первой строкой.
+						<pre>
+function testRegExp(s, sub_s) {
+    // регулярное выражение, подстрока
+    var myPattern = new RegExp(sub_s, 'g');
+    
+    // создание массива из всех совпадений
+    var myArr = s.match(myPattern);
+
+    // разбивка массива на строку
+    var result = myArr.join();
+    
+    return result
+}</pre>
 					</li>
 				</ul>
 			</li>
