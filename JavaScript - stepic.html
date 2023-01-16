@@ -2786,24 +2786,116 @@ function testRegExp(s, sub_s) {
 				</span>
 				<ul>
 					<li>
-						
+						<strong>Замыкание</strong> - это функция, которая объявлена внутри другой функции.
+						<br>Функция должна иметь доступ к переменным, внутри которой она объяелена
+						<br>
+						<strong>Таким образом такая функция (замыкание) имеет доступ к данным внутри себя и внутри родительской функции.</strong>
 					</li>
 					<li>
-						
+						Простой пример
+						<pre>
+function greetPirate(pirateName) {  // объявление родительской функции
+    var greating = 'Hello ';
+
+    function checkCapitan() {  // объяеления замыкания (функции внутри функции)
+        if (pirateName != 'Jack Sparrow')
+            return greating + pirateName;
+        else
+            return greating + 'CAPTAIN ' + pirateName + '!';
+    }
+
+    return checkCapitan();
+}
+
+console.log(greetPirate('Alexander'));
+// Hello Alexander
+
+console.log(greetPirate('Jack Sparrow'));
+// Hello CAPTAIN Jack Sparrow!
+
+console.log(checkCapitan());
+// ошибка - нельзя вызвать замыкание, без учёта внешней функции</pre>
 					</li>
 					<li>
-						
+						<strong>Замыкание может обращаться к переменным своей внешней функции даже после ее окончания выполнения.</strong>
+						<br>
+						Даже после того как выполнение внешней функции завершено, внутренняя все еще может быть вызвана и имеет доступ к переменным внешней функции.
+						<br>
+						Пример, с двумя замыканиями, 1) будет возвращать значение переменной из вызывающей функции, второе - изменяет его
+						<pre>
+function pirate() {
+    var pirateName = 'noname';
+    return {
+        getName: function() {
+            return pirateName;
+        },
+        setName: function(newName) {
+            pirateName = newName;
+        }
+    }
+}
+
+var newPirate = pirate();  // присвоили переменной функцию
+console.log(newPirate.getName());  // выводим значение (обращаемся к замыканию 1 функции)
+// noname
+newPirate.setName('Jack Sparrow');  // Изменяем значение переменной (обращаясь к замыканию 2)
+console.log(newPirate.getName());  // Выводим значение - оно уже будет изменено (опять обращаясь к первому замыканию)
+// Jack Sparrow</pre>
+						В данном примере мы видим что замыкания получили доступ к переменной внешней функции после ее завершения.
 					</li>
-				</ul>
-			</li>
+					<li>
+						Счётчик в JS, с помощью замыкания
+						<pre>
+function makeCounter(initialValue) {  // на входе первоначальное значение
+    var currentState = initialValue;  // текущее значение = первоначальное
+    return function() {
+        currentState = currentState + 1; // увеличиваем текущее значение на 1
+        return currentState // возвращаем текущее значение
+    }
+}
 
+var myCounter = makeCounter(5);  // создаём экземпляр счётчика и устанавливаем нач значение 5
+console.log(myCounter()); // 6
+console.log(myCounter()); // 7
+console.log(myCounter()); // 8
 
+var twoCounter = makeCounter(100);  // создаём экземпляр счётчика и устанавливаем нач значение 100
+console.log(twoCounter()); // 101
+console.log(twoCounter()); // 102
+console.log(twoCounter()); // 103
+</pre>
 
 &lt;			
 
 		</ol> <!-- 3. Продвинутые операции -->
 
-
+		<hr>
+		<h1 class="title_text">
+			4. Заключение
+		</h1>
+		<hr>
+		<p>
+			В курше прошли
+			<ul>
+				<li>Переменные и операции с ними</li>
+				<li>Ветвления и циклы</li>
+				<li>Объекты и функции</li>
+				<li>Базовые классы для работы со стоками, массивами, датой и временем</li>
+				<li>Объект Math</li>
+				<li>Обработка ошибок</li>
+				<li>Регулярные выражения</li>
+				<li>Замыкания</li>
+			</ul>
+		</p>
+		<br>
+		<br>
+		<p>
+			Продолжение в изцчении JS
+			<ol>
+				<li>Изучение объектных модели документа и браузера(<strong>DOM - document object model и BOM - browser object model</strong>)</li>
+				<li>После -  изучению основных библиотек, использующихся при разработке фронтенда - внешнего, т.е. клиентского представления веб-сайта.</li>
+			</ol>
+		</p>
 
 
 
