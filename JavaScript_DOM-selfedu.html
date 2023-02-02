@@ -1,0 +1,3887 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- css bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+	<title>JavaScript работа с DOM</title>
+
+	<style type="text/css">
+		pre{
+			color: white;
+			background: #2c4352;
+			padding-right: 35px;
+			padding-left: 5px;
+			padding-bottom: 7px;
+			padding-top: 10px;
+		}
+		
+		.all{
+			background: #e5fdff;
+
+
+		}
+
+		
+		body{
+			background: #2c4352;
+
+		}
+		
+		.spec {
+			font-size: 16px;
+			letter-spacing: .2em;
+			font-weight: 500;
+/*			text-transform: uppercase;*/
+			color: #f70000;
+			margin-top: 15px;
+			margin-bottom: 2px;
+		}
+
+		.title_text {
+			letter-spacing: .1em;
+			font-weight: 500;
+			color: #ce0000;
+			font-size: 25px;
+
+		}
+
+		li{
+			margin-bottom: 10px;
+
+		}
+	</style>
+&lt; &lt; &lt;
+
+
+</head>
+<body>
+
+	<p><a href="https://www.youtube.com/playlist?list=PLA0M1Bcd0w8zri9wWiDFmOukXhguEYBBO">Курс YouTube - JavaScript работа с DOM</a></p>
+
+	<p><a href="https://proproprogs.ru/js">https://proproprogs.ru/js</a></p>
+
+
+	<div class="container-md all"><!-- container-md all ОБЩИЙ -->
+
+		<br>
+		<h1 class="title_text border text-center">JavaScript работа с DOM</h1><br>
+		<!-- <img src="images\avtoblog\host.jpg" class="img-fluid"><br> -->
+
+
+<br>
+<br>
+<hr>
+<h1 class="text-info">Работа с документом</h1>
+<hr>
+		<ul> <!-- ОБЩИЙ -->
+
+&lt;
+
+			<li>
+				<hr><h1 class="title_text">1. Объектная модель документа DOM и BOM</h1><hr>
+				<ol>
+					<li>
+						Программы на JS запускаются везде где установлены вируальные машины JS. В основном это Браузеры и Серверы (Node.js)
+
+					</li>
+					<li>
+						При запуске JS в браузере - имеется возможность управлять содержимым HTML документа
+						<br>При выполнении на сервере появляеются доп функции для работы с сетевыми запросами
+					</li>
+					<li>
+						При работе в браузере доступны:
+						<br><strong>DOM (Document Object Model)</strong> - объектная модель документа, для управления содержимым HTML документа.
+						<br><strong>BOM (Browser Object Model)</strong> - дополнительные объекты, предоставляемые браузером.
+					</li>
+					<li>
+						<img src="images\JS_DOM\window.png" class="img-fluid"><br>
+						Это всё объекты (window, DOM, BOM)
+						<br><br>
+						Пример управления, высотой клиентского окна, при помощи объекта window
+						<pre>
+// получение значения текузей высоты окна браузера
+console.log(window.innerHeight); //645</pre>
+						Изменение фона  - объект document
+						<pre>
+document.body.style.background = 'green';  // изменение фона</pre>
+						Просмотр - на какой платформе запущен браузер - объект BOM
+						<pre>
+console.log(navigator.platform);  // платформа - Win32</pre>
+					</li>
+					<li>
+						Когда браузер загружает html документ, он стоит дерево DOM
+						<pre>
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+     &lt;title>Уроки по JavaScript&lt;/title>
+&lt;/head>
+&lt;body>Дерево DOM&lt;/body>
+&lt;/html></pre>
+						<strong>Вышеуказаный код равен изображению ниже (дерево DOM)</strong>
+						<br>
+						<img src="images\JS_DOM\DOM.png" class="img-fluid"><br>
+						Если открыть документ html - просто с текстом, браузер автоматически добавит - HTML - HEAD - BODY
+						<br>
+						Аналогично браузер сам добавит тэг tbody - при создании таблицы, если его не указали
+					</li>
+					<li>
+						В дереве так же отображается объекты комментариев
+					</li>
+					<li>
+						Дом дерево содержит 12 объектом, но чаще всего пользуются лиш некоторыми
+						<ul>
+							<li>
+								<strong>document</strong> - объект представляющий дерево DOM (точка входа в DOM)
+							</li>
+							<li>
+								<strong>Тэги HTML</strong> - узы и элементы
+							</li>
+							<li>
+								<strong>Текстовые узлы</strong> - элементы, содержащие текстовую информацию
+							</li>
+							<li>
+								<strong>Комментарии</strong> - элементы с комментариями (иногда они используются JS для записи и чтения информации, скрытой от пользователя)
+							</li>
+						</ul>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">2. Навигация по DOM - parentNode, nextSibling, previousSibling, childNodes</h1><hr>
+				<ol>
+					<li>
+						<pre>
+// получение ссылок на объекты DOM
+let html = document.documentElement; // ссылка на объект html
+let body = document.body; // ссылка на body
+let head = document.head; // ссылка на head
+
+console.log(html, body, head);  // вывод в консоле</pre>
+					</li>
+					<li>
+						<strong>Скрипт JavaScript (тег &lt;script> код JS либо ссылка на JS документ &lt;/script> - необходимо располагать до закрывания перед &lt;/body></strong> - для того чтобы DOM дерево уже было построено.
+					</li>
+					<li>
+						<strong>Дочерние узлы(дети)</strong> - Элементы, которые являются непосредственными детьми узла;
+						<br>
+						<strong>Потомки</strong> - все элементы, которые лежат внутри данного, включая детей, детей их детей и тд.
+						<br><br>
+						Например Head - это дочерний узел HTML
+						<br>Title - дочерний узел Head
+						<br>Title - потомок HTML
+					</li>
+					<li>
+						Перебор всех дочених узлов какого либо элемента с помощью цикла for
+						<br><strong>childNodes</strong>
+						<pre>
+// перебор всех дочених элементов
+for (let i = 0; i < document.body.childNodes.length; i++) {
+	console.log( document.body.childNodes[i] ); 
+}</pre>
+						Перебор дочерних элементов с помощью цикла for of (только для псевдомассивов) - равносильно вышеуказанному коду
+						<pre>
+// перебор всех дочених элементов
+for (let cild of document.body.childNodes) {
+	console.log( cild ); 
+}</pre>
+					</li>
+					<li>
+						<strong>for in</strong> - нужен для перебора свойств какогото объекта
+						<br>
+						<strong>for of</strong> - работает быстрей, необходимо использовать когда свойства не нужны
+					</li>
+					<li>
+						<strong>firstChild</strong> - свойство который указывает на первый дочерний элемент, какого то элемента
+						<br>
+						<strong>lastChild</strong> - указывает на последний дочерний элемент
+						<pre>
+// просмотр первого и последнего дочернего элемента для html
+let html = document.documentElement; // объект html
+let first = html.firstChild;  // первый дочерний html
+let last = html.lastChild;  // последний дочерний html
+
+console.log(first); // head
+console.log(last); // body
+
+// то же самое, но лучше использовать вышеуказанный вариант
+console.log(html.childNodes[0]); //head
+console.log(html.childNodes[html.childNodes.length-1]);  // body</pre>
+					</li>
+					<li>
+						Проверка - существует ли у элемента - дочерние элементы
+						<br>
+						<strong>hasChildNodes()</strong>  - true если существуют / false - если дочерних элементов нет
+						<pre>
+// существуют ли дочерние элементы
+let html = document.documentElement; // объект (родитель)
+console.log( html.hasChildNodes() ); // true - дочерние элементы есть</pre>
+					</li>
+					<li>
+						Для добавления, удаления изменения дочерних элементов используются специальные методы, просто присвоить через =, не получится
+					</li>
+					<li>
+						<strong>Коллекция Children</strong> - для пропуска текстовых блоков пробел, табуляция, комментариев и тд, т.е перебирать теги
+						<pre>
+let html = document.documentElement;
+// перебираем все элементы children для body
+for (let child of document.body.children) {
+	console.log( child );
+	// p, ul, scpipt
+}</pre>
+					</li>
+					<li>
+						<strong>Соседи</strong> - узлы, у которых один и тот же родитель.
+						<pre>
+&lt;html>
+	&lt;head>...&lt;/head>
+	&lt;body>...&lt;/body>
+&lt;/html></pre>	
+						Здесь head и body - сосзеди. Для head, body - следующий справа; для body, head - предыдущий слева
+					</li>
+					<li>
+						<strong>nextSibling</strong> - следующий сосед (справа);
+						<br>
+						<strong>previousSibling</strong> - предыдущий сосед (слева).
+						<strong>
+// следующий и предыдущий элемент
+console.log(document.head.nextSibling); // #text
+console.log(document.body.previousSibling); // #text
+// #text - потому что учитываются все пробелы, табуляции и тд</strong>
+						То есть в дом дереве учитываются все текстовые элементы пробела, тебузяции и тд, не смотря на то что эти тектовые элементы не влюяют на отображении в готовом html документе в браузере
+					</li>
+					<li>
+						<strong>parentNode</strong> - получение родительского элеметна
+						<strong>
+// получение родительского элемента
+console.log(document.body.parentNode); // html</strong>
+					</li>
+					<li>
+						<strong>Если не нужно учитвыать пектосвые пробельные элементы между тегами необходимо добавлять Element</strong>
+						<pre>
+// слeдующий и предыдущий элемент без учёта #text и тд
+console.log(document.head.nextElementSibling); // body
+console.log(document.body.previousElementSibling); // head</pre>
+					</li>
+					<li>
+						Относительно любого узла DOM-дерева можно осуществлять следующие переходы (с учтёом #text и тд)
+						<br>СПИСОК: parentNode, nextSibling, previousSibling, childNodes, firstChild, lastChild
+						<br><img src="images\JS_DOM\div1.png" class="img-fluid"><br>
+					</li>
+					<li>
+						Относительно любого узла DOM-дерева можно осуществлять следующие переходы. <strong>Если нужны только узлы (теги HTML</strong>, без учёта #text и тд
+						<br><br>СПИСОК: parentElement, nextElementSibling, previousElementSibling, children, firstElementChild, lastElementChild
+						<br><img src="images\JS_DOM\div2.png" class="img-fluid"><br>
+					</li>
+					<li>
+						<strong>Дополнительные свойства для объектов table:</strong>
+						<br><strong>-table.rows</strong> - коллекция строк &lt;tr> таблицы;
+						<br><strong>-table.caption/tHead/tFoot</strong> - ссылки на элементы таблицы &lt;caption>, &lt;thead>, &lt;tfoot>;
+						<br><strong>-table.tBodies</strong> - коллекция элементов таблицы &lt;tbody> (по спецификации их может быть больше одного).
+					</li>
+					<li>
+						<strong>Дополнительные свойства для объектов tr:</strong>
+						<br><strong>-tr.cells</strong> – коллекция &lt;td> и &lt;th> ячеек, находящихся внутри строки &lt;tr>;
+						<br><strong>-tr.sectionRowIndex</strong> - номер строки <tr> в текущей секции &lt;thead>/&lt;tbody>/&lt;tfoot>;
+						<br><strong>-tr.rowIndex</strong> - номер строки &lt;tr> в таблице (включая все строки таблицы).
+					</li>
+					<li>
+						<strong>Дополнительные свойства для объектов td:</strong>
+						<br><strong>-td.cellIndex</strong> - номер ячейки в строке &lt;tr>.
+					</li>
+					<li>
+						Пример работы с таблицей
+						<br>
+						html
+						<pre>
+&lt;table id='table_digs'> &lt;!-- таблица -->
+	&lt;tr> &lt;!-- стока 1 -->
+		&lt;td>один&lt;/td> &lt;!-- столбец 1 -->
+		&lt;td>два&lt;/td> &lt;!-- столбец 2 -->
+	&lt;/tr>
+	&lt;tr> &lt;!-- стока 2 -->
+		&lt;td>три&lt;/td> &lt;!-- столбец 1 -->
+		&lt;td>четыре&lt;/td> &lt;!-- столбец 2 -->
+	&lt;/tr>
+&lt;/table></pre>
+						JavaScript
+						<pre>
+// работа с таблицей
+// получение значения, id - таблицы, номер сроки, номер столбца
+// ID.строка1.столбец2.innerHTML
+console.log( table_digs.rows[0].cells[1].innerHTML ); 
+// два</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">3. Методы поиска элементов в DOM: querySelector, querySelectorAll, getElementById</h1><hr>
+				<ol>
+					<li>
+						Поиск элемента по id, например div
+						<br>html
+						<pre>
+&lt;div id='div_id'>
+	&lt;p>Текст внутри блока div&lt;/p>
+&lt;/div></pre>
+						js
+						<pre>
+// получить элемент по id (ссылку на элемент)
+let divElem = document.getElementById('div_id');
+console.log( divElem ); // вывод в консоль всего div-а</pre>
+						<strong>или в одну строку</strong> - т.е js автоматически создаёт переменные, но данным способом лучше не пользоваться, так как переменная может быть переопределена
+						<pre>
+// получить элемент по id в одну строку (лучше не пользоваться)
+console.log( div_id );</pre>
+					</li>
+					<li>
+						<strong>querySelectorAll(css)</strong> - возвращает список элементов css селектора, которые указывается в виде аргумента
+						<br>html
+						<pre>
+&lt;ul>
+	&lt;li>Солнце&lt;/li>
+	&lt;li>Меркурий&lt;/li>
+	&lt;li>Венера&lt;/li>
+	&lt;li>Семля&lt;/li>
+	&lt;li>Марс&lt;/li>
+&lt;/ul></pre>
+						js
+						<pre>
+// работа со списком
+// взять маркированный список ul и выбрать все дочерние элементы li
+let list = document.querySelectorAll('ul > li');
+
+// перебор и вывод всех значений нужного списка
+for(let value of list)
+	console.log(value);
+	// в консоле только li - из списка ul</pre>
+						Взять первый элемент нужного списка
+						<pre>
+// взять первый элемент из нужного списка
+let list = document.querySelectorAll('ul > li:first-child');
+
+// можно без цикла, т.к элемент 1 
+console.log(list[0]);
+// li 'Солнце' /li</pre>
+					</li>
+					<li>
+						<strong>querySelector(css)</strong> - выбрать только первых подходящий элемент. Без переблров списка, этот способ работает быстрей, необходимо оспользовать если нужно взять какойто один конкретный элемент
+						<pre>
+// взять один элемнт (первый подходящий)
+let list = document.querySelector('ol > li');
+console.log(list);
+// li 'Сириус' /li</pre>
+					</li>
+					<li>
+						<strong>matches</strong> - метод позволяет определить, подходит ли данный элемент под указанный css селектор. true/false
+						<br>Пример: Необходимо выбрать все элементы с классом 'star'
+						<br>html
+						<pre>
+&lt;div class="content-teble">
+	&lt;ul class="star-list">
+		&lt;li class="star">О сириусе&lt;/li>
+		&lt;li class="star">Об альдебаране&lt;/li>
+		&lt;li class="contact">Обратная связь&lt;/li>
+	&lt;/ul>
+&lt;/div></pre>
+						js
+						<pre>
+// вывод элементов списка, определённого класса
+// берём список ul с классом 'star-list' > в этом списке берём элементы списка li
+let list = document.querySelectorAll('ul.star-list > li');
+// перебираем все элементы переменной List
+for(let item of list) {
+	if (item.matches('li.star')) { // если у li сlass = 'star' (т.е matches == true)
+		console.log(item); // выводим в консоль
+	}
+}</pre>
+					</li>
+					<li>
+						<strong>elem.closest(css)</strong> - ищет ближайшего предка - который соответствует css селектору, сам элемент так же включается в поиск.
+						<br>метод возвращает либо предка, либо null
+						<br>Пример для списка html - предыдущего пункта
+						<br>js
+						<pre>
+// выбрали первый попавшийся элемент li c классом 'star' т.е о сириусе
+let li = document.querySelector('li.star');
+
+// Относительно нашего ли ищем ближайшего предка с классом star-list
+console.log(li.closest('.star-list')); // весь наш список ul
+// Относительно нашего li, ищем ближайшего предка с класом 'content-teble'
+console.log(li.closest('.content-teble')); // весь div
+// для нашего элемента li, патаемся найти предок с тегом h1
+console.log(li.closest('h1')); // null</pre>
+					</li>
+					<li>
+						В более старых версиях JS вместо querySelector и querySelectorAll использовались такие методы как:
+						<ul>
+							<li>
+								elem.getElementsByTagName(tag) ищет элементы с указанным тегом и возвращает их коллекцию. Указав "*" вместо тега, можно получить всех потомков.
+							</li>
+							<li>
+								elem.getElementsByClassName(className) возвращает элементы, которые имеют указанный CSS-класс.
+							</li>
+							<li>
+								document.getElementsByName(name) возвращает элементы с заданным атрибутом name. (Используется очень редко).
+							</li>
+						</ul>
+					</li>
+					<li>
+						<strong>elemA.contains(elemB)</strong> - true/false, метод который проверяет является ли elemB дочерним по отношению к elemA0
+						<br>Пример по вышеуказанному html, умеются ли внутри тега div какието другие бочерние элементы
+						<br>js
+						<pre>
+// является ли элемент дочерним к другому (нагодится ли внутри тега)
+let div = document.querySelector('div.content-teble'); // ссылка на div, с классом content-teble
+let ul = document.querySelector('ul.star-list');  // ссылка на ul, с классом 'star-list'
+
+if (div.contains(ul)) { // если ul дочерний к div (т.е contains == true)
+	console.log('ul внутри div'); // выводим в консоль
+}</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">4. Свойства DOM-узлов: nodeName, innerHTML, outerHTML, data, textContent, hidden</h1><hr>
+				<ol>
+					<li>
+					<strong>Иерархия DOM дерева</strong>
+					<br><img src="images\JS_DOM\DOMrang.png" class="img-fluid"><br>	
+					Все элементы DOM - содержат корневой класс EventTarget и класс Node
+					<br>Далее идёт специализация классов: Text (текстовые элементы), Element (элементы теги), Comment (комментарии)
+					<br>
+					</li>
+					<li>
+						Узнать класс поределённого элемента с помощью конструктора <strong>document.элемент.constructor.name</strong>
+						<pre>
+// узнать класс элемента
+console.log( document.body.constructor.name );
+// HTMLBodyElement</pre>
+						При помощи <strong>instanceof</strong> - на практике этот способ предпочтительней
+						<pre>
+// проверка принаджежности элемента к определённому JS классу
+console.log(document.body instanceof HTMLBodyElement); // true
+console.log(document.body instanceof HTMLBodyElement); // true
+console.log(document.body instanceof Element); // true
+console.log(document.body instanceof Text); // false</pre>
+					</li>
+					<li>
+						Вывод содержимоготэлемента <strong>console.log(элемент)</strong>
+					</li>
+					<li>
+						Вывод структуры элемента <strong>console.dir(элемент)</strong> 
+						<pre>
+// вывод структуры элемента
+console.dir(document.body);
+// покажет все свойства элемента</pre>
+					</li>
+					<li>
+						<strong>elem.nodeType</strong> - вывод номера принадлежности элемента к классу JS
+					</li>
+					<li>
+						<strong>nodeName</strong> - имя элемента есть у всех
+						<br>
+						<strong>tagName</strong> - имя тега (есть только у тегов)
+						<br>
+						html
+						<pre>
+&lt;body>&lt;!-- комментарий -->&lt;h1>Заголовок страницы&lt;/h1>
+...</pre>
+						js
+						<pre>
+let comm = document.body.firstChild;  // весь текст комментария
+
+// имя узла
+console.log(comm.nodeName); // #comment
+console.log(document.body.nodeName); // BODY
+
+// имя тэга
+console.log(comm.tagName); // undefined
+console.log(document.body.tagName); // BODY</pre>
+					</li>
+					<li>
+						<strong>innerHTML</strong> - свойство, позволяющее читать и менять <strong>содержимое</strong> любых тегов html документа
+						<br>Пример html предыдущего пункта
+						<br>
+						<pre>
+// общараемся к заголовку (в body взяли первый дочерний элемент комментарий, и через него следующий элемент заголовок)
+let h1 = document.body.firstChild.nextSibling;
+console.log(h1.innerHTML); // покажет только содержимое! без тегов
+// Заголовок страницы</pre>
+					</li>
+					<li>
+						<strong>Изменение содержимого внутри тегов - тоже innerHTML</strong>
+						<pre>
+// общараемся к заголовку
+console.log(h1.innerHTML); // Заголовок страницы
+
+// изменяем собердимое между тегов &lt;h1>содержимое&lt;/h1>
+h1.innerHTML = 'Изменённый заголовок';
+// В браузере после этой строчки будет уже изменённый заголовок!</pre>
+						Изменения содержимого внутри тегов, с добавлением новых теггов
+						<pre>
+// Заголовок страницы
+let h1 = document.body.firstChild.nextSibling;
+// изменяем собердимое между тегов &lt;h1>содержимое&lt;/h1>
+h1.innerHTML = 'Изменённый &lt;u>заголовок&lt;/u>';</pre>
+						<strong>Добавление тектса - элемент.innerHTML += 'добавленный текст'</strong>
+						<pre>
+// Заголовок страницы
+let h1 = document.body.firstChild.nextSibling;
+// изменяем собердимое 
+h1.innerHTML = 'Изменённый <u>заголовок</u>'; // Изменённый <u>заголовок</u>
+
+h1.innerHTML += ' с добавленным текстом!'; // Изменённый <u>заголовок</u> с добавленным текстом!</pre>
+					</li>
+					<li>
+						<strong>outerHTML</strong> - свойство аналогичное innerHTML, но в нём есть информация о самих тегах, то есть с помощью него можно менять тег целиком, наприммер h1 превратить в p и тд.
+						<pre>
+// el = &lt;h1>Заголовок страницы&lt;/h1>
+let el = document.querySelector('body > h1');
+console.log(el); // &lt;h1>Заголовок страницы&lt;/h1>
+
+// изменяем теги h1 на теги p
+el.outerHTML = '&lt;p>Изменили заголовок на простой абзац&lt;/p>'</pre>
+						<strong>innerHTML, outerHTML</strong> - работает только с тегами, комментарий изменить так нельзя
+					</li>
+					<li>
+						<strong>nodeValue и data</strong> - одинаковые свойства, то же самое что и innerHTML - только можно изменить любое содержимое, не только внутри тегов
+						<br>Пример изменения содержимого комментария
+						<pre>
+// это комментарий
+let comm = document.body.firstChild;
+console.log(comm); // &lt;!-- комментарий -->
+console.log(comm.data);  // комментарий
+
+// изменяем содержимое комментария
+comm.data = 'Изменённый комментарий'; 
+// Изменённый комментарий</pre>
+						<strong>свойство data - отсутствует у тегов элементов</strong>
+					</li>
+					<li>
+						<strong>textContent</strong> - свойство для теггов элементов, и содержит чичтый текст без тегов
+						<br>js
+						<pre>
+// отображение всего body - без тегов
+console.log(document.body.textContent);
+// Заголовок страницы</pre>
+						Это свойство можно использовать для безопасности, например когда злоумышлинники в место какого то контента на сайт пишут свои скрипты, чтобы положить сайт, но с помощью textContent - мы будем игнорировать все теги, и получится просто текст
+						<pre>
+// добавление комментария от пользователя + игнорирование теггов, экранирование
+let msg = prompt('Ваш комментарий:', '');
+
+// comm  - это div class comm
+// textContent - игнорирование вводных тегов
+// msg - это вводимое пользователем сообщение
+comm.textContent = msg;
+</pre>					
+					</li>
+					<li>
+						Добавление комментариев с учётом тегов, это менне безопасно, злоумышлиники могут добавлять свои скрипты
+						<pre>
+// добавление комментария от пользователя + игнорирование теггов, экранирование
+let msg = prompt('Ваш небезопасный комментарий:', '');
+
+// comm  - это div class comm
+// innerHTML - можно писать комменатрии и вставлять теги
+// msg - это вводимое пользователем сообщение
+comm.innerHTML = msg;</pre>
+					</li>
+					<li>
+						<strong>hidden</strong> - свойство которое скрывает содержимое контента.
+						<br>если hidden = true - скроет контент, false - будет отображать
+						<br>Пример, скрывания и отображенитя контента, мигание 
+						<br>html
+						<pre>
+&lt;div id='shadow'>Сообщение от пользователя&lt;/div></pre>
+						<br>js
+						<pre>
+// скрывание содержимого и отображение, то есть мигание!
+// получаем ссылка на элемент по id
+let shadow = document.getElementById('shadow');
+
+// скрываем содерджимое divа
+shadow.hidden = true;
+
+// отображать и скрывать элемент каждые 500 мс
+setInterval(()=> shadow.hidden = !shadow.hidden, 500);</pre>
+						<strong>hidden в js = style='dysplay:none' в css</strong>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">5. Работа с нестандартными свойствами DOM-элементов: getAttribute, setAttribute, dataset</h1><hr>
+				<ol>
+					<li>
+						<strong>Узлы DOM дерева - это объекты языка JavaScript</strong>
+						<br>Объектам можно добавлять свои свойства
+						<br>Пример добаления свойства к body (качестве свойства - строка)
+						<pre>
+// добавление своего нового свойства к объекту body
+// получаем ссылку на объект body
+let body = document.body;
+
+// создаём новое свойство объекта.
+body.myStyle = 'color: red';
+
+console.log(body.myStyle);
+// color: red</pre>
+						или в качестве свойства объект
+						<pre>
+// получаем ссылку на объект body
+let body = document.body;
+
+// создаём новое свойство = объекта.
+body.myStyle = {
+	color: 'red',
+	fontSize: 20
+};
+
+// выводим свойства в консоли
+console.log(body.myStyle);  // {color: 'red', fontSize: 20}
+console.log(body.myStyle.color);  // red
+console.log(body.myStyle.fontSize);  // 20</pre>
+						Добавление нового метода в качестве свойства (т.е функции)
+						<pre>
+// добавляем свойство в body - в виде нового метода (функции)
+body.getFontSize = function() {  // мовый метод получения в консоли шрифта
+	return this.myStyle.fontSize;  // возвращаем шрифт
+}
+
+// вывываем в консоли своё свойство, свой метод
+console.log(body.getFontSize()); // 20
+</pre>
+					</li>
+					<li>
+						<strong>Методы для работы с нестандартными свойствами:</strong>
+						<hr>
+						<strong>- elem.hasAttribute(name)</strong> - проверяет наличие атрибута;
+						<br>
+						<strong>- elem.getAttribute(name)</strong> - получает значение атрибута;
+						<br>
+						<strong>- elem.setAttribute(name, value)</strong> - устанавливает значение атрибута;
+						<br>
+						<strong>- elem.removeAttribute(name)</strong> - удаляет атрибут.
+						<br>
+					</li>
+					<li>
+						Примеры использования методов - получение и изменение значения нестандартных (собственных) аттрибутов
+						<br>
+						html
+						<pre>
+&lt;div id='comm' deflt='значение'>Сообщения&lt;/div></pre>
+						<br>
+						js
+						<pre>
+// получение и изменение значения нестандартных (собственных) аттрибутов
+// получаем ссылку на div по id comm
+let div = document.getElementById('comm');
+// получаем значение собственного аттрибута deflt (указан в html)
+console.log( div.getAttribute('deflt')); // значение
+// изменяем значение собственного аттрибута
+div.setAttribute('deflt', 'Новое значение');
+// читаем новое значение собственного атрибута
+console.log( div.getAttribute('deflt')); // Новое значение</pre>
+					</li>
+					<li>
+						<strong>Метод elem.attributes</strong>
+						<br>
+						<strong>Получение аттрибутов объекта, которые написаны в html внутри открывающего тега</strong>
+						<pre>
+// Чтение всех аттрибутов написанных в теге html
+// получаем ссылку на div по id comm
+let div = document.getElementById('comm');
+
+// перебираем атрибуты
+for (let val of div.attributes)
+	// выводим в консоль аттрибуты и их значения
+	console.log(val);</pre>
+					</li>
+					<li>
+						<strong>Все значения нестандартных атрибутов могут быть только строковыми!</strong>
+					</li>
+					<li>
+						Пример использования нестандартных аттрибутов
+						<br>html
+						<pre>
+&lt;table>
+	&lt;tr>
+		&lt;td cell-red='#CC0000'>1&lt;/td>
+		&lt;td cell-blue='#0000CC'>2&lt;/td>
+		&lt;td cell-red='#CC0000'>3&lt;/td>
+		&lt;td cell-blue='#0000CC'>4&lt;/td>
+	&lt;/tr>
+
+	&lt;tr>
+		&lt;td cell-blue='#0000CC'>5&lt;/td>
+		&lt;td cell-red='#CC0000'>6&lt;/td>
+		&lt;td cell-blue='#0000CC'>7&lt;/td>
+		&lt;td cell-red='#CC0000'>8&lt;/td>
+	&lt;/tr>
+&lt;/table></pre>
+						js
+						<pre>
+// перекрашиваем все значения элементов по определённому собственному аттрибуту
+//[cell-red] - выбираем все элементы у которых есть нестандартный аттрибут cell-red
+for(let cell of document.querySelectorAll('[cell-red]')) {
+	let attr = cell.getAttribute('cell-red'); // здесь значение аттрибута
+	cell.style.background = attr; // присваиваем в css (цвет фона) значение нашего аттрибута (там указан цвет)
+}
+</pre>
+						Добавляем к нашему html - css и пишу другой js
+						<br>
+						css
+						<pre>
+&lt;style type="text/css">
+	td[cell-red='#CC0000'] {
+		background: #CC0000;
+	}
+
+	td[cell-red='lightRed'] {
+		background: #FF9999;
+	}
+&lt;/style></pre>
+						js
+						<pre>
+// задаём фон с учётом подготовленного CSS
+let flSkip = false;
+for(let cell of document.querySelectorAll('[cell-red]')) {
+	if (!flSkip) // аттрибут будет меняться через 1
+		cell.setAttribute('cell-red', 'lightRed'); // меняем аттрибут
+		flSkip = !flSkip; // на кждой итерации будет меняться true/false/true/false
+}</pre>
+					</li>
+					<li>
+						В случае если в будущих версиях JS наш собственный аттрибут вдруг станет стандартным для языка, для программы могут быть непредсказуемые последствия.
+						<br>Для защиты от этого, свои собственные аттрибуты необходимо называть так
+						<br><strong>data-имя-своего-аттрибута = 'значение'</strong>
+						<br>
+						html
+						<pre>
+&lt;tr>
+	&lt;td data-cell-red='#CC0000'>1&lt;/td>
+	&lt;td data-cell-blue='#0000CC'>2&lt;/td>
+	&lt;td data-cell-red='#CC0000'>3&lt;/td>
+	&lt;td data-cell-blue='#0000CC'>4&lt;/td>
+&lt;/tr>
+...</pre>
+						js
+						<pre>
+// задаём фон с учётом подготовленного CSS
+let flSkip = false;
+for(let cell of document.querySelectorAll('[data-cell-red]')) {
+	if (!flSkip) // аттрибут будет меняться через 1
+		cell.setAttribute('data-cell-red', 'lightRed'); // меняем  значение аттрибута
+		flSkip = !flSkip; // на кждой итерации будет меняться true/false/true/false
+}</pre>
+					</li>
+					<li>
+						<strong>Коллекция dataset</strong> - для своих аттрибутор, если есть префикы data-имя_аттрибута
+						<br>Пример предыдущего кода с использованием коллекции dataset
+						<pre>
+// задаём фон с учётом подготовленного CSS - при помощи коллекции dataset
+let flSkip = false;
+for(let cell of document.querySelectorAll('[data-cell-red]')) {
+	if (!flSkip) // аттрибут будет меняться через 1
+	
+		// строчку поменяли
+		cell.dataset.cellRed = 'lightRed'; // меняем  значение аттрибута
+		<span class="text-danger">// cellRed = data-cell-red - JS меняет автоматом!</span>
+
+		flSkip = !flSkip; // на кждой итерации будет меняться true/false/true/false
+}</pre>
+						<strong>То есть:</strong>
+						<ul>
+							<li>
+								если свойство использует дефисы, то в dataset оно прописывается в верблюжьей нотации (например, data-cell-red => cellRed);
+							</li>
+							<li>
+								в остальных случаях просто используется оставшееся имя (например, data-color => color).
+							</li>
+						</ul>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">6. Создание и добавление элементов DOM createElement, append, remove, insertAdjacentHTML</h1><hr>
+				<ol>
+					<li>
+						<strong>Создание и добавление элемента в DOM дереве - т.е в HTML</strong>
+						<br>
+						<strong>let div = document.createElement('div'); / document.body.append(div)</strong>
+						<br>css для класса msg уже написан
+						<br>в html только script
+						<br>js
+						<pre>
+// создаём элемент в DOM / HTML
+//создаёмм тэг div
+let div = document.createElement('div');
+// Присваиваем класс тэгу div
+div.className = 'msg';
+// добавляем текст между тегами
+div.innerHTML = 'Важная информация!';
+
+// добавляем наш див в конец body (получится полсе тегов script)
+// помследним в списке дочерних элементов body
+document.body.append(div);</pre>
+					</li>
+					<li>
+						<strong>Методы добаления элементов в DOM</strong>
+						<hr>
+						<strong>- document.body.append(div)</strong> - добавление в конец списка дочерних элементов (в конец body в данном случвае)
+						<br>
+						<strong>- node.prepend(...nodes or strings)</strong> - вставляет узлы или строки в начало node;
+						<br>
+						<strong>- node.before(...nodes or strings)</strong> - вставляет узлы или строки до node;
+						<br>
+						<strong>- node.after(...nodes or strings)</strong> - вставляет узлы или строки после node;
+						<br>
+						<strong>- node.replaceWith(...nodes or strings)</strong> - аменяет node заданными узлами или строками.
+						<hr>
+						<br><img src="images\JS_DOM\addDOM.png" class="img-fluid"><br>
+					</li>
+					<li>
+						<strong>Примеры добавления элемента в HTML</strong>
+						<br>html
+						<pre>
+&lt;ul>
+	&lt;li>Солнце&lt;/li>
+	&lt;li>Меркурий&lt;/li>
+	&lt;li>Венера&lt;/li>
+	&lt;li>Земля&lt;/li>
+&lt;/ul></pre>
+						<br>js
+						<pre>
+// добавление элементов в DOM - работа со списком
+// получаем ссылка на списко
+let list = document.querySelector('ul');
+// Добавляем элемент (просто строку) до списка 
+list.before('before');
+// добавляем элемент (просто строку) после списка
+list.after('after');
+
+// добавляем li первым в списке ul
+// создаём элемент списка li
+let li_1 = document.createElement('li');
+// добавляем текст между тегами li /li
+li_1.innerHTML = 'Первый элемент';
+// вставляем наш элемент списка первым в списке ul
+list.prepend(li_1);
+
+// добавляем li последним в списке ul
+// создаём новый элемент списка li
+let li_end = document.createElement('li');
+// добаляем текст между тегами li /li
+li_end.innerHTML = 'Последний элемент';
+// добавляем наш элемент в конец списка ul
+list.append(li_end);</pre>
+					</li>
+					<li>
+						<strong>Пример замены всего эдемента на другой</strong>
+						<br>html - вышеуказанный список
+						<br>js
+						<pre>
+// замена элемента в DOM
+// получаем ссылку на элемент ul
+let list = document.querySelector('ul');
+// заменяем элемент на (подчёркивание, текст, новую строку)
+list.replaceWith(document.createElement('hr'),  // создаём и добаляем элемент тег hr
+	'замена',  // добавляем текст
+	document.createElement('br'));  // создаём и  добавляем теги br</pre>
+					</li>
+					<li>
+						<strong>Перемещаем элементы в DOM</strong>
+						<br>html - тот же стрисок
+						<br>js
+						<pre>
+// перемещаем элементы в DOM (например с начала спискка в конец)
+// получаем ссылку на первый элемент списка - li 'Солнце'
+let li = document.querySelector('ul > li:first-child');
+// получаем ссылку на сам список
+let list = document.querySelector('ul');
+// добавляем Солнце в конец списка
+list.append(li);
+// Элемент Солнце автоматически удалился с начала и встал в конец, то есть переместили</pre>
+					</li>
+					<li>
+						<strong>document.createTextNode(text)</strong> - Добавление текстового элемента. (без тэгов)
+						<br>js
+						<pre>
+// добавление текстового элемента (без тэгов)
+// создаём текстовый элемент
+let textNode = document.createTextNode('Текстовый элемент');
+// помещаем текстовый элемент в конец body
+document.body.append(textNode);</pre>
+						<br> Можно аналогично вставить текстовый элемент с помощтю append
+						<pre>
+// добавление текстового элемента с помощью append
+document.body.append('&lt;p> Текстовый элемент с помощью append - тег будет отображон как текст &lt;/p>');</pre>
+					</li>
+					<li>
+						<strong>elem.insertAdjacentHTML(where, html)</strong> - для добавления элемента, с обработкой всех теггов
+						<br><strong>Где where может быть:</strong>
+						<br> - "beforebegin" – для вставки html непосредственно перед elem;
+						<br> - "afterbegin" – для вставки html как первого дочернего элемента в elem;
+						<br> - "beforeend" – для вставки html как последнего дочернего элемента в elem;
+						<br> - "afterend" – для вставки html непосредственно после elem.
+
+						<br><img src="images\JS_DOM\where.png" class="img-fluid"><br>
+						<br>
+						Примеры с тем же списом
+						<pre>
+// добавление элементов DOM с обработкой всех тэггов
+// получаем ссылку на список
+let list = document.querySelector('ul');
+
+// долбавляем до элемента, до списка
+list.insertAdjacentHTML('beforebegin', '&lt;p>Список поланет&lt;/p> &lt;hr>');
+// добавляем  после элемента, списка
+list.insertAdjacentHTML('afterend', '&lt;hr>&lt;p>Конец списка');
+// добавляем в начале списка
+list.insertAdjacentHTML('afterbegin', '&lt;li>Млечный путь&lt;/li>');
+// добавляем в конец списка
+// КЛАССЫ В ТЭГГАХ РАБОТАЮТ!
+list.insertAdjacentHTML('beforeend', '&lt;li class="text-dang">Марс&lt;/li>');</pre>
+					</li>
+					<li>
+						<strong>insertAdjacentText(where, text)</strong>) – для вставки строки текста text;
+						<br>
+						<strong>insertAdjacentElement(where, elem)</strong> – для вставки элемента elem.
+						<pre>
+// добавление элемента как строки, (теги будут показаны как строка)
+// получение ссылка на весь список
+let list = document.querySelector('ul');
+// добавляем текст до списка
+list.insertAdjacentText('beforebegin', '<p>Список планет<hr>');
+
+// добавление элемента как элемента с тэгами (отдельно создаём тэг, отдельно содержимое в теге)
+// создаём элемет li /li
+let li = document.createElement('li');
+// добавляем содержимое в элемент (тэги учитываются привильно)
+li.innerHTML = '&lt;b>Млечный путь&lt;/b>';
+// вставляем целиком весь элемент в начале списка
+list.insertAdjacentElement('afterbegin', li);</pre>
+						<strong>На практике эти методы уже не используются - вместо ник append, prepend, before, after</strong>
+					</li>
+					<li>
+						<strong>node.remove()</strong> - метод удаления элемента из DOM дерева.
+						<br>Пример, будем удалять элементы списка, каждые пол секунды пока в списке ничего не останется
+						<br>
+						html
+						<pre>
+&lt;ul class="list-color">
+	&lt;li>Красный&lt;/li>
+	&lt;li>Оранжевый&lt;/li>
+	&lt;li>Желтый&lt;/li>
+	&lt;li>Зелёный&lt;/li>
+	&lt;li>Голубой&lt;/li>
+	&lt;li>Синий&lt;/li>
+	&lt;li>Фиолетовый&lt;/li>
+&lt;/ul></pre>
+						<br>
+						js
+						<pre>
+// удаляем элементы списка каждые пол секунды, пока в списке не будет пусто
+// функция, и метод который вызывает функцию
+// setInterval(функция, интервал) - запускает функцию через определённый интервал
+let idRemobe = setInterval(function() {
+	// получаем последний элемент списка, у списка class='list-color'
+	let li = document.querySelector('ul.list-color > li:last-child');
+	if (li == null) { // если в списке уже ничего нет
+		clearInterval(idRemobe); // останавливаем setInterval
+		alert('Список удалён');  // всплывающее окно
+	}
+	else {  // иначе, то есть список ещё не пустой
+		li.remove();  // удаляем li (это последний элемент списка)
+	}
+}, 500);  // вызыв функции каждые 500 мс</pre>
+						<strong>setIntervar('функция', милисекунды)</strong> - метод который обеспечивает вызов функции, через какойто определённый интервал времени
+
+					</li>
+					<li>
+						<strong>elem.cloneNode(flDeep);</strong> - создание клона узла DOM дерева
+						<br>flDeep = true/false - если true: создастся глубокий клон (со всеми свойствами и дочерними элементами), если false: то будет сощдан клон без дочерних элементов
+						<br>
+						Пример
+						<br>html
+						<pre>
+&lt;table border='1' cellpadding="10">
+	&lt;tr>
+		&lt;td>Солнце&lt;/td>
+		&lt;td>Звезда&lt;/td>
+	&lt;/tr>
+	&lt;tr>
+		&lt;td>Меркурий&lt;/td>
+		&lt;td>Планета&lt;/td>
+	&lt;/tr>
+&lt;/table></pre>	
+						js
+						<pre>
+// добавление клона в таблицу
+// получаем ссылку на саму таблицу
+let t = document.querySelector('table');
+// получение ссылки на последнюю строку таблицы (Меркурий - Планета)
+// <span class='text-danger'>tbody - обязатеьно указать, хоть в html его и не указывали а оно есть!</span> 
+let r = document.querySelector('table>tbody>tr:last-child');
+
+// создаём клон последней строчки (true: копируем с дочерними элементами)
+let row = r.cloneNode(true);
+// меняем первый столбец Меркурий на Венеру
+row.firstElementChild.innerHTML = 'Венера';
+// добавляем в конце таблицы наш клон
+t.append(row);</pre>
+					</li>
+					<li>
+						<strong>DocumentFragment</strong> - образует фрагмент догумента со своим DOM деревом, то есть объект со своим содержимым.
+						<br>Далее содержимое этого объекта можно целиком вставить в любое место html документа
+						<br>
+						Пример - вставляем в пустой список, заранее заготовленные элементы списка
+						<br>html
+						<pre>&lt;ul class="no">&lt;/ul></pre>
+						js
+						<pre>
+// вставляем фрагмент в пустой список
+// получаем ссылку на список ul class='no'
+let ul = document.querySelector('ul.no')
+
+// создаём объект фрагмента DocumentFragment
+let fr = new DocumentFragment();
+// создаём список (массив)
+let list = ['Меркурий', 'Венера', 'Земля', 'Марс'];
+
+for(let p of list) {  // перебираем все элемента списка (массива)
+	let item = document.createElement('li'); // создаём элемент li /li
+	item.innerHTML = p;  // вставляем между li /li - элемент массива
+	fr.append(item);  // добавляем наш полный элемент в новый объект фрагмента
+}
+
+// добавляем  весь созданный фрагмент в пустой список
+ul.append(fr);</pre>	
+						Можно упрастить без фрагмента, вышеуказанный пример именно ради примера
+						<pre>
+// вставление элементов массива в список ul
+// получаем ссылку на список ul class='no'
+let ul = document.querySelector('ul.no')
+// создаём список (массив)
+let list = ['Меркурий', 'Венера', 'Земля', 'Марс'];
+
+for(let p of list) {  // перебираем все элемента списка (массива)
+	let item = document.createElement('li'); // создаём элемент li /li
+	item.innerHTML = p;  // вставляем между li /li - элемент массива
+	ul.append(item);  // добавляем наш полный элемент li в список ul
+}
+</pre>
+						<strong>DocumentFragment - используется крайне редко</strong>
+					</li>
+					<li>
+						<strong>
+							Несколько устаревших методов вставки и удаления элементов:
+						</strong>
+						<br>- parent.appendChild(node) – добавляет элемент в конец списка дочерних элементов;
+						<br>- parent.insertBefore(node, nextSibling) – вставляет элемент перед nextSibling;
+						<br>- parent.removeChild(node) – удаляет элемент node (здесь parent является родителем node);
+						<br>- parent.replaceChild(newElem, node) – заменяет дочерний элемент node на новый newElem.
+					</li>
+					<li>
+						<strong>document.write</strong>- Это довольно древний метод, который появился в JavaScript когда даже не было понятия DOM-объектов и DOM-дерева. Данный метод позволяет добавлять HTML-содержимое в то место, где записан и имеет такой синтаксис/
+						<br>Метод срабатывает только в момент загрузки страницы
+						<br>Будет писать только там где вставлен document.write('текст'), то есть скрипт необходимо вставлять там где необходимо, не внизу body а в середине, в начале и тд
+						<br>
+						<br>
+						Пример, загрузить страницу, через 5 секунд, вместо содержимого страницы написать какойто текст
+						<br>Скрипт пишем в html
+						<pre>
+&lt;script type="text/javascript">
+	setTimeout(function() {
+		document.write('&lt;h1>Заголовок методом document.write("текст")');
+	}, 5000);
+&lt;/script></pre>
+						Если метод вызвать без setTimeout - то будет к первоначальному тексту, добавится новый текст и всё
+					</li>
+					<li>
+						<h5>Итоги занятия, шпаргалка по методам</h5>
+						<hr>
+
+						<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0   style='border-collapse:collapse;border:none'>
+							 <tr>
+							  <td width=638 colspan=3 valign=top style='width:478.55pt;border:solid black 1.0pt;    background:#E5E5E5;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p align=center>Методы
+							  создания узлов
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=265 valign=top style='width:198.55pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>document.createElement(tag)
+							  </td>
+							  <td width=373 colspan=2 valign=top style='width:280.0pt;border-top:none;    border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>создает
+							  указанный объект-тег
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=265 valign=top style='width:198.55pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>document.createTextNode(value)
+							  </td>
+							  <td width=373 colspan=2 valign=top style='width:280.0pt;border-top:none;    border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>создает
+							  текстовый узел
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=265 valign=top style='width:198.55pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>elem.cloneNode(deep)
+							  </td>
+							  <td width=373 colspan=2 valign=top style='width:280.0pt;border-top:none;    border-left:none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>создает клон
+							  элемента
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=638 colspan=3 valign=top style='width:478.55pt;border:solid black 1.0pt;    border-top:none;background:#E5E5E5;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p align=center>Методы вставки
+							  и удаления узлов
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=281 colspan=2 valign=top style='width:210.95pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>elem.append(node
+							  [или text])
+							  </td>
+							  <td width=357 valign=top style='width:267.6pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>добавляет node (или текст)
+							  как последний дочерний элемент
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=281 colspan=2 valign=top style='width:210.95pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>elem.prepend(node
+							  [или text])
+							  </td>
+							  <td width=357 valign=top style='width:267.6pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>добавляет node (или текст)
+							  как первый дочерний элемент
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=281 colspan=2 valign=top style='width:210.95pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>elem.before(node
+							  [или text])
+							  </td>
+							  <td width=357 valign=top style='width:267.6pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>добавляет node (или текст)
+							  непосредственно перед объектом elem
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=281 colspan=2 valign=top style='width:210.95pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>elem.after(node
+							  [или text])
+							  </td>
+							  <td width=357 valign=top style='width:267.6pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>добавляет node (или текст)
+							  непосредственно после объекта elem
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=281 colspan=2 valign=top style='width:210.95pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>elem.replaceWith(node
+							  [или text])
+							  </td>
+							  <td width=357 valign=top style='width:267.6pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>заменяет
+							  объект elem другим
+							  объектом или текстовым элементом
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=281 colspan=2 valign=top style='width:210.95pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>node.remove()
+							  </td>
+							  <td width=357 valign=top style='width:267.6pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>удаляет
+							  элемент
+							  </td>
+							 </tr>
+							 <tr height=0>
+							  <td width=268 style='border:none'></td>
+							  <td width=17 style='border:none'></td>
+							  <td width=357 style='border:none'></td>
+							 </tr>
+						</table>
+
+						<br><br>
+
+						<strong>Устаревшие методы</strong>
+
+						<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0   style='border-collapse:collapse;border:none'>
+							 <tr>
+							  <td width=638 colspan=2 valign=top style='width:478.55pt;border:solid black 1.0pt;    background:#E5E5E5;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p align=center>Методы вставки
+							  и удаления узлов
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=310 valign=top style='width:232.2pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>parent.appendChild(node)
+							  </td>
+							  <td width=328 valign=top style='width:246.35pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>добавляет node как последний
+							  дочерний элемент у parent
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=310 valign=top style='width:232.2pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>parent.insertBefore(node, nextSibling)
+							  </td>
+							  <td width=328 valign=top style='width:246.35pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>вставляет элемент перед
+							  nextSibling
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=310 valign=top style='width:232.2pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>parent.removeChild(node)
+							  </td>
+							  <td width=328 valign=top style='width:246.35pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>удаляет элемент
+							  node (здесь parent является родителем
+							  node)
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=310 valign=top style='width:232.2pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>parent.replaceChild(newElem, node)
+							  </td>
+							  <td width=328 valign=top style='width:246.35pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>заменяет дочерний
+							  элемент node на новый newElem
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=310 valign=top style='width:232.2pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>elem.insertAdjacentHTML(where, html)
+							  </td>
+							  <td width=328 valign=top style='width:246.35pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>вставляет
+							  фрагмент html в зависимости
+							  от значения where
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=638 colspan=2 valign=top style='width:478.55pt;border:solid black 1.0pt;    border-top:none;background:#E5E5E5;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p align=center>Отдельный
+							  метод вставки в момент загрузки
+							  </td>
+							 </tr>
+							 <tr>
+							  <td width=310 valign=top style='width:232.2pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>document.write(html)
+							  </td>
+							  <td width=328 valign=top style='width:246.35pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+							  <p>вставка
+							  фрагмента html в момент
+							  загрузки HTML-страницы
+							  </td>
+							 </tr>
+							</table>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">7. Управление стилями - className, style, classList, getComputedStyle</h1><hr>
+				<ol>
+					<li>
+						Написаны стили css для класса msg 
+					</li>
+					<li>
+						<strong>elem.className</strong> - свойство, позволяющее узнать какие классы подключены к определённому элементу
+						<br>в html - есть dic class='msg'
+						<br>js
+						<pre>
+// какие классы подключены к элементу
+// получаем ссылку на элемент
+let elem = document.querySelector('div.msg');
+// выводим все классы в консоль
+console.log(elem.className);</pre>
+					</li>
+					<li>
+						<strong>elem.style</strong> - свойство, позволяющее узнать какие стили подключены к элементу
+						<strong>elem.style.top</strong> - свойство получения конкретного стиля (в данном случае top)
+						<br>в html есть другой div, в котором напрямую прописаны стили
+						<br>js
+						<pre>
+// получаем все стили элемента
+// находим ссылку следующего элемента после elem
+let elem2 = elem.nextElementSibling;
+// получаем все стили элемента elem2
+console.log(elem2.style);
+
+// получаем значение одного стиля top
+console.log(elem2.style.top);</pre>
+					</li>
+					<li>
+						Добавим новый стиль и новый div в html
+						<pre>
+.message {
+	width: 200px;
+	padding: 10px;
+	background: #eee;
+}
+
+&lt;div class="msg2">Какаято информация&lt;/div></pre>
+						<strong>Меняем имя класса сразу в html внутри тега</strong>
+						<br>то есть поменяв класс, можно поменять общий стиль стиль
+						<pre>
+// меняем имя класса
+// получаем ссылку на div class='msg2'
+let elem = document.querySelector('div.msg2');
+// изменяем имя класса
+elem.className = "message";</pre>
+					</li>
+					<li>
+						Расширение классов css
+						<pre>
+css
+.message.ex {...}
+
+html
+&lt;div class="message ex">..	</pre>
+					</li>
+					<li>
+						<strong>elem.classList</strong> - коллекция для добавления и удвления дополнительных аттрибутов класса
+						<hr>
+						<strong>elem.classList.add/remove("class")</strong> - добавить/удалить класс;
+						<br>
+						<strong>elem.classList.toggle("class")</strong> – добавить класс, если его нет, иначе удалить;
+						<br>Переключить, если его не было, то он добавится, если был удалится.
+						<br>
+						<strong>elem.classList.contains("class")</strong> – проверка наличия класса, возвращает true/false.
+					</li>
+					<li>
+						Добавим расширение к элементу (elem.classList.add)
+						<pre>
+// добавляем расширение класса
+// получили нужный div с классам message
+let div = document.querySelector('div.message');
+// добавляем класс ex (html - div class = 'message ex'/ css - .message.ex)
+div.classList.add('ex');</pre>
+					</li>
+					<li>
+						<strong>Двигающийся элемент!</strong> - т.е динамическое изменение координат - c помощью elem.style
+						<pre>
+// двигающийся элемент! динамическое изменение координат
+// получаем ссылку на объект
+let elem = document.querySelector('div.msg');
+let coordY = 0; // создали переменную координат, сама по себе она ничего не означает
+
+let idMove = setInterval(function() {
+	coordY += 5;  // увеличение значение на 5 каждый запуск функции
+	elem.style.top = coordY+'px'; // присваиваем top - ЧИСЛОpx
+}, 50);  // запуск функции каждые 50мс
+
+setTimeout(()=>clearInterval(idMove), 3000); // через 3 секунды функция остановится</pre>
+						<span class="text-danger">важно, чтобы style.top работал - в css div-а должно быть position: abdolute</span>
+						<br>иначе в js можно использовать elem.style.marginTop (css margin-top)
+						<br>Аналогично можно изменять любые параметры, размер например, угол пофоратоа и так далее.
+						<br>
+						<br>
+						<strong>обязательно указывать еденицы измерения px, em и тд</strong> - для width, left, margin, padding, dont-size и тд
+					</li>
+					<li>
+						Для ображения в js к какомуто стиль черещ дефис (font-size, padding-bottom) - необходиме через верблюжю нотацию (elem.style.fontSize, elem.style.paddingBottom)
+						<br>
+						<pre>
+-moz-border-radius --> elem.style.MozBorderRadius = '5px';</pre>
+					</li>
+					<li>
+						<strong>setInterval(функция, милисекунды)</strong> - выполнение функции каждые(милисекунды)
+						<br>
+						<strong>setTimeout(()=>clearInterval(функция), 3000);</strong> - Завершение работы какойто функции
+					</li>
+					<li>
+						<strong>Мигание</strong> с помощью сбрасывания
+						<br>Если необходимо сбросить какойто стиль, ему можно просто присвоить пустую строчку
+
+						<pre>
+// мигание с помощью сбрасывания
+// получаем div class='msg'
+let elem = document.querySelector('div.msg');
+
+let idMowe = setInterval(function() {
+	if(!elem.style.display) { // если свойства dysplay не пустое
+		elem.style.display = 'none';  // dysplay: none (не показывается)
+	} else { // иначе 
+		elem.style.display = "";  // сбрасываем свойство (просто пустая строка) - показывает контент
+	}
+}, 100);  // вызываем анонимную функцию каждые 100мс
+
+setTimeout(()=>clearInterval(idMowe), 3000);  // через 3 секунды мигание остановится</pre>
+
+					</li>
+					<li>
+						<strong>elem.style.cssText</strong> - присваивание несколькис свойст css  к элементу
+						<pre>
+// присваивание нескольких свойств css к элементу
+// получение ссылки на элемент
+let elem = document.querySelector('div.msg');
+// добавляем несколько свойств css для элемента
+elem.style.cssText = 'color:red; font-size: 18px; background-color: green'</pre>
+						На практике используется редко, обвычно стили прописываются в классах css
+						<br>Свойства в объекте style не синхронизированы с css свойствами, то есть нельзя выбрать какойто элемент по его классу и посмотреть стили, хотя стили для класса прописаны в css.
+						<br>Для того что бы можно было сделать подобное, смотри следующий пункт
+					</li>
+					<li>
+						<strong>let objStyles = getComputedStyle(element, [pseudo]);</strong> - возвращает объект objStyles - со всеми текущими стилями (с учётом стилей в классах)
+						<pre>
+// получение информации по любым стилям (даже внутри классов)
+// ссылка на div class='msg'
+let elem = document.querySelector('div.msg');
+// создаём объект со всеми стилями
+let objStyles = getComputedStyle(elem);
+
+// вывод всех стилей (только названия) - список огромный
+for(let st of objStyles) {
+	console.log(st);
+}
+
+// вывод высоты
+console.log(objStyles.width);</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">8. Метрики - clientWidth, scrollTop, scrollHeight, offsetLeft, offsetTop, clientLeft</h1><hr>
+				<ol>
+					<li>
+						На этом занятии мы рассмотрим метрики, используемые для позиционирования элементов и их содержимого на экране браузера. Чтобы лучше их понять, рассмотрим такой рисунок.
+					</li>
+					<li>
+						По большому счёту <strong>Метрики - это</strong> padding, margin, border
+						<br><img src="images\JS_DOM\marginpadding.png" class="img-fluid"><br>
+					</li>
+					<li>
+						Подготовка
+						<br>css
+						<pre>
+body {
+	margin: 0;
+}
+
+.message {
+	border: 20px solid #007700;
+	width: 300px;
+	height: 200px;
+	overflow: auto;
+	padding: 10px;
+	background: #eee;
+	font-size: 24px;
+	margin: 50px 0 0 100px;
+}</pre>
+						html
+						<pre>
+&lt;div class="message">
+	&lt;h3>Урок 8 по JS DOM&lt;/h3>
+	&lt;p>
+		На этом занятии мы рассмотрим метрики, используемые для позиционирования элементов и их содержимого на экране браузера. Чтобы лучше их понять, рассмотрим такой рисунок.
+	&lt;/p>
+&lt;/div></pre>
+					</li>
+					<li>
+						для получешия доступа к метрикам используются методы
+						<br>
+						<strong>elem.clientWidth</strong> – содержит ширину клиентской области (в пикселах);
+						<br>
+						<strong>elem.clientHeight</strong> – содержит высоту клиентской области (в пикселах).
+						<strong>Эти свойства доступны только для чтения!</strong>
+						<br>для того чтобы изменить например высоты должны использовать свойство например - elem.style.height = 100 + 'px';
+						<br><img src="images\JS_DOM\clientWidth.png" class="img-fluid"><br>
+						<pre>
+// находим ширину и длину клиентсного окна (diva)
+// ссылка на нужный div
+let elem = document.querySelector('div.message');
+// выводим значение ширины и высоты дива в консоль
+console.log(elem.clientWidth, elem.clientHeight);</pre>
+						ширина =  width(300) + padding left + rigth (10 + 10) - сколлинг (15) = 305
+						<br>
+						высота равна = height(200) + padding top + bottom (10 + 10) = 220
+					</li>
+					<li>
+						<strong>Следующие метрики:</strong>
+						<br>
+						<strong>elem.scrollTop</strong> – высота прокрутки содержимого блока;
+						<br>
+						<strong>elem.scrollLeft</strong> – величина прокрутки содержимого в левую сторону блока;
+						<br>
+						<strong>elem.scrollWidth</strong> – ширина содержимого с учетом прокрутки;
+						<br>
+						<strong>elem.scrollHeight</strong> – высота содержимого с учетом прокрутки.
+
+						<br><img src="images\JS_DOM\scroll.png" class="img-fluid"><br>
+
+					</li>
+					<li>
+						Добавим style='width:500px' - для абзаца в html (чтобы добавить скролинг по горизонтали)
+						<br>примеры просмотра высоты и ширины вместе со скролингом
+						<pre>
+// примеры просмотра высоты и ширины вместе со скролингом
+// ссылка на элемент
+let elem = document.querySelector('div.message');
+
+// функция будет показывать в консоле, значения прокрутки и габаритов каждую секунду
+setInterval(function() {
+	console.log(elem.scrollTop, elem.scrollLeft, elem.scrollWidth, elem.scrollHeight);
+}, 1000);</pre>
+						<strong>scrollTop и scrollLeft - можно менять!</strong>И осуществлять програмный скроллинг
+						<pre>
+// изменение сколлинга
+// ссылка на объект
+let elem = document.querySelector('div.message');
+// задаём вертикальному скроллингу значение 10px
+elem.scrollTop = 10;
+// добавляем к текущему горизонтальному скроллингу значение +20px
+elem.scrollLeft += 20;</pre>
+						scrollWidth и scrollHeight - менять нельзя
+					</li>
+					<li>
+						<strong>Следующие свойства:</strong>
+						<br>
+						<strong>elem.offsetLeft</strong> – содержит смещение блока от левого края;
+						<br>
+						<strong>elem.offsetTop</strong> -  – содержит смещение блока от верхнего края.
+						<br>
+						<br>Данные свойства обычно отсчитывают смещения относительно окна браузера (элемента body), но в общем случае относительно своего предка, указанного в свойстве offsetParent [ console.log(elem.offsetParent); ] - то есть этим свойством просматриваем предка
+						<br><img src="images\JS_DOM\offset.png" class="img-fluid"><br>
+						<pre>
+// получаем смещение элемента
+// ссылка на объект
+let elem = document.querySelector('div.message');
+// значение родителя (относительно чего отступы)
+console.log(elem.offsetParent);
+// смещение блока
+console.log(elem.offsetLeft, elem.offsetTop);</pre>
+					</li>
+					<li>
+						<strong>elem.clientLeft</strong> - смещение слева внутренней части области от края элемента (в данном случае блока div).
+						<br>
+						<strong>elem.clientTop</strong> – смещение сверху внутренней части области от края элемента (в данном случае блока div).
+						<br>
+						По сути вышеуказанные отступы - это ширина рамки border
+						<pre>
+// смещения внутренней частия (по сути ширина рамкм border)
+console.log(elem.clientLeft, elem.clientTop);</pre>
+					</li>
+					<li>
+						<strong>Ещё метрики:</strong>
+						<br>
+						<strong>elem.offsetWidth</strong> – ширина элемента с учетом всех отступов;
+						<br>
+						<strong>elem.offsetHeight</strong> – высота элемента с учетом всех отступов.
+						<pre>
+// ширина и высота с учётом всех отступов
+console.log(elem.offsetWidth, elem.offsetHeight);</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">9. HTML-документ: размеры - clientWidth, innerWidth, положение - pageYOffset, scrollBy</h1><hr>
+				<ol>
+					<li>
+						Подготовка html
+						<pre>
+&lt;ul style="font-size: 20px">
+	&lt;li>offsetParent&lt;/li>
+	&lt;li>offsetLeft&lt;/li>
+	&lt;li>offsetTop&lt;/li>
+	&lt;li>offsetWidth&lt;/li>
+	&lt;li>offsetHeight&lt;/li>
+	&lt;li>clientTop&lt;/li>
+	&lt;li>clientLeft&lt;/li>
+	&lt;li>clientWidth&lt;/li>
+	&lt;li>clientHeight&lt;/li>
+	&lt;li>scrollWidth&lt;/li>
+	&lt;li>scrollHeight&lt;/li>
+	&lt;li>scrollLeft&lt;/li>
+	&lt;li>scrollTop&lt;/li>
+	&lt;li>innerHeight&lt;/li>
+	&lt;li>innerWidth&lt;/li>
+&lt;/ul></pre>
+					</li>
+					<li>
+						Полчение ширины и высоты клиентского окна
+						<strong>clientWidth</strong> – ширина клиентской области (за вычетом полосы вертикального скроллинга);
+						<br>
+						<strong>clientHeight</strong> – высота клиентской области (за вычетом полосы горизонтального скроллинга).
+						<pre>
+// полчение высоты и ширины клиентского окна
+// получаем ссылку на весь html документ
+let html = document.documentElement;
+// вывод ширины и высоты всего окна браузера
+console.log(html.clientWidth, html.clientHeight);</pre>
+
+					</li>
+					<li>
+						Получение полной ширины и высоты клиентского окна с учётом скроллинга
+						<strong>window.innerWidth</strong> – полная ширина окна браузера вместе с полосой прокрутки (если она есть);
+						<br>
+						<strong>window.innerHeight</strong> – полная высота окна браузера вместе с горизонтальной полосой прокрутки (если она есть).
+						<pre>
+// полчение полной ширины и высоты окна с учётом скроллинга
+// выводим в консоль высоту и ширину (полную - с учётом скроллинга)
+console.log(window.innerWidth, window.innerHeight);</pre>
+					</li>
+					<li>
+						Получение полной высоты и ширины html документа. (не окна браузера - а именно html документа)
+						<strong>scrollWidth</strong> - ширина html документа.
+						<br>
+						<strong>scrollHeight</strong> - высота html документа.
+						<pre>
+// получение ширигы и высоты html документа
+// ссылка на html Документ
+let html = document.documentElement;
+// выводим ширину и высоту html документа
+console.log(html.scrollWidth, html.scrollHeight);</pre>
+						Не все браузеры отображают эти свойства верно!
+						<br>Проблемы именно с высотой всего html - если брать отдельный элемент пробоем не должно быть
+					</li>
+					<li>
+						Получение текущего положения прокрутки документа
+						<strong>scrollLeft</strong> - значение текущей горизонтально прокрутки
+						<br>
+						<strong>scrollTop</strong> - значение текущей вертикальной прокрутки
+						<pre>
+// получение текущей прокрутки документа 
+let html = document.documentElement;
+// получение значений прокрутки (горизонтальная/вертикальная)
+console.log(html.scrollLeft, html.scrollTop);
+
+// необходимо образаться к body
+console.log(document.body.scrollLeft, document.body.scrollTop);</pre>
+						Свойства немного устарели - желательно пользоваться (смотри следующий пункт)
+					</li>
+					<li>
+						Получение прокрутки - самый актуальный вариант
+						<strong>window.pageXOffse</strong> – смещение документа в окне браузера по оси Ox;
+						<br>
+						<strong>window.pageYOffset</strong> – смещение документа в окне браузера по оси Oy.
+						<pre>
+// самый новый и правильный вариант получения проекрутки
+console.log(window.pageXOffset, window.pageYOffset);</pre>
+						свойства доступны только для чтения - присвоить или изменить значение программно неполучится
+					</li>
+					<li>
+						Прокрутка (скроллинг) документа
+						<br>Можно прокручивать методами document.documentElement.scrollTop и document.documentElement.scrollLeft - но в некоторых старых браузерах он не сработает
+						<br>
+						<strong>window.scrollBy(offX, offY)</strong> – прокручивает страницу относительно её текущего положения на смещения offX, offY пикселей;
+						<br>
+						<strong>window.scrollTo(pageX, pageY)</strong> – прокручивает страницу до указанных координат pageX и pageY.
+						<pre>
+// прокрутка (скроллинг) документа
+// setInterval - будет интервально запускать нашу анонимную функцию
+setInterval(function() {
+	window.scrollBy(0, 5); // изменение/увеличени скроллинга на 5 по оси y (прокрутка вниз)
+}, 100);  // запуск анонимной функции каждые 100 мс</pre>
+						чтобы запретить скроллинг (будет автоматически возвращать в начало), можно сделать просто
+						<pre>
+window.scrollTo(0, 0);</pre>
+					</li>
+					<li>
+						<strong>elem.scrollIntoView(top = true);</strong> - Данный метод существует у всех объектов-тегов DOM-дерева и прокручивает документ так, чтобы elem оказался вверху окна браузера (если значение top=true), или внизу, при значении top=false.
+						<br>Для примера добавили в верху документа заголовок h1 id='header_1'
+						<br>
+						<br>Если будет true то при обновлении страницы она будет автоматически открываться и показывать заголовок сверху, если false, то будет автоматически открывать окно снизу и заголовок будет снизу
+						js
+						<pre>
+// открытие страницы с фокусом на какойто элемент
+setTimeout(function() {
+    header_1.scrollIntoView();
+});
+</pre>
+					</li>
+					<li>
+						Запрет скроллинга, например запустили какуюто игру в браузере
+						<br>
+						<strong>document.body.style.overflow = "hidden";</strong> - запрет скроллинга
+						<br>
+						<strong>document.body.style.overflow = "";</strong> - отмена запрета скроллинга
+						<pre>
+// запрет скроллинга
+// запрет
+document.body.style.overflow = 'hidden';
+// отмена запрета
+document.body.style.overflow = '';</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">10. Расположение элементов - fixed, absolute, getBoundingClientRect, elementFromPoint</h1><hr>
+				<ol>
+					<li>
+						Подготовка
+						<pre>
+&lt;style type="text/css">
+	#wnd {
+		z-index: 999;
+		position: fixed;
+		width: 200px;
+		overflow: hidden;
+		background: #CC0000;
+		color: #eee;
+		left: 100px;
+		top: 50px;
+		text-align: center;
+	}
+&lt;/style>
+
+
+&lt;h1>Позиционирование элементов на странице&lt;/h1>
+
+&lt;div id='wnd'>
+	&lt;p>Элемент с позиционироанием fixed&lt;/p>
+&lt;/div>
+
+&lt;ul style="font-size: 20px;">
+	&lt;li>offsetParent&lt;/li>
+	&lt;li>offsetLeft&lt;/li>
+	&lt;li>offsetWidth&lt;/li>
+	&lt;li>offsetHeight&lt;/li>
+	&lt;li>clientTop&lt;/li>
+	&lt;li>clientLeft&lt;/li>
+	&lt;li>clientWidth&lt;/li>
+	&lt;li>clientHeight&lt;/li>
+	&lt;li>scrollWidth&lt;/li>
+	&lt;li>scrollHeight&lt;/li>
+	&lt;li>scrollLeft&lt;/li>
+	&lt;li>scrollTop&lt;/li>
+	&lt;li>innerHeight&lt;/li>
+	&lt;li>innerWidth&lt;/li>
+&lt;/ul></pre>
+					</li>
+					<li>
+						При разметке HTML-страницы можно использовать два принципиально разных способа позиционирования элемента поверх остальных элементов:
+						<strong>position: fixed</strong> – позиционирование относительно окна браузера, не зависящее от прокрутки документа; (то есть элемент будет всегда в поле зрения в окне, будет бегать по экрану при скроллинге, то есть в окне пользователя будет всегда в одном положениии)
+						<br>
+						<strong>position: absolute</strong> – позиционирование относительно документа (зависит от величины прокрутки).
+						<br>То есть он будет бегать вместе с содержимым документом.
+						<br>Можно использовать absolete, чтобы наложить на какойто элемент поверх, типо как карточная стопка
+					</li>
+					<li>
+						Устанавливаем элемент новно по центру клиентсвоко окна.
+						<br>с помощью position fixed
+						<pre>
+// распологаем элемент по центру клиентсвого окна
+// получсаем ссылку на наш элемент (то что хотим разместить по центру)
+let wnd = document.getElementById('wnd');
+
+// получаем координаты центра клиентского окна
+// получаем центр окна по оси X
+let centerX = document.documentElement.clientWidth/2;
+//получаем центр окна по оси Y
+let centerY = document.documentElement.clientHeight/2;
+
+// получаем центра нашего элемента
+// центр элемента по ширине
+let wndCenterX = wnd.offsetWidth/2;
+// центр элемента по высоте
+let wndCenterY = wnd.offsetHeight/2;
+
+// располагаем элемент по центру окна
+// по большому счёту меняем или добавляем стили css отступы сверху и слева
+// css #wnd { left: числоpx;}
+wnd.style.left = centerX - wndCenterX + 'px';
+// css #wnd { top: числоpx;}
+wnd.style.top = centerY - wndCenterY + 'px';</pre>
+						Можно получить все координаты и размеры элемента, в нашем случае div-a
+						<strong>elem.getBoundingClientRect()</strong>
+						<pre>
+// получение координат элемента расположенного в центре
+let coords = wnd.getBoundingClientRect()
+console.log(coords);
+
+-->
+DOMRect {x: 64, y: 191.5, width: 200, height: 68, top: 191.5, …}
+	bottom: 259.5
+	height: 68
+	left: 64
+	right: 264
+	top: 191.5
+	width: 200
+	x: 64
+	y: 191.5
+	[[Prototype]]: DOMRect</pre>
+						Координаты можно отобразить как на картинке
+						<br><img src="images\JS_DOM\coord.png" class="img-fluid"><br>
+					</li>
+					<li>
+						<strong>let elem = document.elementFromPoint(x, y);</strong> - возвращает самый глубокий в иерархии элемент, на который указывает координата (x,y). Это бывает полезно, когда мы хотим узнать, что находится в данной позиции HTML-страницы.
+					</li>
+					<li>
+						<strong>elem.getBoundingClientRect()</strong> - Получение координат отностительно документа
+						<pre>
+// получение координат относительно документа ( правильно работает при position: absolute)
+
+// ссылка на элемент
+let wnd = document.getElementById('wnd');
+
+// выводим результат работы нижеуказанной функции вышеуказанного элемента
+console.log( getCoordFromDocument(wnd) );
+
+// создаём функцию, на входе которой ссылка на документ - на выходе её координаты
+function getCoordFromDocument (elem) {
+	let coords = elem.getBoundingClientRect(); // получсем координаты
+	return { // возвращаем координаты top и left
+		top: coords.top + window.pageYOffset, // top + смещение скролинга
+		left: coords.left + window.pageXOffset  // left + смещение скролинга
+	};
+}</pre>
+
+				</ol>
+			</li>
+
+&lt;
+<br>
+<br>
+<br>
+<br>
+<hr>
+<h1 class="text-info">Обработка событий</h1>
+<hr>
+
+
+
+
+
+			<li>
+				<hr><h1 class="title_text">11. Обработчики событий: onclick, addEventListener, removeEventListener, event</h1><hr>
+				<ol>
+					<li>
+						<strong>События</strong> - это сигнал от браузера что чтото произошло
+						<br>Например:
+						<br> - Пользователь кликает мышкой по HTML странице (браузер генерирует событие <strong>onclick</strong>);
+						<br> - Пользователе перемещает курсор мыши (браузер генерирует событие <strong>mousemove</strong>);
+						<br> - Пользователь нажимает на клавиатуру (браузер генерирует события <strong>keydown/keyup</strong>);
+						<br> - Когда полностью загружается HTML-документ (браузер генерирует событие <strong>DOMContentLoaded</strong>).
+					</li>
+					<li>
+						В JS существует возможность реагировать на эти события, то есть когда от браузера приходит определённое событие, мы можем вызывать привязанную к этому событию функцию.
+						<br>Такая функция называется - <strong>обработчик события</strong>
+					</li>
+					<li>
+						Событие <strong>onclick</strong>, вызываем функцию при нажатии ссылка
+						<br>
+						html (здесь аттрибут onclick - это событие которое происходит при нажатии мыши, showMessage - обработчик события)
+						<pre>
+&lt;p>
+	&lt;a id='link' href="#" onclick="showMessage()">
+		Нажми на меня
+	&lt;/a>
+&lt;/p></pre>
+						js
+						<pre>
+// функция обработчик событий
+function showMessage() {
+	alert('Hello!');
+}</pre>
+					</li>
+					<li>
+						СОздание события программно через js
+						<br>html
+						<pre>
+&lt;p>
+	&lt;input type="button" value="Событие onclick">
+&lt;/p></pre>
+						<br>
+						js
+						<pre>
+// создание и обработка событий
+// получаем ссылку на input button
+let inp = document.querySelector('input');
+// создаём событие onclick, т.е берём аттрибут onclick и присваиваем на этот инпут ссылку на функцию (обработчик события)
+inp.onclick = showMessage;
+
+// функция обработчик событий
+function showMessage() {
+	alert('Hello!');
+}</pre>
+						Удаляем обработчик (удаляем аттрибут у элемента), просто присвоить аттрибуту null
+						<pre>
+// удаляем обработчик
+inp.onclick = null;</pre>
+					</li>
+					<li>
+						Получение имени Тэга, в качестве обработчика события
+						<pre>
+// Получение имени Тэга, в качестве обработчика события
+// получаем элемент
+let inp = document.querySelector('input');
+// присваиваем к тэгу функцию обработчик
+inp.onclick = showMessage;
+
+// функция обработчик, показывающая имя тэга
+function showMessage() {
+	alert(this.tagName);	
+}</pre>
+
+					</li>
+					<li>
+						Получение имени тега, например у ссылки где событие присваивается в html в качестве аргумента
+						<br>html
+						<pre>
+&lt;p>
+	&lt;a id='link-2' href="#" onclick="showMessageTwo(event)">
+		Нажми на меня для получения тега
+	</a>
+&lt;/p></pre>
+						js
+						<pre>
+//Получение имени тега, например у ссылки где событие 
+//присваивается в html в качестве аргумента
+// функция обработчик для получение тэга у ссылки
+function showMessageTwo(event) {
+	alert(event.currentTarget.tagName);
+}</pre>
+						<strong>event</strong> - некоторые свойства:
+						<br>
+						<strong>event.type</strong> – тип события (например, для onclick будет содержать строку «click»);
+						<br>
+						<strong>event.clientX / event.clientY</strong> – координаты мыши в момент возникновения события (относительно границ окна браузера).
+					</li>
+					<li>
+						Для какогото события нельзя сделать несколько обработчиков, просто так.
+						<br>Для этого используется <strong>element.addEventListener(event, handler[, options]);</strong>
+						<br>где:
+						<br>- event – строка с названием события
+						<br>- handler – ссылка на функцию-обработчик; options – необязательный параметр,
+						<pre>
+// присвоение трёх! обработчиков для одного события одного элемента
+let inp = document.querySelector('input');
+// обработчик 1 (присовение обработчика к событию)
+inp.addEventListener('click', showMessage);
+// обработчик 2 (присвоение и сразу вызов обработчика события)
+inp.addEventListener('click', function(event) {  // анонимная функция
+	console.log(event.clientX, event.clientY);   // координаты мыши в момент нажатия кнопки
+});
+
+// обработчик 3 (но обычно используют ЛИБО addEventListener ЛИБО inp.onclick)
+inp.onclick = function() {
+	console.log('Обработчик onclick 3');
+}
+
+// обработчик события 1
+function showMessage(event) {
+	alert(event.currentTarget.tagName);
+}</pre>
+						Удаление обработчиков созданных с помощью addEvetnLustener - <strong>element.removeEventListener(event, handler[, options]);</strong>
+						<br>например в проолжении к предыдущему коду
+						<pre>inp.removeEventListener("click", showMessage);</pre>
+						<strong>К некоторым событиям можно присвоить обработчик только с помощью addEventListener, например к событию transitionend(когда завершается css анимация)</strong>
+
+
+					</li>
+					<li>
+						Пример, <strong>увеличение кнопки при нажатии</strong> на неё, и далее вызов всплывающего окна
+						<br>html (+ сss) - изменеие размера
+						<pre>
+     css
+&lt;style type="text/css">
+	/* для class='zoom' */
+	.zoom { 
+		transition: width 1s;  /* плавный переход между двумя состояниями элемента */
+		width: 200px; /* ширина в покое */
+	}
+
+	/* для onclick="this.classList.toggle('expand')" */
+	.expand {
+		width: 400px; /* ширина после нажатия */
+	}
+&lt;/style>
+
+
+
+	html
+&lt;p>
+	&lt;input class="zoom" type="button" onclick="this.classList.toggle('expand')" value="Увеличить кнопку">
+&lt;/p></pre>
+						js, вызов обработчика после завершения действий css
+						<pre>
+// увеличение кнопки и вызов функции после увеличения
+// ссылка на элемент/ кнопку input class='zoom'
+let inp = document.querySelector('input.zoom');
+
+
+// добавление обраблтчика к событию transitionend
+inp.addEventListener('transitionend', showMessage);
+
+// функция обработчик
+function showMessage() {
+	alert('Кнопка увеличена!')</pre>
+					</li>
+					<li>
+						Назаначение объекта, в качестве обработчика события
+						<pre>
+// назначение объекта в качестве обработки события
+// увеличение кнопки и вызов функции после увеличения
+// ссылка на элемент/ кнопку input class='zoom'
+let inp = document.querySelector('input.zoom');
+
+
+// добавление обраблтчика к событию click
+inp.addEventListener('click', { // для событяю click назаначаем объект
+	handleEvent(event) {  // метод внутри объекта который автоматически вызывается внутри
+		console.log('Собыите: ' + event.type); // вывод имени события
+	}
+});
+
+// функция обработчик
+function showMessage() {
+	alert('Кнопка увеличена!')
+}</pre>
+						То эе самое через класс
+// назначение класса в качестве обработчика события
+// создали класс с методом
+class MyHandler { 
+	handleEvent(event) {
+		console.log('Собыите: ' + event.type);
+	}
+}
+
+// ссылка на элемент/ кнопку input class='zoom'
+let inp = document.querySelector('input.zoom');
+
+// добавление обраблтчика к событию click
+inp.addEventListener('click', new MyHandler() ); // создали новый класс в качестве обработчика события</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+
+
+
+			<li>
+				<hr><h1 class="title_text">12. Погружение и всплытие событий: stopPropagation, stopImmediatePropagation, eventPhase</h1><hr>
+				<ol>
+					<li>
+						Родготовка
+						<br>
+						css
+						<pre>
+#first{
+	background: #CC4444;
+	width: 100px;
+	padding: 10px;
+}
+
+#second{
+	background: #00CC00;
+	padding: 10px;
+}
+
+#third{
+	background: #4444CC;
+	padding: 0 10px 0 10px;
+}</pre>
+						html
+						<pre>
+&lt;div id='first' onclick="showTag(event)">
+	&lt;p id="second">
+		p
+		&lt;span id='third'>span&lt;/span>
+	&lt;/p>
+&lt;/div></pre>
+					</li>
+					<li>
+						Функция будет всегда показывать внешний элемент в котором прописана функция oncklick - даже если тыкать на дочерние
+						<br>То есть тыкаем на p, который вложен в диве, покажет DIV
+						<pre>
+// функция вывода имени элемента, при нажатии на него
+function showTag(event) {
+	console.log(event.currentTarget.tagName);
+}
+// эта функция будет всегда показывать внешний элемент,
+в котором прописана функция oncklick - даже если тыкать на дочерние</pre>
+						Тоесть события в браузерной среде, срабатывая на любом дочернем элементе - переходит к родителю элемента
+						<br>Это называется  - <strong>всплытие собития</strong>
+						<br>Для примера монжно подкорректировать html - и проверить заново функцию showTad(event)
+						<br>html
+						<pre>
+&lt;div id='first' onclick="showTag(event)">
+	&lt;p id="second" onclick="showTag(event)">
+		p
+		&lt;span id='third' onclick="showTag(event)">span&lt;/span>
+	&lt;/p>
+&lt;/div></pre>
+					</li>
+					<li>
+						Для того чтобы понять, куда всётаки кликнули (на span или на p) изначально, воспользуемся методом - event.target.tagname
+						<pre>
+// функция показывает от какого элемента началось собитие
+function showTag(event) {
+	console.log(event.currentTarget.tagName +
+		' от элемента ' + event.target.tagName);
+}
+// например
+// SPAN от элемента SPAN
+// P от элемента SPAN
+// DIV от элемента SPAN</pre>
+					</li>
+					<li>
+						Прерывание процесса всплытия - <strong>event.stopPropagation();</strong>
+						<pre>
+// Функция покажет имя элемента, конкретно на который был клик
+// Прерывание всплытия
+function showTag(event) {
+	console.log(event.currentTarget.tagName +
+		' от элемента ' + event.target.tagName);
+	event.stopPropagation();
+}
+// SPAN от элемента SPAN
+// P от элемента P
+// DIV от элемента DIV</pre>
+					</li>
+					<li>
+						Если у элемента несколько обработчиков события (добавлены с помощью document.addEvetnListener(.., ..)) - то для остановки всех событий необходимо использовать метод - <strong>event.stopImmediatePropagation();</strong>
+						<br>Прерывать события в целом рекомендуется с осторожностью, не делать этого часто, а если делать - то точно понимать что будеит происходить. Например если прерывать события перехода по ссылке, то при клике по ссылке, программа просто не перейдёт по ссылке
+
+					</li>
+					<li>
+						Событие прежде чем всплыть - сначало погружается,  то есть переход от самого главного родителя к дочернему элементу.
+						<br>Затем идёт всплытия, то есть от дочернего элемента к родителю вплоть до document --> window
+						<br><img src="images\JS_DOM\pogrusenie.png" class="img-fluid"><br>
+						<strong>Погружение (красный) и всплытие(зелёный) ФАЗЫ СОБЫТИЯ</strong>
+						<br>1-я Фаза - Сначало событие возникает в window и идёт погружение до td
+						<br>2-я Фаза - совершение действия в td - и переход в фазу всплытия
+						<br>3-я Фаза - Идёт всплытие от td до window
+						<br>
+						<br>Отслеживание погружения, чтобы была возможность отслеживать погружение, обработчики событий следует добавлять с помощью elem.addEventListener()
+						<br><strong>Просомтры фазы события - event.eventPhase</strong>
+						<br>Пример отслеживания фазы события, его погружения и всплытия
+						<pre>
+// отслеживания фазы события, его погружения и всплытия
+// добавляем обработчики событий (first..third - это id элементов div/p/span)
+<span class="text-danger">// здесь третий параметр true означенет что обработчик идёт на погружение (а не на всплытие)</span>
+// elem.addEventListener('событие', обработчик события, на погружение)
+first.addEventListener('click', showTag, true);
+second.addEventListener('click', showTag, true);
+third.addEventListener('click', showTag, true);
+
+
+// функция обработчик событий
+// будет выводить номер фазы событий и имена элементов
+function showTag(event) {
+	console.log("Фаза = " + event.eventPhase + ': ' +  // фаза события!
+		event.currentTarget.tagName + 
+		' от ' + event.target.tagName);
+}
+// Фаза = 1: DIV от SPAN
+// Фаза = 1: P от SPAN
+// Фаза = 2: SPAN от SPAN
+// Фаза = 2: SPAN от SPAN
+// Фаза = 3: P от SPAN
+// Фаза = 3: DIV от SPAN</pre>
+						Чтобы удалить обработчик события на погружение, необходимо добавить третий параметр true
+						<pre>
+// удаление обработчика события на погружение
+first.removeEventListener('click', showTag, true);</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+				<hr><h1 class="title_text">13. Делегирование событий, отмена действия браузера по умолчанию - preventDefault</h1><hr>
+				<ol>					
+					<li>
+						Поготовка
+						<br>
+						css  (интересный вариант, отображение курсора, выделение списка меню при наверении)
+						<pre>
+&lt;style type="text/css">
+	#main_menu{
+		margin: 10px;
+		padding: 0;
+		list-style: none;
+		font-size: 24px;
+		width: 200px;
+		background: #eee;
+		cursor: pointer;
+	}
+
+	#main_menu li {
+		margin-bottom: 10px;
+		padding: 5px;
+	}
+
+<span class="text-danger">/*	hover - это сить, который меняется при наведении
+	когда пользователь наводит на элемент мышью, но не обязательно активирует его.*/</span>
+	#main_menu li:hover {
+		background: #FF4EF5;
+	}
+&lt;/style></pre>
+						html
+						<pre>
+&lt;ul id='main_menu'>
+	&lt;li>Открыть&lt;/li>
+	&lt;li>Сохранить&lt;/li>
+	&lt;li>Рисовать&lt;/li>
+	&lt;li>Редактировать&lt;/li>
+	&lt;li>Настройки&lt;/li>
+&lt;/ul></pre>
+					</li>
+					<li>
+						Есть пункт меню, и нам необходимо обрабатывать события (например клики), по каждому пункту меню.
+						<br>Можно сделать обработчик события по каждому отдельно в li, но правильнее сделать обработчик ul ol, и при помощи всплытия будем перехватывать все клики во всех пунктах меню li
+						<br>Пример, кликаем по элементу списка и получаем в консоле значение/ содержимое элемента
+						<pre>
+// обработчик для li - внутри ul ol (само событие в ul ol)
+// id_элемента.addEventListener('событие', обработчик в виде функции)
+main_menu.addEventListener('click', function(event) {
+	let li = event.target; // c помощью всплытия определяем куда кликнули, получаем ссылку, записываем в переменную li
+	console.log(li.innerHTML);  // получаем содержимое между li /li
+});</pre>
+						Всё работает как нужно, но если кликнуть между li - то получим вывод всего ul - это можно сказать баг, для того чтобы его исправить, откорректируем js
+						<pre>
+// тот же обработчик но без бага
+main_menu.addEventListener('click', function(event) {
+	let li = event.target.closest('li');  // closest('li') - ближайшее элементы к элементу li
+	
+	// проверка - если такого элемента не сушествует
+	if (li == null) {
+		return // ничего не выводим, просто выполняем функцию
+	} else {
+		console.log(li.innerHTML);  // выводим содержимое элемента
+	}
+
+});</pre>
+					</li>
+					<li>
+						Выполняем определённые действия при выборе пункта меню
+						<br>Для этого необходимо добавить нестандартные аттрибуты к li, 
+						<br>data-свой_аттрибут = 'значение_аттрибута'
+						<br>html
+						<pre>
+&lt;ul id='main_menu'>
+	&lt;li data-command='open'>Открыть&lt;/li>
+	&lt;li data-command='save'>Сохранить&lt;/li>
+	&lt;li data-command='draw'>Рисовать&lt;/li>
+	&lt;li data-command='edit'>Редактировать&lt;/li>
+	&lt;li data-command='customize'>Настройки&lt;/li>
+&lt;/ul></pre>
+						js
+						<pre>
+// тот же обработчик но читаем значение аттрибута data-set
+main_menu.addEventListener('click', function(event) {
+	let li = event.target.closest('li');  // closest('li') - ближайшее элементы к элементу li
+	
+	// проверка - если такого элемента не сушествует
+	if (li == null) {
+		return // ничего не выводим, просто выполняем функцию
+	} else {
+		console.log(li.dataset.command);  // выводим значение data-command='open/save/...'
+	}
+
+});
+</pre>
+						То эе самое, только комманды запишем как методы
+						<br>В данном этапе - метод будет выводить просто строку во вспылвающем окне
+						<pre>
+// тот же обработчик но команды будут методами
+// создаём объект, внутри методы open/save и тд
+let menuActs = {
+	open() {alert('open - Открываем');},
+	save() {alert('save - Сохраняем');},
+};
+
+// добавляем обработчик для ul id='main_menu', то есть при клике на пункте меню
+main_menu.addEventListener('click', function(event) {
+	let li = event.target.closest('li'); // получаем значение собственного аттрибута
+	if (li==null) { // если элемента не существует
+		return // ничего не выводим
+	};
+
+
+
+	// вызываем методы open, save и тд
+	let act = li.dataset.command; // получаем название метода
+	// (если название метода не пустая строка  и оно существует в объекте menuActs)
+	if (act && menuActs[act] !== undefined) {
+		menuActs[act](); // вызываем метод из объекта menuActs
+	};
+});</pre>
+					</li>
+					<li>
+						Скрываем или отображаем какойто элемент при нажатии кнопки (как в bootstrap)
+						<br>Меняем html (добавляем кнопку)
+						<pre>
+&lt;p>
+	&lt;input type="button" data-toggle-id="main_menu" value="Показать/Скрыть меню" />
+&lt;/p></pre>
+						js
+						<pre>
+// Отображаем или скрываем элементы в браузере
+// обработчки для кнопки скрыть/показать, его повесим на объект document
+document.addEventListener('click', function(event) {
+	// получаем id элемента которое нужно скрыть или показать, и смотрим его свойство toggleId
+	// то есть здесь проверяем input data-toggle-id
+	let id = event.target.dataset.toggleId;
+	if (!id) { //если свойства toggleId нету
+		return; // просто return - то есть ничего
+	} else {  // иначе toggleId существует
+
+		// здесь получаем ul id='main_menu'
+		let elem = document.getElementById(id); // получаем элемент по id
+		// проверка существует ли элемент по id
+		if (!elem) { // если элемента по id не существует
+			return // ничего не делаем
+		} else { // иначе элемент нашли
+			elem.hidden = !elem.hidden; // добавляем убираем свойство hidden 
+		}
+	}
+
+})</pre>
+					</li>
+					<li>
+						<strong>Автоматические действия браузера</strong> - например переход по ссылке
+						<br> Добавим в HTML ссылку, и попробуем подвязать на неё js код который скрывает контент, этого не получится, потомучто браузер будет автоматически перезагружать страницу (переходить по ссылке) - и наш js код не сработает
+						<pre>&lt;p>&lt;a href="13.html" data-toggle-id="main_menu">Показать/Скрыть меню&lt;/a></pre>
+						Чтобы откулючить выполнение браузером, можно внутри тегга a отключить свойство onclick='return false;'
+						<pre>&lt;p>&lt;a href="13.html" onclick="return false;" data-toggle-id="main_menu">Показать/Скрыть меню&lt;/a></pre>
+						Можно повесить обработчки через js, и внутри обработчика убрать onclick <strong>event.preventDefault()</strong>
+						<pre>
+// Убираем у ссылок свойство onclock
+// получаем все эелементы с тегами 'a' - то есть ссылки
+let a = document.querySelector('a');
+a.onclick = function(event) {
+	event.preventDefault(); // отключаем станадртное событие. Отменяем действие браузера по умолчанию
+} </pre>
+					</li>
+					<li>
+						Контекстное меню для всего html документа.
+						<br>Здесь будем кликать правой кнопкой мыши в документе, необходимо чтобы в консоль что то выводилось, но так же необходимо чтобы не вылазило окно в браузере
+						<pre>
+// кликаем правой кнопкой мыши, и отменяем стандартное меню браузера
+document.addEventListener('contextmenu', function(event) {
+	console.log('Контекстное меню документа')
+	event.preventDefault(); // отменяем дейстрие браузера по умолчанию
+})</pre>
+					</li>
+					<li>
+						Делаем отдельно контекстное меню для списка который указан в html (открыть, сохранить)
+						<pre>
+// добавляем своё контекстное меню для своего элемента ul
+// ul id='main_menu'
+main_menu.oncontextmenu = function(event) {
+	console.log('Контекстное меню ul');
+	event.stopPropagation(); // отменяеи вспылтие (чтобы не отображалось контекстное меню документа)
+	event.preventDefault(); // отменяем станадтное контекстрое меню браузера
+}</pre>
+					</li>
+					<li>
+						Проверка вспылтия, вызываем в конекстное меню для элемента, в документе проверяем вызывалось ли какоето контекстное меню
+						<pre>
+// контекстное меню для документа
+document.addEventListener('contextmenu', function(event) {
+	if (event.preventDefault) return; // если вызывалось контекстрое меню ранее (всплытие) - ничего не делать, и прерываем действие обработчика событий
+	console.log('Контекстное меню документа')
+	event.preventDefault(); // отменяем дейстрие браузера по умолчанию
+})
+
+
+// контекстное меню пкм для ul
+main_menu.oncontextmenu = function(event) {
+	console.log('Контекстное меню ul');
+	event.preventDefault(); // отменяем станадтное контекстрое меню браузера
+}</pre>
+					</li>
+					<li>
+						<strong>{ passive: true }</strong> - сигнализирует браузеру что обработчик события не собирается прерывать действие браузера по умолчанию
+						<br>Это неободимо указывать для ускорения программы
+						<pre>
+// контекстное меню для документа
+document.addEventListener('contextmenu', function(event) {
+	if (event.preventDefault) return; // если вызывалось контекстрое меню ранее (всплытие) - ничего не делать, и прерываем действие обработчика событий
+	console.log('Контекстное меню документа')
+	event.preventDefault(); // отменяем дейстрие браузера по умолчанию - СТРОЧКА НЕ СРАБОТАЕТ!
+}, {passive:true});</pre>
+					</li>
+				</ol>
+			</li>
+
+
+			<li>
+				<hr><h1 class="title_text">14. События мыши mousedown, mouseup, mousemove, mouseover, mouseout, mouseenter</h1><hr>
+				<ol>
+					<li>
+						События мыши это не только click. сначало идёт нажитие мыши (mousedown), затем отпускание мыши(mouseup), только потом click
+						<br>Пример html пустой бланк
+						<br>js
+						<pre>
+// оброаботчик события, для события mouseup
+// Добавляем обработчик для события отпускание мышки
+document.addEventListener('mouseup', ()=>console.log('mouseup - отпускание мышки'));
+
+// Добавляем обработчик для события нажатие мышки
+document.addEventListener('mousedown', ()=>console.log('mousedown - нажатие мышки'));
+
+//Добавляем собработчик для события click (нажать + отпустить кнопку мышы)
+document.addEventListener('click', ()=>console.log('click = нажать+отсустить кн.мышки'));
+
+// Лобавляем обработчик для события dbclick = click x 2
+document.addEventListener('dblclick', ()=>console.log('dblclick - двойной клик'));</pre>
+						Итого:
+						<br><strong> -mousedown</strong> - событие = нажатие лк мыши
+						<br><strong> -mouseup</strong> - событие = отпускание лк мыши
+						<br><strong> -click</strong> - событие = нажатие плюс отпускание
+						<br><strong> -dblclick</strong> - событие = двойной клик
+					</li>
+					<li>
+						<strong>event.which</strong> - свойство, для события мыши. Показывает какая кнопка мыши была нажата
+						<br>1 - левая, 2- средняя, 3 - правая
+						<pre>
+// К событиям мыши добавлем обработчики события которые показывают, какая кнопка мыши была нажата
+document.addEventListener('mouseup', 
+	(event)=>console.log('mouseup - отпускание мышки кнопка номер: ' + event.which));
+
+document.addEventListener('mousedown', 
+	(event)=>console.log('mouseup - нажатие мышки кнопка номер: ' + event.which));</pre>
+					</li>
+					<li>
+						<strong>Использование Alt, Ctrl, Shift + мышь</strong>
+						<hr>
+						<strong>event.shiftKey</strong> – true, если нажата клавиша Shift и false в противном случае;
+						<br>
+						<strong>event.altKey</strong> – true при нажатом Alt (или Opt для Mac) и false иначе;
+						<br>
+						<strong>event.ctrlKey</strong> – true при нажатом Ctrl и false иначе;
+						<br>
+						<strong>event.metaKey</strong> – true при нажатом Cmd (для Mac) и false иначе.
+						<br><br>
+						Отслуживание, наатие кнопки
+						<pre>
+// Отслеживанеи нажатия кнопки shift, ctrl  - для события click
+// добавляем обработчик события для события click
+document.addEventListener('click', // событие
+	(event) => { // обработчик событие, по сути кратко function(event) {...}
+		if(event.shiftKey && event.ctrlKey) { //если зажат shift+ctrl
+			console.log('CTRL+SHIFT+click');
+		}
+	})</pre>
+						Необходимо учитывать что у пользователей мобильных устройств нету контрола либо шифта
+						<br>
+						Также необходимо учитывать что на Mac - вместо контрл Cmd - по этому необходима проверка либо ctrl либо Cmd 
+						<pre>
+if( event.shiftKey && (event.ctrlKey || event.meteKey) )</pre>
+					</li>
+					<li>
+						<strong>Координаты курсора мыши:</strong>
+						<hr>
+						<strong> -clientX/clientY</strong> – координаты курсора мыши относительно окна браузера;
+						<br>
+						<strong> -pageX/pageY</strong> – координаты курсора мыши относительно HTML-документа.
+						<br><br>
+						<strong>mousemove</strong> - событие, которое возникает при перемещении мыши в клиентском окне
+						<br>Пример, перемещаем мышь - выводим координаты в консоль
+						<pre>
+// выводим координаты мыши в консоль, при перемещении
+// добавляем обработчик для события mousemove
+// обработчик будет выводить координаты относительно клиентского окна (окна браузера)
+document.addEventListener('mousemove',
+	(event)=>console.log('mousemove=перемещение мыши, координаты относительно окна ' + event.clientX + ', ' + event.clientY));</pre>
+					</li>
+					<li>
+						<strong>mouseover</strong> - событие, возникает при наведении курсора мыши на элемент HTML-документа;
+						<br>
+						<strong>mouseout</strong> - событие, возникает при покидании курсора мыши элемента HTML-документа.
+						<br><br>
+						Для примера в html добавляеи два элемента
+						<br>html
+						<pre>
+// обработчик для события mouseover (наведение мыши на элемент)
+document.addEventListener('mouseover', (event)=>{
+
+	// prop строка, которая будет отображать имя тэга terget
+	let prop = 'target = ' + event.target.tagName;
+
+	if(event.relatedTarget != null)
+		prop += ', relatedTarget = ' + event.relatedTarget.tagName;
+
+	console.log('mouseover: ' + prop);
+});
+
+// relatetTarget - объект, откуда пришли
+// target - объект, куда пришли</pre>
+						<strong>target</strong> - объект, откуда пришли, ссылка на объект над которым находится курсор мыши;
+						<br>
+						<strong>relatedTarget</strong> - объект, откуда пришли, ссылка на объект, с которого ушел курсор мыши.
+						<br>
+						<br>
+						<strong>В случае mouseout - target и relatedTarget, будет всё наоборот</strong>
+					</li>
+					<li>
+						<strong>mouseenter</strong> - нет всплытия, генерируется только  когда указатель мыши оказывается над элементом и при этом не важно: потомок это элемента или сам элемент
+						<br>
+						<strong>mouseleave</strong> - нет всплытия, срабатывает при покидании элемента целиком (дочерние элементы здесь не учитываются)
+						<br>
+						<br>
+						Пример обработчика
+						<pre>
+// События при наведении курсора на какойто элемент
+// получаем div class='parent'
+let div = document.querySelector('div.parent');
+//добавляем обработчик события для объекта div, для события mouseenter
+div.addEventListener('mouseenter', showInfo);
+
+// сам обработчик события (функция)
+function showInfo(event) {
+     let prop = "target = "+event.target.tagName;
+     if(event.relatedTarget != null)
+          prop+=", relatedTarget = "+event.relatedTarget.tagName;
+ 
+     let name = event.currentTarget.tagName;
+     console.log(name+" mouseover: "+prop);
+}</pre>
+					</li>
+					<li>
+						Итоги урока
+						<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0   style='border-collapse:collapse;border:none'>
+ <tr>
+  <td width=234 valign=top style='width:175.5pt;border:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>mousedown/mouseup
+  </td>
+  <td width=404 valign=top style='width:303.05pt;border:solid black 1.0pt;    border-left:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>При нажатии и
+  отпускании кнопки мыши
+  </td>
+ </tr>
+ <tr>
+  <td width=234 valign=top style='width:175.5pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>click
+  </td>
+  <td width=404 valign=top style='width:303.05pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>При щелчке
+  левой кнопкой мыши
+  </td>
+ </tr>
+ <tr>
+  <td width=234 valign=top style='width:175.5pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>dblclick
+  </td>
+  <td width=404 valign=top style='width:303.05pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>При двойном
+  щелчке левой кнопкой мыши
+  </td>
+ </tr>
+ <tr>
+  <td width=234 valign=top style='width:175.5pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>mousemove
+  </td>
+  <td width=404 valign=top style='width:303.05pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>При
+  перемещении мыши
+  </td>
+ </tr>
+ <tr>
+  <td width=234 valign=top style='width:175.5pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>mouseover/mouseout
+  </td>
+  <td width=404 valign=top style='width:303.05pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>При наведении
+  и покидании курсора мыши на элемент
+  </td>
+ </tr>
+ <tr>
+  <td width=234 valign=top style='width:175.5pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>mouseenter/mouseleave
+  </td>
+  <td width=404 valign=top style='width:303.05pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>При наведении
+  и покидании курсора мыши на элемент (не всплывают и не учитывают дочерние
+  элементы)
+  </td>
+ </tr>
+</table>
+
+<p> 
+
+<p>Также мы с вами
+рассмотрели следующие свойства объекта event:
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0   style='border-collapse:collapse;border:none'>
+ <tr>
+  <td width=312 valign=top style='width:234.35pt;border:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>event.which
+  </td>
+  <td width=326 valign=top style='width:244.2pt;border:solid black 1.0pt;    border-left:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>Номер нажатой
+  кнопки мыши
+  </td>
+ </tr>
+ <tr>
+  <td width=312 valign=top style='width:234.35pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>event.shiftKey/altKey/ctrlKey/metaKey
+  </td>
+  <td width=326 valign=top style='width:244.2pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>Флаги,
+  указывающие на соответствующую нажатую кнопку клавиатуры
+  </td>
+ </tr>
+ <tr>
+  <td width=312 valign=top style='width:234.35pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>event.clientX/clientY
+  </td>
+  <td width=326 valign=top style='width:244.2pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>Координаты
+  курсора мыши относительно окна браузера
+  </td>
+ </tr>
+ <tr>
+  <td width=312 valign=top style='width:234.35pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>event.pageX/pageY
+  </td>
+  <td width=326 valign=top style='width:244.2pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>Координаты
+  курсора мыши относительно HTML-документа
+  </td>
+ </tr>
+ <tr>
+  <td width=312 valign=top style='width:234.35pt;border:solid black 1.0pt;    border-top:none;padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>event.target/ relatedTarget
+  </td>
+  <td width=326 valign=top style='width:244.2pt;border-top:none;border-left:    none;border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;    padding:0cm 5.4pt 0cm 5.4pt'>
+  <p>Ссылки на
+  объекты в зависимости от типов события: mouseover/mouseout
+  </td>
+ </tr>
+</table>
+					</li>
+
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">15. События клавиатуры keydown, keyup, событие скроллинга scroll</h1><hr>
+				<ol>
+					<li>
+						События клавиатуры
+						<br><strong>keydown </strong>- событие которое возникает при нажатии клавишы клавиатуры
+						<br><strong>keyup </strong>- событие которое возникает при отпускании клавиши клавиатуры
+					</li>
+					<li>
+						Подготовка html
+						<pre>
+&lt;input id='inp' onkeydown="keyHandler(event)" onkeyup="keyHandler(event)" /></pre>
+						js
+						<pre>// это обработчик события. в html input onkeydown="keyHandler(event)" onkeyup="keyHandler(event)"
+// при нажатии кнопки в консоле keydown, при отпускании keyup
+function keyHandler(event) {
+	console.log(event.type);  // keydown/keyup
+	console.log('repeat: ' + event.repeat); // true если автоповтор (кнопку зажали), false если нажали отпустили, нажали отпустили
+}</pre>
+					</li>
+					<li>
+						Определяем какая клавиша была нажата
+						<br><strong>event.key</strong> – символ нажатой клавиши;
+						<br><strong>event.code</strong> – код нажатой клавиши.
+						<pre>
+// определяем символ и код нажатой клавиши
+function keyHandler(event) {
+	console.log('key/символ клавиши: ' + event.key +
+		', code/ код клавиши: ' + event.code);
+}</pre>
+					</li>
+					<li>
+						Возвращаемые коды клавиш формируются по такому правилу:
+						<br>-Буквенные клавиши имеют коды по типу "Key<буква>": "KeyA", "KeyB" и т.д.
+						<br>-Коды числовых клавиш строятся по принципу: "Digit<число>": "Digit0", "Digit1" и т.д.
+						<br>-Код специальных клавиш – это их имя: "Enter", "Backspace", "Tab" и т.д.
+					</li>
+					
+					<li>
+						scroll прокрутка документа или элемента
+						<br>В html добавляем список ul, и добавим фиксанию input
+						<pre>
+&lt;input id='inp' style="position: fixed;" onkeydown="keyHandler(event)" onkeyup="keyHandler(event)" />	
+
+&lt;ul style="font-size: 20px;">
+	<&lt;i>offsetParent
+	&lt;li>offsetLeft
+	&lt;li>offsetTop
+	&lt;li>offsetWidth
+	&lt;li>offsetHeight
+	&lt;li>clientTop
+	&lt;li>clientLeft
+	&lt;li>clientWidth
+	&lt;li>clientHeight
+	&lt;li>scrollWidth
+	&lt;li>scrollHeight
+	&lt;li>scrollLeft
+	&lt;li>scrollTop
+	&lt;li>innerHeight
+	&lt;li>innerWidth
+&lt;/ul></pre>
+						Пример, будем выводить значение координат, в окошке input на странице html, при скроллинга
+						<pre>
+// выводим значение позиции фиксированоого в окне документа (бег со скроллингом)
+// доабвляем обработчик для события scroll
+window.addEventListener('scroll', function(event) {
+	<span class='text-danger'>// inp - это наш input, id='inp'</span>
+	<span class='text-danger'>// value - это значение, то что записано в окошке</span>
+	<span class='text-danger'>inp.value = pageYOffset;</span>
+})
+// этот обработчик будет в окно input записывать значения координат при скорллинге</pre>
+						Подобный метод можно использывать, например для того чтобы подгружать данные, когда пользователь пролистал страницу доконца вниз
+						<br><br>
+						Для данного события нельзя отменить действие по умолчанию, (с помощью event.preventDefault()),
+						<br>Если необходимо запретить пользователю прокручивать документ --> document.body.style.overflow = "hidden"
+					</li>
+				</ol>
+			</li>
+
+&lt;
+<br>
+<br>
+<br>
+<br>
+<hr>
+<h1 class="text-info">Формы и их события</h1>
+<hr>
+
+
+			<li>
+				<hr><h1 class="title_text">16. Навигация и обработка элементов форм (form) - document.forms, form.elements</h1><hr>
+				<ol>
+					<li>
+						Полготовка html
+						<pre>
+&lt;form name="reg">
+	&lt;p&lt;input name="user" value="" />&lt;/p>
+
+	&lt;p>
+		&lt;input name="sex" type="radio" checked />М
+		&lt;input name="sex" type="radio" checked />Ж
+	&lt;/p>
+
+	&lt;p>
+		Город:
+		&lt;select name="city">
+			&lt;option>Москва&lt;/option>
+			&lt;option>Санкт-Петербург&lt;/option>
+			&lt;option>Тверь&lt;/option>
+		&lt;/select>
+	&lt;/p>
+
+	&lt;p>
+		Согласие &lt;input type="checkbox" name="agree" />
+	&lt;/p>
+
+	&lt;p>
+		&lt;textarea name="about" rows="10" cols="30">О себе&lt;/textarea>
+	&lt;/p>
+
+	&lt;p>
+		&lt;input type="submit" name="submit">
+	&lt;/p>
+&lt;/form></pre>
+					</li>
+					<li>
+						<strong>document.forms</strong> - коллекция, которая содержит все формы текущего документа
+						<br>Пример, получаем форму в js, по индексу. (в нешем случае форма одна, её индекс [0]), либо по имени - document.forms.имя
+						<pre>
+// получаем доступ к форме
+// ВАРИАНТ 1 - доступ к форме по индексу
+// let frm = document.forms[0];
+
+// ВАРИАНТ 2 - доступ к форме по имени (указыватся в html)
+let frm = document.forms.reg
+
+// вывод ифнормации о форме в консоль
+console.dir(frm)</pre>
+					</li>
+					<li>
+						<strong>form.elements</strong> - доступ к отдельным элементам формы
+						<pre>
+// получаем доступ к элементу формы
+// доступ к самой форме по имени (указыватся в html)
+let frm = document.forms.reg
+
+// получаем доступ к элементу по индексу
+// let user = frm.elements[0];
+// ИЛИ получаем доступ к элементу формы по имени
+let user = frm.elements.user
+
+// инфа в консоль
+console.dir(user)
+</pre>
+					</li>
+					<li>
+						Короткая запись для доступа элементу формы
+						<pre>
+// короткая запись, для доступа к элемнту формы
+
+// Доступ к форме
+let frm = document.forms.reg
+
+// краткий доступ к элементам
+let user = frm[0]; // по индексу
+let sex = frm.sex; // по имени</pre>
+					</li>
+					<li>
+						Внутри формы, можно использовать подформы - fieldset
+						<br>html
+						<pre>
+&lt;form name="reg">
+	&lt;p&lt;input name="user" value="" />&lt;/p>
+
+	&lt;p>
+		&lt;input name="sex" type="radio" checked />М
+		&lt;input name="sex" type="radio" checked />Ж
+	&lt;/p>
+
+	&lt;p>
+		Город:
+		&lt;select name="city">
+			&lt;option>Москва&lt;/option>
+			&lt;option>Санкт-Петербург&lt;/option>
+			&lt;option>Тверь&lt;/option>
+		&lt;/select>
+	&lt;/p>
+
+	&lt;fieldset name='info'>
+		&lt;p>
+			Согласие &lt;input type="checkbox" name="agree" />
+		&lt;/p>
+
+		&lt;p>
+			&lt;textarea name="about" rows="10" cols="30">О себе&lt;/textarea>
+		&lt;/p>
+	&lt;/fieldset>
+
+	&lt;p>
+		&lt;input type="submit" name="submit">
+	&lt;/p>
+
+&lt;/form></pre>
+						js
+						<pre>
+// доступ к fieldset
+// получсаем форму
+let frm = document.forms.reg;
+
+// полуаем доступ к элементам внутри fieldset
+let info = frm.info
+// элемент fieldset - 1
+console.dir(info.elements[0]);
+// эемент fieldset - 2
+console.dir(info.elements.about);</pre>
+					</li>
+					<li>
+						Получение ссылки на форму из подформы, из элемента внутри
+						<pre>
+// получение ссылки на форму из подформы
+// получсаем форму
+let frm = document.forms.reg;
+
+// полуаем доступ к  fieldset
+let info = frm.info
+
+// из fieldset обращаемся к самой форме
+console.dir(info.form);</pre>
+					</li>
+					<li>
+						<strong>Измвеление значений элементов формы input и textarea</strong>
+						<hr>
+						<strong>- input.value</strong> – значение атрибута value;
+						<br>
+						<strong>- input.checked</strong> – значение атрибута checked;
+						<br>
+						<strong>- textarea.value</strong> – содержимое поля textarea.
+						<pre>
+// получение значение input и textarea
+// получвем форму
+let frm = document.forms.reg;
+
+// получение ссылок на элементы
+let user = frm.user;
+let sex = frm.sex;
+let about = frm.about;
+
+// вывод значений элементов формы
+console.log(user.value, sex[0].checked, about.value);</pre>
+
+					</li>
+					<li>
+						<strong>Измвеление значений элементов формы select</strong>
+						<hr>
+						<strong>- select.options</strong> – коллекция из подэлементов &lt;option>;
+						<br>
+						<strong>- select.value</strong> – значение выбранного в данный момент &lt;option>;
+						<br>
+						<strong>- select.selectedIndex</strong> – сномер выбранного &lt;option>.
+						<pre>
+// получение значение selected
+// получвем форму
+let frm = document.forms.reg;
+// получение ссылки на элемент selected
+let city = frm.city;
+
+// получение значений
+console.dir(city.options); // HTMLOptionsCollection(3)
+console.log(city.value); // Москва
+console.log(city.selectedIndex); //0</pre>
+						value и selectedIndex - доступен не только для чтения но и для записи
+						<pre>
+// меняем значение selected - то есть меняем флажок на чекбоксе
+// получвем форму
+let frm = document.forms.reg;
+// получение ссылки на элемент selected
+let city = frm.city;
+
+// Изменяем значение флажка на Тверь
+city.value = 'Тверь'
+
+// получение значений
+console.log(city.value); // Тверь
+console.log(city.selectedIndex); // 2
+
+// ИЛИ Изменяем значение флажка на СПБ
+city.selectedIndex = 1;
+console.log(city.value); // Санкт-Петербург
+console.log(city.selectedIndex); // 1</pre>
+					</li>
+					<li>
+						<strong>&lt;select name="city" multiple></strong> - когда в списке можно выбрать несколько значений
+						<br>Корректируем html
+						<pre>
+&lt;select name="city" multiple> &lt;!-- возможномть выбора нескольких опций --></pre>
+						js
+						<pre>
+// выбираем несколько значений ottions в select
+// получвем форму
+let frm = document.forms.reg;
+// получение ссылки на элемент select
+let city = frm.city;
+
+// выбираем СПБ и ТВЕРЬ
+city.options[1].selected = true;
+city.options[2].selected = true;
+</pre>
+						<strong>Перебираем все элементы(option) списка select</strong>
+						<pre>
+//Перебираем все элементы(option) списка select
+// получвем форму
+let frm = document.forms.reg;
+// получение ссылки на элемент select
+let city = frm.city;
+
+// выбираем СПБ и ТВЕРЬ
+city.options[1].selected = true;
+city.options[2].selected = true;
+
+
+// преобразовываем коллекцию options в массив
+// .fileter -> в массив добавляем только те элементы которые установлены в true
+let selected = Array.from(city.options).filter(option => option.selected)
+
+// перебор и вывод всех true options
+for (let c of selected) {
+	console.log(c); // выводим элемент в консоль
+}</pre>
+						Если нежно вывести только значение без теггов, необходимо добавить <strong>.map</strong>
+						<pre>
+//Перебираем все элементы(option) списка select (вывод только значений без тегов)
+// получвем форму
+let frm = document.forms.reg;
+// получение ссылки на элемент select
+let city = frm.city;
+
+// выбираем СПБ и ТВЕРЬ
+city.options[1].selected = true;
+city.options[2].selected = true;
+
+
+// преобразовываем коллекцию options в массив
+// .fileter -> в массив добавляем только те элементы которые установлены в true
+// .map -> только значения без тегов
+<span class="text-danger">let selected = Array.from(city.options)
+	.filter(option => option.selected)
+	.map(option => option.value)</span>
+
+// перебор и вывод всех true options
+for (let c of selected) {
+	console.log(c); // выводим элемент в консоль
+}
+</pre>
+					</li>
+
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">17. Фокусировка - focus, blur, focusin, focusout, tabindex, activeElement</h1><hr>
+				<ol>
+					<li>
+						Подготовка html
+						<pre>
+&lt;form name="reg">
+	&lt;p>&lt;input name="user" value="" />&lt;/p>
+	&lt;p>
+		&lt;input name="sex" type="radio" checked />М
+		&lt;input name="sex" type="radio" checked />Ж
+	&lt;/p>
+	&lt;p>
+		Город:
+		&lt;select name="city">
+			&lt;option>Москва&lt;/option>
+			&lt;option>Санкт-Петербург&lt;/option>
+			&lt;option>Тверь&lt;/option>
+		&lt;/select>
+	&lt;/p>
+	&lt;p>
+		Согласие &lt;input type="checkbox" name="agree" />
+	&lt;/p>
+
+	&lt;p>
+		&lt;textarea name="about" rows="10" cols="30">О себе&lt;/textarea>
+	&lt;/p>
+	&lt;p>
+		&lt;input type="submit" name="submit">
+	&lt;/p>
+&lt;/form></pre>
+					</li>
+					<li>
+						<strong>Фокусировка input, textarea,select</strong>
+						<hr>
+						<strong>focus (onfocus)</strong> – при получении фокуса;
+						<br>
+						<strong>blur (onblur)</strong> – при потере фокуса.
+						<pre>
+// фокусировка для input
+// получаем форму
+let frm = document.forms[0];
+// добавляем обработчик события для события onfocus - элемента input name='user'
+frm.user.onfocus = function(event) {
+	console.log('Получение фокуса');
+}
+// добавляем обработчик события для события onblur - элемента input name='user'
+frm.user.onblur = function(event) {
+	console.log('Потеря фокуса');
+}</pre>
+						Данные события могут понадобится для проверки корректности данных в поле ввода.
+						<br>Добавим стиль error в css
+						<pre>
+.error {
+	background: #CC0000;
+}</pre>
+						<br>Делаем проверку в полее воода имени пользователя (запрещаем символ #)
+						<pre>
+// Делаем проверку в полее воода имени пользователя (запрещаем символ #)
+// получаем форму
+let frm = document.forms[0];
+
+
+// проверяем # при вводе, если есть меняем стиль
+// это обработчик события при потери фокуса
+frm.user.onblur = function(event) {
+	if(frm.user.value.includes('#')) { // если поле содержит #
+		frm.user.classList.add('error'); // добавляем стиль 'error'
+	} else {
+		frm.user.classList.remove('error') // иначе убираем стиль error
+	}
+}</pre>
+						Добавим функцию, что когда есть ошибка и получаем фокус, уберём error класс, чтобы удобно было работать в поле
+						<pre>
+// добавляем обработчик при вокусе, так что если даже в поле ошибка - стиля error не будет
+frm.user.onfocus = function(event) { // событие фокус
+	frm.user.classList.remove('error'); // убираем class error для элемента
+}</pre>
+					</li>
+					<li>
+						HTML 5 и выше, позволяет использовать
+						<strong>required, pattern - для автоматической проверки корректности введенных данных!</strong>
+						<br>Так что скрипт следует использовать, только если недостаточно встроенных способов валидации данных.
+					</li>
+					<li>
+						События focus и blur не всплывают - ех нельзя перехватить,
+						если события необходимо прехватить, необходимо использовать:
+						<strong>focusin и focusout</strong> - работают точно также как focus и blur но вспылвают.
+						<br>Добавлять обработчики события можно с помощю addEventListener
+						<pre>
+// focusin - фокус со всплытием
+// берём всю форму
+let frm = document.forms[0];
+
+// добавляем обработчик события, для события вокус(со всплытием), для всей формы
+frm.addEventListener('focusin', function() {
+	console.log('Для всей формы: focusin, фокус со всплытием');
+});</pre>
+					</li>
+					<li>
+						Установить или снять фокус отдельного элемента
+						<br>
+						<strong>elem.focus()</strong> – для установки фокуса на элемент;
+						<br>
+						<strong>elem.blur()</strong> – для снятия фокуса с элемента.
+
+						<br>Например автоматически поставим фокус на элемент textarea
+						<pre>
+// ставим фокус автоматичекски на элемент textarea
+// берём всю форму
+let frm = document.forms[0];
+
+// ставим фокус
+// form -> textarea name='about'
+frm.about.focus();</pre>
+						Этот метод не работает с браузерами Firefox
+						<br>метод будет сниматься автоматичекки при наличии методов <strong>alert(), prompt(), confirm()</strong>
+						<pre>
+// всплывающее окно
+alert('Окно')
+
+// всплывающее окно для ввода данных
+prompt('Окно с полем ввода')
+
+// всплывающее окно с кнопками, ок и отмена
+confirm('Окно с кнопками ок и отмена')</pre>
+					</li>
+					<li>
+						<strong>Не все элементы по умолчанию поддерживают фокусировку!</strong>: div, p, table, span, img
+						<br>Её можно включить додавив в html внутри тега --> tabindex='1' <br>
+						Либо при помощb js --> elem.tabIndex = 1;
+						<br>Так же tabindex="0" --> располагает элемент на уровне с другими элементами без атрибута tabindex, но обладающих фокусировкой;
+						<br>Так же tabindex="-1" позволяет фокусироваться на элементе только программно.
+					</li>
+					<li>
+						<strong>document.activeElement</strong> - получение текущего элемента с фокусировкой.  Если програмно фокусировку не прописывали, она на body
+						<pre>
+// получение текущего элемента с фокусировкой
+let active = document.activeElement;
+console.log(active);</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">18. События change, input, cut, copy, paste, submit элементов input и select</h1><hr>
+				<ol>
+					<li>
+						Рассмотрение событий для элементов <strong>input и select</strong>
+						<br>Подготовка html
+						<pre>
+&lt;form name="reg">
+	&lt;p>&lt;input name="user" value="" />&lt;/p>
+	&lt;p>
+		&lt;input name="sex" type="radio" checked />М
+		&lt;input name="sex" type="radio" checked />Ж
+	&lt;/p>
+	&lt;p>
+		Город:
+		&lt;select name="city">
+			&lt;option>Москва&lt;/option>
+			&lt;option>Санкт-Петербург&lt;/option>
+			&lt;option>Тверь&lt;/option>
+		&lt;/select>
+	&lt;/p>
+	&lt;p>
+		Согласие &lt;input type="checkbox" name="agree" />
+	&lt;/p>
+
+	&lt;p>
+		&lt;textarea name="about" rows="10" cols="30">О себе&lt;/textarea>
+	&lt;/p>
+	&lt;p>
+		&lt;input type="submit" name="submit">
+	&lt;/p>
+&lt;/form></pre>
+					</li>
+					<li>
+						<strong>change [onchange]</strong> - событие которое возникает при потере фокуса, элементов input или select, после заполнения элемента формы, после события change слудет начинать считывать информацию.
+						<br>Cчитываем то что написано в поле после потере фокуса
+						<pre>
+// считываем то что написано в поле после потере фокуса
+// change - для input
+// берём форму
+let frm = document.forms[0];
+
+// пишим обработчкик события для события onchange
+// onchange - возникает при потере фокуса
+// элемент input name='user'
+frm.user.onchange = function() {
+	// считываем значение поля input (то что написано в поле)
+	console.log(frm.user.value);
+}</pre>
+						Если мы опять возьмём фокус на поле, и ничего не изменим, событие change повторно не сработает, если необходимо чтобы работало всегда, необходимо событи blur (onblur)
+
+					</li>
+					<li>
+						onchange - для input - radio (чекбоксы), событие будет срабатывать каждый раз когда меняем чекбокс
+						<pre>
+// меняем чекбоксы, и выводим информацию в консоль
+// onchange для input radio (чекбоксы)
+
+// берём форму
+let frm = document.forms[0];
+
+// обработчик для onchange - для первого чекбокса
+frm.sex[0].onchange = function() {
+	console.log('sex 0: ' + frm.sex[0].checked);
+}
+// sex 0: true - при выборе
+
+// обработчик для onchange - для второго чекбокса
+frm.sex[1].onchange = function() {
+	console.log('sex 1: ' + frm.sex[1].checked);
+}
+// sex 1: true - при выборе</pre>
+						То же самое с чекбоксом (окно с галочкой)
+						<pre>
+// то же самое с checbox - окно с галочкой
+// input type="checkbox" name="agree"
+frm.agree.onchange = function() {
+	console.log('agree: ' + frm.agree.checked);
+}
+// agree: true - при выборе, т.е галочка стоит
+// agree: false - при отсутствии галочки</pre>
+					</li>
+					<li>
+						onchange - для для элемента selected, вывод в консоль выбранное значение option
+						<pre>
+// onchange - для для элемента selected, вывод в консоль выбранное значение option
+// берём форму
+let frm = document.forms[0];
+
+frm.city.onchange = function() {
+	console.log(frm.city.selectedIndex);
+}</pre>
+					</li>
+					<li>
+						<strong>Для поля input - есть событие input[oninput]! </strong> - событие срабатывает сразу, не обязательно терять фокус
+						<pre>
+// событие input [oninput] для поля input - срыбатывает сразу, как только что то меняется
+// берём форму
+let frm = document.forms[0];
+
+// в консоле будет инормация о значениии в поле Input, при либом изменении
+frm.user.oninput = function() {
+	console.log(frm.user.value);
+}</pre>
+						 Событие не отменяется, с помощью event.preventDefault(), то есть мы не можем запретить ввод данных в поле
+					</li>
+					<li>
+						<strong>Ещё события для поля input</strong>
+						<hr>
+						<strong>cut</strong> – при вырезании фрагмента в буфер обмена;
+						<br>
+						<strong>copy</strong> – при копировании фрагмента в буфер обмена;
+						<br>
+						<strong>paste</strong> – при вставке фрагмента из буфера обмена.
+						<br>Пример обработки событий, при вырезании, копировании и вставке
+						<pre>
+// Пример обработки событий, при вырезании, копировании и вставке
+// cut, copy, paste (oncut/oncopy/onpaste)
+// берём форму
+let frm = document.forms[0];
+
+// обработчики событий поля input
+frm.user.oncut = function(event) {
+	console.log('Событие cut - вырезание')
+}
+frm.user.oncopy = function(event) {
+	console.log('Событие copy - копирование')
+}
+frm.user.onpaste = function(event) {
+	console.log('Событие paste - вставка')
+}</pre>
+						Эти события могут быть отменены с помощью event.preventDefault(), то есть в поле и из поля, можно запретить копировать, вставлять, вырезать
+					</li>
+					<li>
+						<strong>submit [onsubmit]</strong> - событие возникающее при отправке формы на сервер.
+						<br>Само событие, вешается на кнопку отправить например, сама кнопка привязана к конкретной форме. Можно указывать просто между тегов form или указыать id формы и id кнопки
+						<pre>
+// отправка данных на сервер
+// нажатие кнопки отправить - событие submit
+// берём форму
+let frm = document.forms[0];
+
+// обработчик события при отправке данных на сервер
+frm.onsubmit = function(event) {
+	alert('Отправка формы');
+}</pre>
+						Событие можно использовать например, для проверки корректности обработки всей формы, и прервать отправку при возникновении ошибок
+						<br>Например, если поле user пустое, то прерываем отправку и вызываем ошибку
+						<pre>
+// Если поле user пустое, то прерываем отправку и вызываем ошибку
+// берём форму
+let frm = document.forms[0];
+
+// проверка поля, если поле некорректно - вызываем ошибку
+frm.onsubmit = function(event) {
+	if(!frm.user.value) { // если поле input name='user' - пустое
+		event.preventDefault(); // отменяем отправку данных на сервер
+		console.log('Поле user - пустое!'); // выводим сообщение
+
+	}
+}</pre>
+					</li>
+					<li>
+						<strong>form.submit()</strong> - отправляет данные на сервер, но только для формы, созданной непосредственно в скрипте. При этом событие submit не генерируется. 
+						<br>html - это обычная строка, но при нажатии на неё будет вызываться метод sendForm() (собственный обработчик)
+						<pre>&lt;p onclick="sendForm()">Отправить форму&lt;/p></pre>
+						js
+						<pre>
+// создаём форму в js GET, и вызываем метод form.submit() - при нажатии на текст
+// берём форму
+let frm = document.forms[0];
+
+// обработчик
+function sendForm() {
+	let form = document.createElement('form');  // создаём форму
+	form.method = 'GET'; // метод передачи данных GET
+	form.innerHTML = '&lt;input name="q" value="test"'; // в форму вставляем элемент input
+	document.body.append(form); // добавляем форму в HTML документ, в body
+	form.submit(); // вызываем метод submit
+}</pre>
+						Повторюсь, что form.submit(); - можно вызывать только для форм созданных програмно в js, при вызове обычной формы написаннной в html документе, метод не сработает
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">19. События при загрузке - DOMContentLoaded, load, unload, beforeunload, readyState</h1><hr>
+				<ol>
+					<li>
+						<strong>События возникающие при загрузки и обновления html Документа</strong>
+						<hr>
+						<strong>DOMContentLoaded </strong>– браузер полностью загрузил HTML, было построено DOM-дерево, но внешние ресурсы, такие как картинки (img) и стили (CSS), могут быть ещё не загружены;<br>
+						(событие полезно для инициализации каких либо интерфейсных функций, прописанных в скрипте)
+						<br>
+						<strong>load </strong> - браузер загрузил HTML и внешние ресурсы (картинки, стили и т.д.);<br>
+						(может использоваться для динамической загрузки ресурсов, например в браузерных играх, когда необходимо подождать пока все картинки загрузятся)
+						<br>
+						<strong>beforeunload/unload</strong> – пользователь покидает страницу.<br>
+						(beforeunload - можно предупредить пользователя что он не сохранил какието изменения)
+						<br>(unload - можно повесить обработчик для сбора статистики, например время проведенное на странице)
+					</li>
+					<li>
+						Подготовка html
+						<pre>
+&lt;p>
+	&lt;img id="image" src="images/1.jpg" />
+&lt;/p></pre>
+					</li>
+					<li>
+						Пишем простой js - который будет показывать размеры изображения в консоль. (событие произойдёт до того как будет загружено изображение)
+						<pre>
+// выводим в консоле размеры изображения (раньше его загрузки)
+// к событию DOMContentLoaded - добавляем обрадотчик ready
+document.addEventListener('DOMContentLoaded', ready);
+
+// сам обработчик - ready
+function ready(event) {
+	console.log('Событие - DOMContentLoaded, обработчик - ready');
+	// размеры катинки img id='imege'
+	console.log(`Размеры изображения: ${image.offsetWidth}x${image.offsetHeight}`)
+}
+
+// этот год выполнится раньше чем обработчик события и событие DOMContentLoaded
+console.log('События до DOMContentLoaded')</pre>
+						<span class="text-danger">Важно - `${image.offsetWidth}x${image.offsetHeight}` = `Любой текст ${элемент_id.свойство_элемента}любой_текст${элемент_id.свойство_элемента}`</span>
+						<br>То есть обрати внимание на особые косые кавычки ` `, {} и знак $ - они как бы экранируют текст и получают элемент либо свойство
+						<br><br>Даже если какойто скрипт написан после события DOMContentLoaded, он выполнится раньше
+						<br>
+						<strong>Но Из этого правила есть только два исключения:</strong>
+						<br> - Скрипты с атрибутом async (который мы рассмотрим немного позже), не блокируют DOMContentLoaded
+						<br> - Скрипты, сгенерированные динамически при помощи document.createElement('script') и затем добавленные на страницу, также не блокируют это событие.
+					</li>
+					<li>
+						<strong>Cобытие load</strong>
+						<pre>
+// событие Load возникает уже после загрузки всех стилеи и изображение
+// для элемента window, для события onload (load) - добавляем обраблтчик анонимный
+window.onload = function(event) {
+	console.log('Событие load - после загрузки всех файлов');
+	// размеры изображения
+	console.log(`Размеры изображения: ${image.offsetWidth}x${image.offsetHeight}`)
+}</pre>
+					</li>
+					<li>
+						<strong>событие unload</strong> - происходить после того как пользователь покинул страницу, так же возникает при перезагрузки страницы
+						<pre>
+// событие unload - когда пользователь покинул страницу, так же при перезагрузки
+// к документу, для события unload - добавляем обработчик
+window.addEventListener('unload', function() {
+	console.log('Отправка данных на сервер');
+});</pre>					
+						Продемонстрировать в консоле не получится
+						<br><br>
+						<strong>Для отправки данных серверу, метод - navigator.sendBeacon(url.data)</strong> - где url: это путь к скрипту на сервере; data: данные которые будет принимать сервер и как то их обрабатывать
+						<br><br>Особенность метода в том что при закрытии страницы не нужно дожидаться окончания работы этого метода, он всё сделает сам потом
+						<br>Пример отправке данных на сервер
+						<pre>
+// Пример отправке данных на сервер
+window.addEventListener('unload', function() {
+	// '/analytics.php' - скрипт который обрабатывает данные
+	// JSON.stringify(myData)) - данные в формате JSON
+	navigator.sendBeacon('/analytics.php', JSON.stringify(myData));
+})
+
+<strong class="text-danger">// -Передача данных осуществляется по POST-запросу
+// -Размер данных ограницен 64 КБ
+// -В событие Unload нельзя предупредить пользователя о несохранённых данных</strong></pre>
+					</li>
+					<li>
+						<strong>Событие beforeunload [onbeforeunload]</strong> - здесь можно предупредить пользователя о несохранённых данных
+						<br>Пример, при перезагрузки страницы спрашиваем пользователя - действительно ли перезагрузить страницу
+						<pre>
+// при перезагрузки страницы спрашиваем пользователя - действительно ли перезагрузить страницу
+window.onbeforeunload = function() {
+	return false;
+};</pre>
+					</li>
+					<li>
+						<strong>Свойство документа - document.readyState</strong>, В момент загрузки html докуметна само свойство readyState, принимает следующие значения
+						<hr>
+						<strong>"loading"</strong> – документ в процессе загрузки;
+						<br>
+						<strong>"interactive"</strong> – документ был полностью прочитан (парсинг документа завершен);
+						<br>
+						<strong>"complete"</strong> – документ был полностью прочитан и все ресурсы (изображения, стили и т.п.) тоже загружены.
+						<br><br>Пример js, проверка загрузки документа, если документ не загружен, пофторно запускаем функцию, и уже после того как DOM полностью загружен - удаляем изображение
+						<pre>
+// удаление изображения если документ полностью загружен
+// вызываем функцию
+removeImage();
+
+// сама функция
+function removeImage() {
+	if (document.readyState == 'loading') { // если жокумент на стадии загрузки
+		console.log('Документ грузится, вешаем обработчик');
+		// добавляем обработчик, который будет вызывать функцию ещё раз но в момент когда DOM дерево уже построено
+		document.addEventListener('DOMContentLoaded', removeImage);
+	} else { // иначе, если DOM дерево уже полностью загружено
+		console.log('удаляем изображение');
+		document.body.remove(image); // удаляем изображение
+	}
+}</pre>
+
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">20. События load, error; атрибуты async, defer тега script</h1><hr>
+				<ol>
+					<li>
+						Можно отследить загрузку отдельных HTML элементов.
+						<br>Например изображения или скрипта
+						<br><strong>для всех элементов у которых есть аттрибут src (ссылка) - генерируется событие load при завершении загрузки скрипта</strong>
+					</li>
+					<li>
+						Подготовка html
+						<pre>&lt;p>&lt;img id="image" src="images/1.jpg" />&lt;/p></pre>
+						Выводим в консоль размер изображения
+						<pre>
+// Выводим в консоль раземер изображения
+// image = img id='image'
+// Берём изображение, на событие load (onload), вышкаем анонимный обработчик
+image.onload = function(event) {
+	console.log(`Размеры изображения: ${image.offsetWidth} на ${image.offsetHeight}`);
+}</pre>
+					</li>
+					<li>
+						Добавим в html ещё одну ссылку на другой скрипт, и повесим на него обработчик ececute() - для события onload(load)
+						<pre>
+&lt;script src="js/20.js">&lt;/script> - это скрипт для текущего урока
+
+&lt;script src="js/19.js" onload="execute()">&lt;/script> - это дополнительно подключенный скрипт, с обрыботчиком на событие onload</pre>
+						В текущем скрипте 20.js - пишем сам обработчик, для обработчки скрипты 19.js
+						<pre>
+// обработчик для обработчик скрипта 19.js
+function execute() {
+	console.log('Скрипт 19.js - загружен');
+}</pre>					
+						Причём в консоле будет такой порядок
+						<pre>
+Размеры изображения: 736 на 672    - из 20.js
+19.js:76 Скрипт из урока 19 для урока 20   - из 19.js
+20.js:11 Скрипт 19.js - загружен   - из 19.js</pre>
+					</li>
+					<li>
+						Запускаем фунцию (обработчик из другого скрипта, после загрузки)
+						<br>19.js
+						<pre>
+// Эту вункциб будем запускать из 20.js
+function __fromJS() {
+	console.log('Привет');
+}</pre>
+						20.js
+						<pre>
+// Запускаем фунцию (обработчик из другого скрипта, после загрузки)
+function execute() {  // это обработчик на onload 19.js - объяевлен в html
+	__fromJS();  // эта функция находится внутри 19.js
+}</pre>
+					</li>
+					<li>
+						Уберём скрипт 19.js из html - и создадим и добавим его с помощью JS - в 20.js
+						<br>19.js - без изменений
+						<br>20.js - создаём ссылку на 19.js, и вешаем обработчик на событие onload
+						<pre>
+// Создание динамического скрипта
+// т.е добавляем ссылку на другой файл js в html документ
+// Полностью: создаём ссылку на 19.js и вешаем обработчик[ execute() ] на событие onload
+
+// создаём элемент &lt;script>
+let script = document.createElement('script');
+script.src = 'js/19.js';  // добавляем src="js/19.js"
+// вешаем обработчик на событие onload для элемента script
+script.onload = execute;  // onload='exetute()'
+// добавляем весь элемент со всеми аттрибутами в head - в html документ
+document.head.append(script);
+
+
+// сам бработчик для события onload элемента sctipt src='js/19.js'
+// запускаем функцию из 19.js
+function execute() {
+	__fromJS();
+}</pre>					
+						Теперь скрипт 19.js можно запускать из любого места
+						<br>
+						Но если например в scr указать неправильную ссылку, то соответственно скрипт не запустится и будет ошибка
+					</li>
+					<li>
+						<strong>onerror(error)</strong> - событие, для обработки ошибки
+						<br>в 20.js - добавляем обработчик события для элемента ссылки на скрипт 19.js, для события error
+						<pre>
+// обработка ошибок при подгрузки елементов, в нашем случае скрипта
+
+// создаём элемент &lt;script>
+let script = document.createElement('script');
+script.src = 'js/199.js';  // добавляем src="js/19.js" - С ОШИБКОЙ СПЕЦИАЛЬНО
+script.onload = execute;  // onload='exetute()' - вешаем обработчик на событие onload для элемента script
+
+// добавлеем обработчик события, для события onerror
+script.onerror = execute_error;  // onerror = execute_error()
+
+document.head.append(script);  // добавляем весь элемент со всеми аттрибутами в head - в html документ
+
+// сам обработчик для события onerror элемента sctipt src='js/19.js'
+// запустится если будет ошибка загрузки файла 19.js
+// В этом обработчике, обычно прописывают, действи для минимизации вреда для программы
+// Например другое место для подгрузки файла, либо вообще не выполнять скрипт, либо запосной скрипт
+function execute_error() {
+	console.log('Ошибка при загрузки файла 19.js');
+}
+
+
+// запускаем функцию из 19.js - если 19.js загрузился без ошибок
+function execute() {
+	__fromJS();</pre>
+						Аналогичные действия можно ыполнить например и для подгрузки изображения img
+					</li>
+					<hr>
+					<li>
+						<strong>async, defer</strong> - это аттрибуты тега script, они добавляют гибкости при подключении внешних скриптов в html документах
+						<br><strong>defer</strong> - аттрибут при котором скритп будет загружаться в фоновом режиме
+						<br><strong>async</strong> - делает скрипт, совершенно независимым от других скриптов, используют например когда необходимо выполнять скрипты в порядке их загрузки, то есть скрипт загрузился, сразу выполнился, скрипт не будет ждать другие скрипты, не важно в каком месте мы его разместили в html документе.
+						<br>Так же скрипт не зависит от события DOMContentLoaded - он может запустится как после так и до DOMContentLoaded, то есть скрипт запускается сразу, после того как сам скрипт загрузился.
+						<br>async - может быть полезен для счётчиков или рекламы на странице
+					</li>
+					<li>
+						Подготавливаем html для работы async и defer
+						<pre>
+&lt;p>Текст до скрипта&lt;/p>
+&lt;script src="http://funnyballs.ru/long_script.js">&lt;/script>
+&lt;p>Текст после скрипта&lt;/p></pre>
+						Браузер сработает так:
+						<br> - Отобразит текст 'Текст до скрипта'
+						<br> - Выполнит скрипт, по внешней ссылку
+						<br> - Только восле выполнения скрипта отобразит "Текст после скрипта"
+					</li>
+					<li>
+						<strong>defer</strong> - подгрузим скрипта в фоновом режиме
+						<br>Меняем html
+						<pre>
+&lt;script defer src="http://funnyballs.ru/long_script.js">&lt;/script>
+&lt;p>Текст до скрипта&lt;/p>
+&lt;p>Текст после скрипта&lt;/p></pre>
+						Здесь браузер сразу сразу загрузит всё что может, если скрипт большое он загрузит его в фоновом режиме
+						<br>Скрипт запустится сразу после того как было загружено полностью DOM дерево - в независимости где имеено в документе указана ссылка на внешний js документ, <strong>НО ДО события DOMContentLoaded</strong>
+						<br><br>
+						То есть 1) Браузер сразу грузит всё дом дерево 2)Одновременно с этим подгружает в фоновом режиме внешний скрипт 3)Далее выполняет скрипты по внешней ссылке 4)происходит событие DOMContentLoaded
+						<br><br>
+						<strong>Если на странице несколько скриптов с параметром defer - они будут выполнятся в порядке расположенном в html документе</strong>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">21. Пример предзагрузки изображений с помощью javascript</h1><hr>
+				<ol>
+					<li>
+						Будем делать полосу загрузки. Есть 5 изображений, Есть полоса загрузки в %.
+					</li>
+					<li>
+						index.html
+						<pre>
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	&lt;meta charset="utf-8">
+	&lt;meta name="viewport" content="width=device-width, initial-scale=1">
+	&lt;title>Подгрузка изображений: №20&lt;/title>
+
+	&lt;!-- ссылка css -->
+	&lt;link rel="stylesheet" type="text/css" href="css/index.css">
+
+	&lt;!-- ссылка на js, функция отличающая за предзагрузку изображений -->
+	&lt;script type="text/javascript" src="js/index_2.js">&lt;/script>
+
+&lt;/head>
+&lt;body>
+
+	&lt;div id='load_game' class="load_data" style="display: block;">
+		Загрузка..
+		&lt;div class="progress"> &lt;!-- полоса прогрузки оболочка -->
+			&lt;div id="load_status" class="value">&lt;/div> &lt;!-- полоса прогрузки внутренности -->
+		&lt;/div> &lt;!-- полоса прогрузки оболочка -->
+	&lt;/div>
+
+	&lt;!-- ссылка на js -->
+	&lt;script type="text/javascript" src="js/index_1.js"></script>
+
+&lt;/body>
+&lt;/html></pre>
+					</li>
+					<li>
+						index.css
+						<pre>
+body {
+	background: #7a0000;
+}
+
+/*текст загрузка..*/
+.load_data {
+	z-index: 9999;
+	width: 400px;
+	text-align: left;
+	font-size: 26px;
+	font-weight: normal;
+	color: #fffbd2;
+	margin: 50px auto 0 auto;
+}
+
+/*пустая полоса загрузки*/
+.progress {
+	width: 300px;
+	height: 20px;
+	margin: 5px 0 5px 0;
+	background: #202020;
+}
+
+/*заполнение полосы загрузки*/
+.progress .value{
+	/*изначально ширина загрузки равна 0*/
+	/* эту ширину будем менять по мере загрузки js */
+	width: 0%;
+	height: 100%;
+	background: #7474FF;
+}</pre>
+					</li>
+					<li>
+						index_2.js
+						<pre>
+'use strict';
+// заставляет код JavaScript работать в строгом режиме, 
+// что в основном означает, что все должно быть определено перед использованием. 
+// Основная причина использования строгого режима заключается в том, 
+// чтобы избежать случайного глобального использования неопределенных методов.
+
+
+// функция предзагрузки изображения
+function LoadingImages() {
+	// коллекцияиз изображений, которые надо загрузить
+	// Set - коллекция состоящая из уникальных значений 
+	//(т.е при двух одмнаковых второй не добавится)
+	this.urls = new Set(); 
+	// в этот массив будут добавлятся все загруженные изображения
+	this.listImages = [];
+
+	// метод добавляет коллекцию urls - текущий url
+	this.addItem = function(url) {
+		this.urls.add(url);
+	}
+
+	// метод возвращает общее количество изображений которые нужно загрузить
+	this.getTotalItems = function() {
+		return this.urls.size;
+	}
+
+
+	// метод для создания изображения или загрузки
+	this.load = function(callback_progress) { // callback_progress - обработчик в качестве аргумента
+		for(let url of this.urls) { // перебираем коллекцию urls
+			let img = new Image(); // создаём объекты изобрадения
+			this.listImages.push(img); // В массив listImages, добавляем созданное изображение
+
+			img.onload = callback_progress; // обработчик для события onload
+			img.src = url; // устанавливаем свойство src - на то изображение которое нужно загрузить
+		}
+	}
+}</pre>
+					</li>
+					<li>
+						index_1.js
+						<pre>
+// Здесь список необходимых загрузок, работа счётчика, изменение стиля полосы загрузки, показ изображений
+//
+let loader = null; // изначально равно null
+// на событие onload - обработчик ready
+// для проверки что документ полностью загружен со всемми внешними ссылками
+document.body.onload = ready;
+
+// обработчик, сработает только после полной загрузки документа (вместе с внешними документами)
+function ready(event) {
+	loader = new LoadingImages(); // объект отвечающий за предзагрузку изображений
+	// добавляем все url изображений, которые хотим предзагрузить
+	// прежде чем будем их использовать
+	loader.addItem('images/1.jpg');
+	loader.addItem('images/2.jpg');
+	loader.addItem('images/3.jpg');
+	loader.addItem('images/4.jpg');
+	loader.addItem('images/5.jpg');
+	loader.addItem('images/5.jpg'); // для нагладности Set() - то есть второе изображение не загрузится
+
+
+	// Вспомогательные эелементы
+	// переменная которая будет заполнять полосу синим
+	let progress = document.getElementById('load_status');
+	// общее количество изображений которые нужно загрузить
+	let nTotal = loader.getTotalItems();
+	// количество текущех загруженных изображений
+	let nCount = 0;
+
+	// вызываем метод load - объекта LoadingImages (из index_2.js)
+	// в качестве callback_progress - анонимная функция ниже
+	loader.load(function() {
+		// увеличиваем счётчик загруженных изображений
+		nCount++;
+		// изменяем ширину полосы загрузки
+		// 1 изображение = 20%, 5 = 100%
+		progress.style.width = nTotal / nCount * 100 + '%';
+		console.log(nCount);
+
+		// проверка если все изображения загружены
+		if(nCount == nTotal) { // если все изображения загружены
+			finishLoading(); // вызов функции которая отобразит изображения
+		}
+	});
+}
+
+// функция которая отобразит изобраения
+function finishLoading() {
+	if(loader == null) { // если изображения не загружены
+		return; // ничего не делаем, прерывес функцию
+	}
+
+	
+	for(let img of loader.listImages) { // перебираем все изображения
+		document.body.append(img); // добавляем изображение в html в body
+	}
+}</pre>
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+			<li>
+				<hr><h1 class="title_text">22. Пример создания начала игры арканоид</h1><hr>
+				<ol>
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+				</ol>
+			</li>
+
+&lt;
+
+
+
+
+
+		</ul> <!-- ОБЩИЙ -->
+	</div> <!-- container-md all ОБЩИЙ -->
+
+
+
+
+
+
+
+<!-- JS Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+</body>
+</html>
