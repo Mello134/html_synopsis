@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- css bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+	<title>Vue.js - уроки</title>
+
+	<style type="text/css">
+		pre{
+			color: white;
+			background: #2c4352;
+			padding-right: 35px;
+			padding-left: 5px;
+			padding-bottom: 7px;
+			padding-top: 10px;
+		}
+		
+		.all{
+			background: #e5fdff;
+
+
+		}
+
+		
+		body{
+			background: #2c4352;
+
+		}
+		
+		.spec {
+			font-size: 16px;
+			letter-spacing: .2em;
+			font-weight: 500;
+/*			text-transform: uppercase;*/
+			color: #f70000;
+			margin-top: 15px;
+			margin-bottom: 2px;
+		}
+
+		.title_text {
+			letter-spacing: .1em;
+			font-weight: 500;
+			color: #ce0000;
+			font-size: 25px;
+
+		}
+
+		li{
+			margin-bottom: 10px;
+
+		}
+	</style>
+&lt; &lt; &lt;
+
+
+</head>
+<body>
+
+	<p><a href="https://www.youtube.com/playlist?list=PL0lO_mIqDDFVVNsIt02JBIdBkjNVHIoum">YT курс Vue.js</a></p>
+	<p><a href="https://vuejs.org/">Официальный сайт Vue.js</a></p>
+	<p><a href="https://v2.vuejs.org/">Официальный сайт Vue.js v2</a></p>
+	<p><a href="http://vue-js.org/">Доументация на русском - не работает в РФ!</a></p>
+	<p><a href="https://itproger.com/">https://itproger.com/</a></p>
+
+	<strong class="text-danger">ДОКУМЕНТАЦИЯ VUE CLI НА РУССКОМ</strong><br>
+	<a href="https://cli.vuejs.org/ru/index.html">https://cli.vuejs.org/ru/index.html</a>
+
+	<strong class="text-danger">ЧТО ТАКОЕ sass</strong><br>
+
+
+
+	<div class="container-md all"><!-- container-md all ОБЩИЙ -->
+
+		<br>
+		<h1 class="title_text border text-center">Vue.js: <br>Курс на YT - Гоша Дударь</h1><br>
+		<!-- <img src="images\avtoblog\host.jpg" class="img-fluid"><br> -->
+
+
+		<ul> <!-- ОБЩИЙ -->
+
+&lt;
+			<li>
+				<hr><h1 class="title_text">1. Что такое Vue.js?</h1><hr>
+				<ol>
+					<li>
+						Vue.js - фреймворк, для создания динаминых web сайтов, хорошо подходит для SPA сайтов.
+						<br>Например нажатие кнопки - но перез перезагрузки всей страницы (Лайк, рейтинг, фильтры, листание картинок, комментарии)
+					</li>
+					<li>
+						Vue.js - облегчет создание сайтов и является прямым конкурентом библиотеки jQuery
+					</li>
+					<li>
+						Для установки Vue.js, необходимо перейти на официальный сайт <a href="https://vuejs.org/">https://vuejs.org/</a>, и скопировать cкрипт в html
+						<br><strong>Есть 2 варианта скрипта - для разроботки (с сообщениями об ошибках) и для продакшена</strong>
+					</li>
+					<li>
+						<strong>Так как курс по Vue.js Версии 2</strong> - уопирую ссылку именно второй версии
+						<br><a href="https://v2.vuejs.org/">https://v2.vuejs.org/</a> - GEY STARTED
+						<pre>
+&lt;!-- development version, includes helpful console warnings -->
+&lt;script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js">&lt;/script></pre>
+						<strong>Важно - поддержка Vue версии 2, будет прекращена 31 декабря 2023года</strong>
+					</li>
+					<li>
+						Создаю index.html, папку js, и свой main.js
+						<br>В index.html
+						<pre>
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	&lt;meta charset="utf-8">
+	&lt;meta name="viewport" content="width=device-width, initial-scale=1">
+	&lt;title>1&lt;/title>
+&lt;/head>
+&lt;body>
+
+
+	&lt;!-- CDN - vue.js v2 - для разработки -->
+	&lt;!-- development version, includes helpful console warnings -->
+	&lt;script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js&lt;/script>
+
+	&lt;!-- свой js файй -->
+	&lt;script src="js/main.js&lt;/script>
+&lt;/body>
+&lt;/html></pre>
+					</li>
+					<li>
+						'Hello World!' - с помощью vue
+						<br>ibdex.html
+						<pre>
+&lt;div id="app">
+	&lt;p>{{ title &lt;/p>
+&lt;/div></pre>
+						<br>main.js
+						<pre>
+new Vue ({ // создаём объект класса Vue
+	el: '#app', // элемент с которым работаем в html - div id='app'
+	data: { // переменная и значение объекта, данные объекта
+		// title - ключ, дальше значение
+		// в html необходимо вызвать {{ title }}
+		title: 'Hello World!'
+	}
+});</pre>
+					</li>
+
+				</ol>
+			</li>
+
+&lt;
+			<li>
+				<hr><h1 class="title_text">2. События, атрибуты и методы</h1><hr>
+				<ol>
+					<li>
+						Полготваливаем html и каталоги, можно скорировать из первого урока
+					</li>
+					<li>
+						<strong>Изменяем текст, при нажатии на другой текст, событие click</strong>
+						<br>index.html
+						<pre>
+&lt;div id="app">
+	&lt;!-- 
+	'v-' означает что работа для vue
+	'on' отслеживем событие 
+	cliсk - название события
+	"title = 'Изменённый текст при нажатии'" - изменеям параметр title - на другой текст (будет происходить при нажатии на "Текст")
+	-->
+	&lt;span v-on:click= "title = 'Изменённый текст при нажатии'">Текст&lt;/span>
+	&lt;p>{{ title }}&lt;/p>
+&lt;/div></pre>
+						main.js без изменений
+						<pre>
+new Vue ({ // создаём объект класса Vue
+	el: '#app', // элемент с которым работаем в html - div id='app'
+	data: { // переменная и значение объекта, данные объекта
+		// title - ключ, дальше значение
+		// в html необходимо вызвать {{ title }}
+		title: 'Hello World!'
+	}
+});</pre>
+						<strong>'v-on:' - можно заменить на '@'</strong>
+						<pre>});span @click= "title = 'Изменённый текст при нажатии'"></pre>
+					</li>
+					<li>
+						<strong>Изменяем текст, при навередии на другой текст, событие - mosueover</strong>
+						<br>main.js
+						<pre>
+new Vue ({ // объект vue
+	el: '#app2', // div id='app2'
+	data: {
+		title: 'Первоначальный текст' // {{ title }} внутри div id='app2'
+	}
+})</pre>
+						<br>index.html
+						<pre>
+&lt;div id="app2">
+	&lt;span @mouseover= "title = 'Изменённый текст при наведении'">Наведи на текст&lt;/span>
+	&lt;p>{{ title }}&lt;/p>
+&lt;/div></pre>
+					</li>
+					<li>
+						<strong>Пишем свой метод (функцию во Vue)</strong> - то есть по сути обработчик события
+						<br>index.html, присваиваем событие  и на него вешаем свой обработчик
+						<pre>
+&lt;!-- свой обработчик события во vue -->
+&lt;div id="app3">
+	&lt;!-- на событие mouseover - вашаем обработчик changeText -->
+	&lt;span @mouseover='changeText'>Наведи на текст&lt;/span>
+	&lt;p>{{ txt }}&lt;/p>
+&lt;/div></pre>
+						main.js - пишем функцию-обработчик во Vue
+						<pre>
+// Пишем обработчик события
+new Vue ({
+	el: '#app3', // div id='app3'
+	data: {
+		txt: 'Исходный текст' // {{ txt }} внутри div id='app3'
+	},
+	// добавляем свои методы в объект methods, объекта Vue
+	methods: {
+		changeText () {
+			// txt - это не глобальная переменная
+			// txt - это переменная именно объекта Vue
+			// для этого this - this это как self в python
+			this.txt = 'Изменённый текст'
+		}
+	}
+});</pre>
+					</li>
+					<li>
+						<strong>Работаем с html аттрибутами</strong>
+						Будем менять фон текста, фон текста будем вводить в поле input
+						<br>Для начала создаём папку css, создаём файл main.css  и там пишем стили классов, подключаем css внутри html документа
+						<br>index.html - head
+						<pre>
+&lt;head>
+	....
+	&lt;!-- ссылка на css -->
+	&lt;link rel="stylesheet" type="text/css" href="css/main.css">
+	...
+&lt;/head></pre>
+						main.css
+						<pre>
+.grey {
+	background: gray;
+}
+
+.yellow {
+	background: yellow;
+}
+
+.pink {
+	background: pink;
+}
+
+.blue {
+	background: blue;
+}</pre>
+						main.js
+						<pre>
+// Работа с аттрибуитами html - меняем цвет фона, на написанный в input
+new Vue ({
+	el: '#app4', 
+	data: {
+		styleCSS: '' // изначально пустое значение
+	},
+
+});</pre>
+					 	index.html - body
+					 	<pre>
+&lt;!-- работаем с html аттрибутами - меняем цвет фона -->
+&lt;div id="app4">
+	&lt;!-- на событие mouseover - вашаем обработчик changeText -->
+	&lt;!-- 
+		v-bind:  -  работаем с аттрибутом во vue
+		class=  -  аттрибут html class
+		'styleCSS'   - вставляем в аттрибут значение объекта Vue
+	-->	
+	&lt;p v-bind:class="styleCSS">Цвет: {{ styleCSS }}&lt;/p>
+	&lt;!-- или &lt;p v-bind:class="styleCSS">Цвет: {{ styleCSS }}&lt;/p> -->
+
+	&lt;!-- событие input, в styleCSS, присваиваем новое значение -->
+	&lt;!-- значение будет локальной переменной DOM дерева -->
+	&lt;!-- здесь в поле input меняем значение аттрибута styleCSS -->
+	&lt;input type="text" v-on:input="styleCSS = $event.target.value">
+&lt;/div></pre>
+						<strong>v-bind:class - можно просто изменить на :class</strong>
+						<pre>&lt;p :class="styleCSS">Цвет: {{ styleCSS }}&lt;/p></pre>
+
+					</li>
+
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">3. Обработанные свойства</h1><hr>
+				<ol>
+					<li>
+						Погдотовка html
+						<pre>
+&lt;!DOCTYPE html>
+&lt;html>
+&lt;head>
+	&lt;meta charset="utf-8">
+	&lt;meta name="viewport" content="width=device-width, initial-scale=1">
+
+	&lt;!-- ссылка на css -->
+	&lt;link rel="stylesheet" type="text/css" href="css/styles.css">
+
+	&lt;title>3&lt;/title>
+&lt;/head>
+&lt;body>
+	&lt;!-- CDN - vue.js v2 - для разработки -->
+	&lt;script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+	&lt;div id='app'>
+		&lt;!-- 
+			<span class="text-danger">- v-on:input= отслеживаем Vue, событие input
+			- increment(параметр) - функция обработчик
+			- ($event.target.value) - ТО ЧТО НАПИСАНО ПОЛЕ INPUT! (в качестве параметра)</span>
+		-->
+		&lt;input type="text" v-on:input="increment ($event.target.value)">
+		&lt;p>{{ value }}&lt;/p>
+		&lt;p>{{ doubleValue }}&lt;/p>
+	&lt;/div>
+
+	&lt;!-- ссылка на мой js файл -->
+	&lt;script src="js/main.js">&lt;/script>
+&lt;/body>
+&lt;/html></pre>
+						Важно запомнить!
+						<strong>$event.target.value - это текст который записан в поле например input</strong>
+					</li>
+					<li>
+						Принимаем в поле input число, сразу выводим в html и введённое число + введённое число умноженное на 2
+						<pre>
+// Принимаем в поле input число, 
+// сразу выводим в html и введённое число + 
+// введённое число умноженное на 2
+
+new Vue ({
+	el: '#app',
+	data: {
+		value: 1, // {{ value }} - по учаолчанию 1
+		doubleValue: 1 // {{ doubleValue }} - по учаолчанию 1
+	},
+	methods: {
+		// создаём свою функцию обработчик
+		// value - в функции не одно и тоже что и в data, они не пересекаются!
+		increment (value) {
+			// this.value - это value ил data
+			// = value - это value из methods -> increment (т.е то что введут в поле input)
+			this.value = value
+			this.doubleValue = value * 2 // умножаем value на 2
+			// ИЛИ
+			// this.doubleValue = this.value * 2 // одно и тоже но так лучше
+		}
+	}
+})</pre>
+					</li>
+					<li>
+						<strong>new Vue ({ ..., computed:{...} })</strong> - Это обработанные свойства.
+						<br>Делаем тоже самое только с помощью обработанных свойств
+						<pre>
+// Добавляем computed - обработанные свойства
+
+new Vue ({
+	el: '#app',
+	data: {
+		value: 1, // {{ value }} - по учаолчанию 1
+	},
+	methods: {
+		// создаём свою функцию обработчик
+		// value - в функции не одно и тоже что и в data, они не пересекаются!
+		increment (value) {
+			// this.value - это value ил data
+			// = value - это value из methods -> increment (т.е то что введут в поле input)
+			this.value = value
+		}
+	},
+		computed: {
+		// {{ doubleValue }}
+		doubleValue () { // создаём метод получение удвоенного числа
+			return this.value * 2 // возвращаем результат математической операции
+		}
+	}
+})</pre>
+					</li>
+					<li>
+						<strong>Во Vue.js - поддерживается обычный синтаксис JS</strong>
+						<br>Для примера Добавим всплывающее окно - если введём число 25
+						<pre>
+// Добавляем проверку JS - выводим всплываюее окно, если в поле input - будет введено число 25
+
+new Vue ({
+	el: '#app',
+	data: {
+		value: 1, // {{ value }}
+	},
+	methods: {
+		increment (value) {
+			this.value = value
+			if (value == 25) // если ввели 25
+				alert("Ввели число 25"); // всплывающее окно
+		}
+	},
+		computed: {
+		doubleValue () { // {{ doubleValue }}
+			return this.value * 2
+		}
+	}
+});</pre>
+					</li>
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">4. Условия, списки и циклы</h1><hr>
+				<ol>
+					<li>
+						Полготовка html, будем скрывать и показывать текст при нажатии и отпускании
+						<strong>v-if</strong>
+						<pre>
+&lt;div id='app'>
+	&lt;!--
+		v-on:click= событие Vue - click
+		'show = !show'  - меняем show на false или наоборот на true
+	-->	
+	&lt;button v-on:click='show = !show'>Скрыть/показать</button>
+
+
+	&lt;!--
+		v-if= условынй оператор во Vue
+		show - просто переменная (создадим во Vue)
+		show = true - текст будет виден, false - не виден
+	-->	
+	&lt;p v-if="show">Текст который может стать невидимым</p>
+&lt;/div></pre>
+						js
+						<pre>
+// скрываем и показываем текст нажатиеи кнопик
+
+new Vue ({
+	el: '#app',
+	data: {
+		// своя переменная
+		// true - элемент виден
+		// false - элемент не виден
+		show: true
+	},
+	methods: {
+
+	}
+})</pre>
+						<strong>&lt;p v-if="show"> можно замениять на &lt;p v-show="show"></strong> - при первом варианте при скрытом значении в дом дереве вообще не будет элемента, при втором варианте просто добавится стиль display: none
+					</li>
+					<li>
+						<strong>v-else</strong>
+						Добавляем else в html (с помощью Vue)
+						<br><strong>То есть показываем либо первый текст либо второй текст!</strong>
+						<pre>
+&lt;div id='app'>
+	&lt;!--
+		v-on:click= событие Vue - click
+		'show = !show'  - меняем show на false или наоборот на true
+	-->	
+	&lt;button v-on:click='show = !show'>Скрыть/показать&lt;/button>
+
+
+	&lt;!--
+		v-if= условынй оператор во Vue
+		show - просто переменная (создадим во Vue)
+		show = true - текст будет виден, false - не виден
+	-->	
+	&lt;p v-if="show">Текст который может стать невидимым</p>
+	&lt;!--
+		<span class="text-danger">else покажет в случае если if выше не сработает</span>
+	-->
+	&lt;p v-else>Текст 2&lt;/p>
+
+&lt;/div></pre>
+					</li>
+					<li>
+						<strong>Списки/ массивы - создаётся точно также как и JS</strong>
+						<br><strong>Выводим список с помощью цикла из масива во Vue</strong>
+						<br><strong>v-for='el in list'</strong> - цикл for
+						<br>html
+						<pre>
+&lt;!-- Выводим список из массива -->
+&lt;div id="listCar">
+	&lt;h3>Одна машмна по индексу&lt;/h3>
+	&lt;ul>
+		&lt;li>Выводим третюю в массиве cars модель: {{ cars[2].model }}&lt;/li>
+	&lt;/ul>
+
+	&lt;hr>	
+
+	&lt;h3>Список машин&lt;/h3>
+	&lt;ul>
+		&lt;!-- Перебираем массив и выводим в виде списка модели! -->
+		&lt;li v-for="car in cars">Модель: {{ car.model }}, скорость {{ car.speed }}&lt;/li>
+	&lt;/ul>
+&lt;/div></pre>
+						<strong>Выводим индексы в списке - &lt;li v-for='(el, инд) in list'> --> {{ инд }} - {{ el.поле }}</strong>
+						<pre>
+&lt;h3>Список моделей с индексом&lt;/h3>
+&lt;ul>
+	&lt;li v-for='(car, i) in cars'>{{ i }} - {{ car.model }}</li>
+&lt;/ul></pre>
+						<strong>В шаблоне с индексом можно делать математические операции, например: {{ i + 1 }}</strong>
+						<br>
+
+
+						<span style="font-size: 20px;">js</span>
+						<pre>
+// Выводим список из массива
+new Vue ({
+	el: '#listCar',
+	data: {
+		// массив
+		cars: [
+			// элементы массива из словарей
+			{model: 'BMW', speed: 250.8},
+			{model: 'Audi', speed: 240.21},
+			{model: 'AMG', speed: 350.4},
+			{model: 'Ford', speed: 160.5},
+			]
+		}
+})</pre>
+					
+					</li>
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">5. Работа с фильтрами (filters)</h1><hr>
+				<ol>
+					<li>
+						Выводим текст в верхнем регистре
+						<br>html
+						<pre>
+&lt;div id="app">
+	&lt;p>{{ showMess }}&lt;/p>
+&lt;/div></pre>
+						js
+						<pre>
+// текст в больщом реистре
+new Vue ({
+	el: '#app',
+	data: {
+		// это просто переменная (будем использовать в функции)
+		message: 'Привет, меня зовут Александр.'
+	},
+	computed: {
+		// в html {{ showMess }}
+		showMess () {
+			// this.message - message из data
+			// .toUpperCase() - весь текст в верхнем регистре
+			return this.message.toUpperCase();
+		}
+	}
+
+})</pre>
+					</li>
+					<li>
+						<strong>Добавляем фильтр 'filters' во Vue - например текст в нижнем регистре</strong>
+						<br>html
+						<pre>
+<!-- 
+	использую свой фильтр
+	{{ имя_переменной | имя_фильтра }}
+-->
+<p>{{ message | lowercase }}</p></pre>
+						js
+						<pre>
+new Vue ({
+	el: '#app',
+	data: {
+		message: 'Привет, меня зовут Александр.'
+	},
+	computed: {
+		....
+	},
+	<span class="text-danger">filters: { // свои фильтры</span>
+		// lowercase - своё название, своего фильтра
+		// value - какоето значение
+		lowercase (value) {
+			// toLowerCase() - функция JS (маленький регистр)
+			return value.toLowerCase()
+		}
+	}
+
+})</pre>
+						<strong>Во Vue.js нет собственных фильтров!</strong>
+					</li>
+					<li>
+						<strong>Создание глобального фильтра (для всего Vue)</strong>
+						js - создаём глобальный фильтр, можно будет использовать во всех Vue. Фильтр будет делать первый символ строки в Верхнем регистре
+						<pre>
+// глоюальный фильтр для всех Vue
+
+// ('своё_название-своего_фильтра', function(параметр_называем_сами) {....})
+Vue.filter ('capitalize', function (text) {
+	if (!text) return '' // если текста нет, возвратим пустою строку
+	text = text.toString() // вводные данные превращаем в строку
+	
+	var capitalFirst = text.charAt(0).toUpperCase(); // берём первый символ.ВЕРХНИЙ РЕГИСТР()
+	var otherSimb = text.slice(1, text.length); // слайс по всем символам кроме первого
+	return capitalFirst + otherSimb; // Возвращаем, всю строку, первый символ в Верхрем регистре
+});</pre>
+						html - приминяем фильтр. Причём применять можно несколько фильтров сразу, для примера {{ строка | фильтр_1_своего_Vue | фильр_2_глобальный_для_всех_Vue }}
+						<pre>
+&lt;!--
+	Применяем глобальный фильтр, для всех Vue.
+	Фильтром может быть множество!
+-->
+&lt;p>{{ message | lowercase | capitalize }}&lt;/p></pre>
+					</li>
+
+.....
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">6. Создание компонентов</h1><hr>
+				<ol>
+					<li>
+						Компоненты удобны при создании больших программ, они нужны чтобы отказаться от постоянного дублирования кода, то естьво Vue можно создать часть шаблона, и в html уже одной строчкой его вызывать
+					</li>
+					<li>
+						Комнонетны состоят из двух элементов:
+						<br> - Шаблон (template)
+						<br> - Логическая часть (data: function() return..)
+					</li>
+					<li>
+						Пишем css
+						<pre>
+.car {
+	width: 30%;
+	margin: 10px 31%;
+	background: #fafafa;
+	border: 2px solid silver;
+	border-radius: 10px;
+	padding: 1.2% 2%;
+	color: #474747;
+	font-size: 1.1 em;
+}</pre>
+					</li>
+					<li>
+						Пишем Vue, 3 обхекта Vue, <strong>глобальный компонент для всех Vue и локальный компонент</strong> для 3-го Vue
+						<pre>
+<span class="text-danger">// Глобальный компонент - можно использовать в любом оюъекте Vue</span>
+// Vue.component ('Имя_компонента', {объект комаонента});
+// создали компонент, для вызова &lt;global-car>&lt;/global-car>
+Vue.component ('global-cars', {
+	// data - в компоненте, не является объектом, это функция которая чтото возвращает
+	data: function () {
+		return { // data это функция которая возвращает объект cars, состоящий из словарей
+			cars: [ // Весь cars - это логическая часть компонента
+				{model: 'Opel'},
+				{model: 'BMW'},
+				{model: 'Vovlo'},
+				{model: 'Ford'},
+				{model: 'Audi'},
+				{model: 'Fiat'},
+				{model: 'AMG'},
+				{model: 'Toyota'}
+			]
+		}
+	},
+	// tempalete - это сам шаблон html
+	// снаружи добавлен дополнительный (пустой) div! - без него не будет работать
+	// template - в одну строку! т.к одинарные скобки не работаею с переносом строки!
+	template: '&lt;div>&lt;div class="car" v-for="c in cars">&lt;p>{{ c.model }}&lt;/p>&lt;/div>&lt;/div>'
+});
+
+
+
+// Объект Vue 1
+new Vue ({
+	el: '#app1' //&lt;div id='app1'>
+});
+
+
+// Объект Vue 2
+new Vue ({
+	el: '#app2' //&lt;div id='app2'>
+});
+
+
+
+// Объект Vue 3
+// Внутри обхекта Vue - свой собственный компонент
+// Его можно будет использовать только в &lt;div id='app3'>
+new Vue ({
+	el: '#app3', //&lt;div id='app3'>
+	// создаём локальный компонент!
+	components: {
+		<span class="text-danger">// локальный компонент для app3</span>
+		'app3-city': { // &lt;app3-city>&lt;/app3-city>
+			data: function () {
+				return {
+					citys: [
+						{name: 'Volgograd'},
+						{name: 'Moskow'},
+						{name: 'New-York'},
+						{name: 'Los-Angels'},
+						{name: 'Paris'},
+						{name: 'Berlin'}
+					]
+				}
+			},
+			// шаблон локального компонента app3-city
+			template: '&lt;div>&lt;div class="car" v-for="city in citys">&lt;p>{{ city.name }}&lt;/p>&lt;/div>&lt;/div>'
+		}
+	}
+	
+});</pre>
+					</li>
+					<li>
+						Вызываем компоненты в html, два раза глобальный, один раз локальный
+						<pre>
+&lt;!-- Объект Vue 1 - будем вставлять глобальный комнонент -->
+&lt;div id="app1">
+	<span class="text-danger">&lt;!-- вызываем глобальный комконент Vue --></span>
+	&lt;global-cars>&lt;/global-cars>
+&lt;/div>
+&lt;hr>
+&lt;!-- Объект Vue 2 - будем вставлять глобальный компонент -->
+&lt;div id="app2">
+	<span class="text-danger">&lt;!-- вызываем глобальный комконент Vue, уже второй раз --></span>
+	&lt;global-cars>&lt;/global-cars>		
+&lt;/div>
+<&lt;hr>
+
+
+
+<&lt;!-- Объект Vue 3 - будем вставлять собственный компонент( компонент во Vue 3) -->
+<&lt;div id="app3">
+	<span class="text-danger">&lt;!-- вызываем локальный собственный комконент Vue --></span>
+	<&lt;app3-city><&lt;/app3-city>
+&lt;/div></pre>
+					</li>
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">7. Vue CLI и .vue файлы</h1><hr>
+				<ol>
+					<li>
+						При работе со средними или большими проектами, писать Vue в majn.js либо просто в скрипте уже не получится, будет неудобно, будет нехватать функционала, например прр работе с Sass. 
+						<br>Для решения вышеуказанной проблемы необходимо писать Vue CLI
+					</li>
+					<li>
+						<strong>CLI</strong> - CLI (@vue/cli) — это npm-пакет, устанавливаемый глобально и предоставляющий команду vue в терминале. Он позволяет быстро создать новый проект командой vue create, или мгновенно прототипировать ваши новые идеи через vue serve. Также можно управлять проектами в графическом интерфейсе через vue ui. Мы рассмотрим, что он может делать, в следующих разделах руководства.
+					</li>
+					<li>
+						Необходимо скачать и установить Node.js на PC
+						<br><a href="https://nodejs.org/en/">https://nodejs.org/en/</a>
+						<br>В рамках Видеокурса node.js не нужен, из него необходим npm package - менеджер пакетов, и он потребуется для установки Vue CLI на PC
+					</li>
+					<li>
+						Далее переходим на github - <a href="https://github.com/vuejs/vue-cli">https://github.com/vuejs/vue-cli</a>
+					</li>
+					<li>
+						<strong class="text-danger">ДОКУМЕНТАЦИЯ VUE CLI НА РУССКОМ</strong><br>
+						<a href="https://cli.vuejs.org/ru/index.html">https://cli.vuejs.org/ru/index.html</a>
+					</li>
+<!-- 					<li>
+сейчас ( см. дату коммента ) установка Vue CLI npm install -g @vue/cli
+если хотим воспользоваться инитом,  то следует установить npm install -g @vue/cli-init
+
+но сейчас достаточно, после установки CLI,  вызвать vue create my-project чтобы прямо в консоли появилось интерактивное меню создания проекта, а там npm run serve и всё очень круто!)
+					</li>
+					<li>
+Vue CLI сейчас находится в режиме обслуживания. Для новых проектов используйте create-vue для создания проектов на базе Vite. create-vue поддерживает как Vue 2, так и Vue 3.						
+					</li> -->
+					<li>
+						Vue CLI 4.x требуется Node.js версии 8.9 или выше (рекомендуется v10+)
+						<br>
+
+
+						Для установки нового пакета используйте одну из следующих команд. Для их выполнения потребуются права администратора, если только npm не был установлен в системе через менеджер версий Node.js (например, n или nvm).
+						<br>В командной строке устанавливаем новый пакет CLI
+						<pre>npm install -g @vue/cli</pre>
+						После установки, можно будет локально вызывать команды Vue CLI - в командной строке
+					</li>
+					<li>
+						Некоторые команды vue в консоле
+						<pre>
+vue --version
+npm update -g @vue/cli</pre>
+						Зависимости проекта#
+Команды обновления, показанные выше, только для глобально установленного пакета Vue CLI. Для обновления одного или нескольких пакетов, связанных с @vue/cli (включая пакеты, начинающиеся с @vue/cli-plugin- или vue-cli-plugin-) внутри проекта, запустите vue upgrade в каталоге проекта:
+						<pre>
+Использование: upgrade [options] [plugin-name]
+(экспериментально) upgrade vue cli service / plugins
+Опции:
+  -t, --to &lt;version>    Обновить &lt;plugin-name> до определённой версии
+  -f, --from &lt;version>  Пропустить проверку установленного плагина, предполагая что он будет обновляться с указанной версии
+  -r, --registry &lt;url>  Использовать указанный npm-регистр при установке зависимостей
+  --all                 Обновить все плагины
+  --next                Также проверять на наличие alpha / beta / rc версий при обновлении
+  -h, --help            Вывести информацию об использовании команды</pre>
+					</li>
+					<li>
+						Далее необходимо скачать шаблоны (официальные шаблоны webpack, webpack-simple, pwa, simple и тд) - необходимо искать в документации или на гите
+						<br>
+						Необходимо установить ещё какието пакеты
+						<pre>
+npm i -g @vue/cli-init</pre>
+						В командной строке переходим в папку куда необходимо установить шаблон, проект. И устанавливаем
+						<pre>
+cd C:\Хранилище\IT\IT Разное\Обучение\YouTube_ГошаДударь\Vue.js\7</pre>
+						Устанавливаем шаблон webpack-simpe
+						<pre>
+vue init webpack-simple vue_cli_les7
+
+?Project name (vue_cli_les7) --> Enter
+? Project description (A Vue.js project) --> Enter
+? Author (Mello134 &lt;elproject220@yandex.ru>) --> Enter
+? License (MIT) --> Enter
+? Use sass? (y/N) --> N</pre>
+						Далее консоль выведет - необходимо следовать инструкции.
+						<strong>Запуск локального сервера node.js</strong>
+						<pre>
+vue-cli · Generated "vue_cli_les7".
+
+To get started:
+
+ cd vue_cli_les7  // 1) открыть папку
+ npm install    // 2) устанавливаем все связи между файлами
+ npm run dev    // 3) запуск локального сервера vue точнее node.js</pre>
+ 						Локальный сервер запушен, для перехода на него пишем url браузере
+ 						<pre>http://localhost:8080/</pre>
+					</li>
+					<li>
+						Далее в редакторе кода Sublime - открываем папку vue_cli_les7
+						<br>В этой папке множество папок и файлов - это как например django - чаще всего будем работать с папкой src
+					</li>
+					<li>
+						src/main.js - основной файл, где будут собираться #app Vue файлы и помещать их в index.html<br>
+						render: h => h(App) - Это функция
+						<br>App.vue - в нём по сути компонент, там есть логика script, есть css, есть шаблон
+					</li>
+					<li>
+						По умолчанию в App.vue, в &lt;style>  - стили применяются для всего документа, если мы хотим чтобы они были исключительно к App.vue файлу, меняем
+						<pre>
+&lt;script> на &lt;script scoped></pre>
+					</li>
+					<li>
+						Тэг template - должен содержать только один родительский элемент, в нашем случае это div id='app' - То есть нельзя дописать ещё один div, не внутри этого diva
+					</li>
+					<li>
+						Смысл всего этого в том, что в больший проектах создаются множестов App.vue файлов (только название не App) - и все они собираются в одном файле в main.js - путём импортирования
+						<br>Например
+						<pre>
+import App from './App.vue'
+import Car from './Car.vue'
+import City from './City.vue'
+...</pre>
+					</li>
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">8. Компоненты и .vue файлы</h1><hr>
+				<ol>
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">9. Связь компонентов</h1><hr>
+				<ol>
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+				</ol>
+			</li>
+&lt;
+			<li>
+				<hr><h1 class="title_text">10. Завершение</h1><hr>
+				<ol>
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+				</ol>
+			</li>
+
+
+
+		</ul> <!-- ОБЩИЙ -->
+	</div> <!-- container-md all ОБЩИЙ -->
+
+
+
+
+
+
+
+<!-- JS Bootstrap 5 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+
+</body>
+</html>
