@@ -71,6 +71,7 @@
 
 	<strong class="text-danger">ЧТО ТАКОЕ sass</strong><br>
 
+	<p><a href="https://vuejs.org/examples/#markdown">Тексторый редактор markdown - на Vue.js - и готовые решения</a></p>
 
 
 	<div class="container-md all"><!-- container-md all ОБЩИЙ -->
@@ -849,7 +850,7 @@ To get started:
 					<li>
 						По умолчанию в App.vue, в &lt;style>  - стили применяются для всего документа, если мы хотим чтобы они были исключительно к App.vue файлу, меняем
 						<pre>
-&lt;script> на &lt;script scoped></pre>
+&lt;style> на &lt;style scoped></pre>
 					</li>
 					<li>
 						Тэг template - должен содержать только один родительский элемент, в нашем случае это div id='app' - То есть нельзя дописать ещё один div, не внутри этого diva
@@ -870,34 +871,344 @@ import City from './City.vue'
 				<hr><h1 class="title_text">8. Компоненты и .vue файлы</h1><hr>
 				<ol>
 					<li>
-						
+						Повторяю урок 7, заново создаю Vue Cli и все связи, в селом 7 урок с 7 - 8 пункта
 					</li>
 					<li>
-						
+						Чистим App.vue файл - и получаем обычно то с чем начинаем работать
+						src/App.vue
+						<pre>
+<!-- Самый общий шаблон App.vue - отображается local:8080 -->
+&lt;template>
+  &lt;div id="app">
+
+  &lt;/div>
+&lt;/template>
+
+<!-- Общая логика App.vue -->
+&lt;script>
+export default {
+  data () {
+    return {
+
+    }
+  }
+}
+
+<!-- общий стиль -->
+&lt;/script>
+
+&lt;style>
+
+&lt;/style></pre>
+					</li>
+					<li>
+						В src - удаляем папку assets. В этой папке по стандарту логотим Vue
+					</li>
+					<li>
+						<strong>Создаём новый - собственный компонент в CLI</strong>
+						<br>Созадём файл src/Example.vue (название любое)
+					</li>
+					<li>
+						Внутри файла Example.vue - добавляем template и основной div
+						<pre>
+&lt;template>
+	&lt;div>
+		&lt;h1>Пробный текст</h1>
+	&lt;/div>
+&lt;/template></pre>
+					</li>
+					<li>
+						Переходим в main.js  и подключаем(импортируем) наш компонент
+						<pre>
+import Example from './Example.vue'</pre>
+					</li>
+					<li>
+						В main.js моздаём ещё один комнонетк (глобальный компонент) - разу под импортами, синтаксис немного отличается от того что делали ранее без cli
+						<pre>
+// создаём глобальный свой компонент
+// своё имя компонента
+// Example - Объект, то есть саму логику будем писать в Example.vue
+Vue.component ('app-example', Example)</pre>
+						Теперь этот комнонет - app-example - можно использовать в любом Vue файле так как он глобальный
+					</li>
+					<li>
+						Переходим в App.vue - и выводим нашь компонент app-example
+						<pre>
+&lt;!-- Самый общий шаблон App.vue - отображается local:8080 -->
+&lt;template>
+  &lt;div id="app">
+    &lt;!-- Вывожу целый глобальный комонент см main.js -->
+    &lt;app-example>&lt;/app-example>
+  &lt;/div>
+&lt;/template></pre>
+						После этого, даже без обнавелия на странице http://localhost:8080/ - отобразится пробный текст, то есть то что писали в Example.vue - и вызвали в App.vue
+					</li>
+					<li>
+						Далее создаём ещё один файл в src - Field.vue
+					</li>
+					<li>
+						В Field.vue - пишем ещё один шаблончик и логику для него
+						<pre>
+&lt;!-- шаблон/подшаблон -->
+&lt;template>
+	&lt;div>
+		&lt;!-- поле для заполнения текста-->
+		&lt;!-- v-model - почти то же что и v-bind, только сразу помещает значение в переменную, mess - это переменная -->
+		&lt;input type="text" v-model="mess">
+		&lt;!-- вывожу значение mess-->
+		&lt;p>{{ mess }}&lt;/p>
+	&lt;/div>
+&lt;/template>
+
+
+&lt;!-- JS логика Field.vue -->
+&lt;script>
+	// чтобы могли файл экспортировать
+	export default {
+	  data () {
+	    return {
+	    	// изначально mess - пустое поле
+	    	mess: ''
+	    }
+	  }
+	}
+&lt;/script></pre>
+					</li>
+					<li>
+						Будем получать в значение mess через Example.vue
+						<pre>
+&lt;!-- шаблон/подшаблон -->
+&lt;template>
+	&lt;div>
+		&lt;h1>Пробный текст&lt;/h1>
+		&lt;!-- вывожу компонент app-input, см скрипт ниже-->
+		&lt;app-input>&lt;/app-input>
+	&lt;/div>
+&lt;/template>
+
+
+&lt;!-- JS логика Example.vue -->
+&lt;script>
+
+	// импортируем данныые из Input.vue
+	import Input from './Field.vue';
+	
+	// чтобы могли файл экспортировать
+	export default {
+		//создаём локальный компонент app-input
+		// он будет равен тому что написано в Field.vue
+		components: {
+			'app-input': Input
+		}
+	}
+&lt;/script></pre>
+					</li>
+					<li>
+						По итогу, вводим текст в поле input и он сразу отображается в html на странице
 					</li>
 				</ol>
 			</li>
 &lt;
+
+
+
+
 			<li>
 				<hr><h1 class="title_text">9. Связь компонентов</h1><hr>
 				<ol>
 					<li>
-						
+						<strong>В этом уроке, будет поле input - в нём изначально написан какойто тект, но при его изменении, когда пользователь будет вводить какойто текст, будем автоматичекски сразу выводить его в виде простого секста ниже поле Input</strong>
 					</li>
 					<li>
-						
+						Копируем полностью папку из предыдущего урока, так как по сути это продолжение уровка
+					</li>
+					<li>
+						ЗАходим в командную строку в нужную папку
+						<pre>cd C:\Хранилище\IT\IT Разное\Обучение\YouTube_ГошаДударь\Vue.js\9\vue_cli_les8</pre>
+					</li>
+					<li>
+						Запускаем тестовый web сервер - node js
+						<pre>npm run dev</pre>
+					</li>
+					<li>
+						Далее в браузере, по маршруту http://localhost:8080/ - работает всё точно так же как и в предыдущем уроке
+					</li>
+					<li>
+						В src/Example.vue - меняем Пробный текст на название переменной, и добавляем логику дня этой переменной в том эе файле (новый объект data внутри скртпта, внутри export default)
+						<pre>
+&lt;!-- шаблон/подшаблон -->
+&lt;template>
+	&lt;div>
+		<span class="text-danger">&lt;h1>{{ message }}&lt;/h1></span>
+		&lt;!-- вывожу компонент app-input, см скрипт ниже-->
+		&lt;app-input>&lt;/app-input>
+	&lt;/div>
+&lt;/template></pre>
+						<pre>
+&lt;!-- JS логика Example.vue -->
+&lt;script>
+
+	// импортируем данныые из Input.vue
+	import Input from './Field.vue';
+	
+	export default {
+		<span class="text-danger">data() {
+			return {
+				message: 'Пробный текст!'
+			}
+		},</span>
+
+		//создаём локальный компонент app-input
+		// он будет равен тому что написано в Field.vue
+		components: {
+			'app-input': Input
+		}
+	}
+&lt;/script></pre>
+					</li>
+					<li>
+						Теперь данную переменную message - будем выводить в другом файле, в файлу Field.vue
+						<br>Эти данные можно выводить при помощи свойств (props:)
+						<br>Для этого в файлу Example.vue, создаём свой новый аттрибут и присваиваем ей значение переменной message
+						<pre>
+&lt;!-- шаблон/подшаблон -->
+&lt;template>
+	&lt;div>
+		&lt;h1>{{ message }}&lt;/h1>
+		&lt;!-- вывожу компонент app-input, см скрипт ниже-->
+		<span class="text-danger">&lt;app-input :msg='message'>&lt;/app-input></span>
+	&lt;/div>
+&lt;/template></pre>
+						Далее в файле Field.vue - чтобы его отследить, добавляем новый объект props, значение которого будет массивом - и в самом массиве укажем msg
+						<pre>
+&lt;!-- JS логика Field.vue -->
+&lt;script>
+	export default {
+	  // msg это аттрибут, которые указали в Example.vue внутри теггов app-input
+	  <span class="text-danger">props: ['msg'],</span>
+	  data () {
+	    return {
+	    	// изначально mess - пустое поле
+	    	mess: ''
+	    }
+	  }
+	}
+&lt;/script></pre>
+						<strong class="text-danger">В props можно указывать множество аттрибутов, это по сути как вывод данных в шаблоне в джанге</strong>
+						<br>Далее уже в том же Field.vue, в шаблоне/подшаблоне выводим эту переменную
+						<pre>
+&lt;!-- шаблон/подшаблон -->
+&lt;template>
+	&lt;div>
+		<span class="text-danger">&lt;!-- переменная props -->
+		&lt;h3>{{ msg }}&lt;/h3></span>
+		&lt;!-- поле для заполнения текста-->
+		&lt;!-- v-model - почти то же что и v-bind, только сразу помещает значение в переменную, mess - это переменная -->
+		&lt;input type="text" v-model="mess">
+		&lt;!-- вывожу значение mess-->
+		&lt;p>{{ mess }}&lt;/p>
+	&lt;/div>
+&lt;/template></pre>
+					</li>
+					<li>
+						Изменяем Field.vue - Будем менять поле input (сначало удалмс v-model='mess') - чтобы изначально там стоял пробный текст, и так же добавим своё событие changeMess
+						<pre>
+&lt;!-- шаблон/подшаблон -->
+&lt;template>
+	&lt;div>
+		<span class="text-danger">&lt;!-- :value='msg' - изначально в поле будет значение msg (тот что из props) -->
+		&lt;!-- @input=  - то же самое что и v-on (т.е присваиваем событие), название события придумали сами -->
+		&lt;input type="text" :value='msg' @input='changeMess'></span>
+		&lt;p>{{ mess }}&lt;/p>
+	&lt;/div>
+&lt;/template></pre>
+						Пишем логику для метода changeMess - это собственный метод
+						<pre>
+&lt;!-- JS логика Field.vue -->
+&lt;script>
+	export default {
+	  // msg это аттрибут, которые указали в Example.vue внутри теггов app-input
+	  props: ['msg'],
+	  data () {
+	    return {
+	    	// изначально mess - пустое поле
+	    	mess: ''
+	    }
+	  },
+	  <span class="text-danger">methods: {
+	  	// обработчик события changeMess
+	  	changeMess (event) {
+	  		// к значению mess - Применяем, то значение что ввели в поле Input
+	  		this.mess = event.target.value;
+	  	}
+	  },</span>
+	}
+&lt;/script></pre>
+						На данной этапе всё работает, выводится тот текст который в оле, но на данный момент мы не можем менять значение текста, он постоянно переписывается на начальный текст msg
+						<br>
+						<strong class="text-danger">Всё что делали ранее, это помещали данные из родительского файла в дочерние файлы</strong>
+					</li>
+					<li>
+						<strong class="text-danger">Ниже будем помещать данные из дочернего файла в родительские</strong>
+						<br>
+						В Field.vue - в методе обрадобчика события changeMess - добавляем (дописываем инструкцию):
+						<pre>
+&lt;!-- JS логика Field.vue -->
+&lt;script>
+	export default {
+	  // msg это аттрибут, которые указали в Example.vue внутри теггов app-input
+	  props: ['msg'],
+	  data () {
+	    return {
+	    	// изначально mess - пустое поле
+	    	mess: ''
+	    }
+	  },
+	  methods: {
+	  	// обработчик события changeMess
+	  	changeMess (event) {
+	  		// к значению mess - Применяем, то значение что ввели в поле Input
+	  		this.mess = event.target.value;
+	  		<span class="text-danger">// $ - означает что это встроенная функция
+	  		// в $emit - прописываем функцию, которую будем передовать в родительский файл ('название функции любое', 'параметр функции, что передаём')
+	  		this.$emit('messChange', this.mess);</span>
+	  	}
+	  },
+	}
+&lt;/script></pre>
+					</li>
+					<li>
+						В Example.vue - внутри теггов app-input  - передаём ту функцию тот параметр, который находится в дочернем файле, Field.vue
+						<pre>
+&lt;!-- шаблон/подшаблон -->
+&lt;template>
+	&lt;div>
+		&lt;h1>{{ message }}&lt;/h1>
+
+		&lt;!-- вывожу компонент app-input, см скрипт ниже-->
+		<span class="text-danger">&lt;!-- @messCange - это функция из Field.vue -->
+		&lt;!-- $event - это то значение которое передали в качестве параметра, так же в Field.vue в скрипте - т.е в данном случае this.mess -->
+		&lt;!-- выводим message, присваевая message = то что написал пользователь, скрипт в Field.vue - в дочернем файлу --></span>
+		&lt;app-input :msg="message" <span class="text-danger">@messChange="message = $event"></span>&lt;/app-input>
+
+	&lt;/div>
+&lt;/template></pre>
 					</li>
 				</ol>
 			</li>
+
+
+
 &lt;
+
+
 			<li>
 				<hr><h1 class="title_text">10. Завершение</h1><hr>
 				<ol>
 					<li>
-						
-					</li>
+						<p><a href="https://vuejs.org/examples/#markdown">Тексторый редактор markdown - на Vue.js - и готовые решения</a></p></li>
 					<li>
-						
+						Поэксперементирую, изучи сайт - в целом там всё просто
 					</li>
 				</ol>
 			</li>
