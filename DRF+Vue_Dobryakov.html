@@ -73,21 +73,469 @@
 		<ul> <!-- ОБЩИЙ -->
 
 &lt;
+
 			<li>
 				<hr><h1 class="title_text">1. DJANGO REST + VUE, НАСТРОЙКА ОКРУЖЕНИЯ (Django REST, PostgreSQL, Vue, Make)</h1><hr>
 				<ol>
 					<li>
-
+						Устанавливаю новый проект через PyCharm
+						<br>Сам проект
+						<pre>C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance</pre>
+						<br>Новое собственное окружения
+						<pre>C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance\venv_freelance</pre>
+						Никаких других галочек нет
+						<br>
+						<br>
+						Получился каталог freelance - внутри файлы папка idea и папка venv_freelance
 					</li>
 					<li>
-
+						Создаю новую папку для Бэка - в папке freelance
+						<pre>C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance\django_backend</pre>
+					</li>
+					<li>В терминале - 
+						сd DRF3+Vue2\freelance\django_backend
+						<br>Устанавливаю Django
+						<pre> pip install django</pre>
+						<br>Обновляю pip
+						<pre>python.exe -m pip install --upgrade pippip</pre>
+						<br>Устанавливаю Django REST
+						<pre>pip install django-rest-framework</pre>
+						<br><strong class="text-danger">Устанавливаю djoser - для авторизации и регистрации (для DRF)</strong>
+						<pre>pip install djoser</pre>
+						<br><strong class="text-danger">Устанавливаю django-cors-headers - это фитча для фронтенда в джанге</strong>
+						<br>django-cors-headers - это определённые заголовки сервера, благодоря которым, мы можем получить данные с сервера и какието данные ему отдать.
+						<br>Без этой настройки не получится пообщатся с сервером никаким образом, то есть не будет доступен REST API - ни для кого
+						<pre>pip install django-cors-headers</pre>
 					</li>
 					<li>
+						Стартуем проект <br>
+						В (venv_freelance) PS C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance\django_backend>
+						<pre>django-admin startproject django_freelance</pre>
+						Название проекта в джанге, лучше делать либо слитно, либо через нижнее подчёркивание, т.к джанга не любит дефисов и пробелов
+					</li>
+					<li>
+						(venv_freelance) PS C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance\django_backend\django_freelance> 
+						<br>
+						(В папке django_freelance - manage.py + вложенная папка django_freelance)
+						<br>Создаём приложение freelance
+						<pre>
+(venv_freelance) PS C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance\django_backend\django_freelance>
 
+python manage.py startapp freelance</pre>
+					</li>
+					<li>
+						cd DRF3+Vue2\freelance\django_backend\django_freelance\freelance>
+						<br>freelance - это папка приложения, внутри admin.py, apps.py, __init__.py, tests.py, views.py
+					</li>
+					<li>
+						Делаем настроку проекта
+						<br>DRF3+Vue2\freelance\django_backend\django_freelance\settings.py
+						<br>В INSTALLED_APPS - добавляем приложения
+						<pre>
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    <strong class="text-danger">'freelance.apps.FreelanceConfig',  # наше приложение freelance
+    'rest_framework',  # DRF
+    'djoser',  # djoser
+    'corsheaders',  # corsheaders</strong>
+]</pre>
+						<strong>Необходимо добавить corsheaders - в MIDDLEWARE</strong>
+						<br>Так же в settings.py - добавляем, инфу берём из официального гита
+						<pre>
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    <strong class="text-danger">"corsheaders.middleware.CorsMiddleware",  # corsheaders
+    "django.middleware.common.CommonMiddleware",  # corsheaders</strong>
+]</pre>
+						Для corsheaders - нужен лист с хостами, <strong class="text-danger">на деплое измени!</strong>
+						<br>В settings.py - выше языка и времени
+						<pre>
+# Для corsheaders - разрешённые хосты
+CORS_ALLOWED_ORIGINS = [
+    # "https://example.com", # измени на деплое
+    # "https://sub.example.com", # измени на деплое
+    "http://localhost:8080",  # тестовый web сервер джанги
+    # "http://127.0.0.1:9000",  # можно ужалить
+]</pre>
+						Для corsheaders - нужен лист разрешёнными методами
+						<br>settings.py - ниже
+						<pre>
+# Для corsheaders - список разрешённых методов обращения к серверу
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]</pre>
+					</li>
+					<li>
+						В виртуальное окружение устанавливаем psycopg2 (для PostrgeSQL)
+						<pre>pip install psyco
+pg2</pre>
+					</li>
+					<li>
+						Сразу создаю базу данных в SQL Shell(psql)
+						<pre>
+Server [localhost]:
+Database [postgres]:
+Port [5432]:
+Username [postgres]:
+Пароль пользователя postgres:blog1234
+
+psql \! chcp 1251  # для отображении кириллицы
+\l смортрим список всех DB
+CREATE DATABASE freelance;  # создали базу данных - freelance
+-->CREATE DATABASE
+\l - смотрим DB создана</pre>
+						<br>
+						В settings.py - привязываем к проекту базу данных и PostrgeSQL
+						<pre>
+DATABASES = {
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',  # стандартная БД
+        # 'NAME': BASE_DIR / 'db.sqlite3',  # стандартная БД
+        'ENGINE': 'django.db.backends.postgresql',  # БД PostrgeSQL
+        'NAME': 'freelance',  # Имя нашей БД
+        'USER': 'postgres',  # пользователь postgres - который создал БД
+        'PASSWORD': 'blog1234',  # пароль в PostgreSQL, для пользователя postgres
+        'HOST': '127.0.0.1',  # либо просто - 'localhost'
+        'PORT': '5432',  # стандартный порт
+    }
+}</pre>
+					</li>
+					<li>
+						Меняю язык в settings.py на русский
+						<pre>
+# LANGUAGE_CODE = 'en-En'  # англ. в admin
+# TIME_ZONE = 'UTC'  # стандарт
+LANGUAGE_CODE = 'ru-Ru'  # русский язык в admin
+
+TIME_ZONE = 'Europe/Moscow'  # время по МСК</pre>
+						<strong class="text-danger">Ctrl + Alt + L = автоформат в PyCharm</strong>
+					</li>
+					<li>
+						В папке C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance
+						<br>Внутри .idea, django_backend, venv_freelance
+						<br>Добавляю .gitignore
+						<br>Тут же будет git init
+						<br>Обязательно проверь что бы в .gitignore было
+						<pre>
+.idea/
+.venv_freelance/
+venv_freelance/</pre>
+						Полный gitignore
+						<pre>
+.idea/
+.venv_freelance/
+venv_freelance/
+
+# Created by https://www.toptal.com/developers/gitignore/api/django
+# Edit at https://www.toptal.com/developers/gitignore?templates=django
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media
+/media
+/static
+
+# If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
+# in your Git repository. Update and uncomment the following line accordingly.
+# &lt;django-project-name>/staticfiles/
+
+### Django.Python Stack ###
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+
+# Django stuff:
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#pdm.lock
+#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
+#   in version control.
+#   https://pdm.fming.dev/#use-with-ide
+.pdm.toml
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+.idea/  #РАСКОММЕНТИРУЙ
+
+# End of https://www.toptal.com/developers/gitignore/api/django
+
+
+
+
+
+# для Vue
+
+.DS_Store
+node_modules/
+/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# для idea
+# Default ignored files
+/shelf/
+/workspace.xml</pre>
+					</li>
+					<li>
+						Необходимо создать и применить миграции
+						<br>Чувак изменил команды python manage.py makemigrations && mygrate
+						<br>python manage.py runserver && run
+						<br>
+						<br>Создаём и и применяем миграции
+						<pre>
+python manage.py makemigrations  # создаём миграции (первый раз не обязательно)
+python manage.py migrate (Применяем миграции_)</pre>
+						После применения, можно проверить создались ли таблицы в базе данных - в pgAdmin
+					</li>
+<hr>
+					<li>
+						Установим сразу vue
+						<br>В командной строке cd C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance 
+						<br>И устанавливем сам Vue в проект
+						<pre>
+<strong class="text-danger">vue init webpack vue-freelance</strong>
+
+? Project name <strong class="text-danger">vue-freelance</strong>
+? Project description <strong class="text-danger">freelance frontend</strong>
+? Author <strong class="text-danger">Mello134 &lt;elproject220@yandex.ru></strong>
+? Vue build standalone
+? Install vue-router? <strong class="text-danger">Yes</strong>
+? Use ESLint to lint your code? <strong class="text-danger">Yes</strong>
+? Pick an ESLint preset (Use arrow keys)
+> Standard (https://github.com/standard/standard)
+  <strong class="text-danger">Airbnb (https://github.com/airbnb/javascript)</strong>
+  none (configure it yourself)
+? Set up unit tests <strong class="text-danger">No</strong>
+? Setup e2e tests with Nightwatch? <strong class="text-danger">No</strong>
+? Should we run `npm install` for you after the project has been created? (recommended) (Use arrow keys)
+> <strong class="text-danger">Yes, use NPM</strong>
+  Yes, use Yarn
+  No, I will handle that myself
+</pre>
+						Далее можно проверить что Vue работает
+						<pre>
+cd vue-freelance  # переходим в папку установленного Vue
+npm start  # webpack - собирает все модули
+npm run dev # старт сервера Node? не обязательно npm start?</pre>
+						Проверяем в браузере по маршруту
+						<pre>http://localhost:8080</pre>
+						<br>Для остановки в консоле Ctrl + C
+					</li>
+					<li>
+						<strong class="text-danger">Устанавливаем модули для фронтенда заранее</strong>
+						<br>C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance\vue-freelance
+						<br>Устанавливаем axios и vue-axios
+						<pre>
+npm i axios vue-axios -D</pre>
+					</li>
+<hr>
+					<li>
+						Создаю репозиторий на github
+						<pre>https://github.com/Mello134/freelance_project</pre>
+						<br>
+						Подсказки для данного репозитория с гита
+						<pre>
+…or create a new repository on the command line
+echo "# freelance_project" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/Mello134/freelance_project.git
+git push -u origin main
+
+
+…or push an existing repository from the command line
+git remote add origin https://github.com/Mello134/freelance_project.git
+git branch -M main
+git push -u origin main</pre>
+					</li>
+					<li>
+						Инициализируем git в C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance
+						<pre>
+git –v  # посмотреть версию git
+git init  # инициализируем git репозиторикй- папку на pc
+git status  # смотрим какие файлы не отслеживаются на данный момент
+git add .  # добавляем все файлы
+git status  # смотрим что теперь всё отслеживается
+git commit -m "имя коммита(что сделали/стадия)"  # создаём коммит
+git remote add origin  - https://github.com/Mello134/репозиторий.git  # туда будем загружать
+git branch -M main
+git push -u origin main  # отправили на github - в репозитор</pre>
 					</li>
 				</ol>
 
 			</li>
+
 
 &lt;
 
