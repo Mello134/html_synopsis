@@ -60,6 +60,10 @@
 </head>
 <body>
 
+	Patch - запрос что это
+	<br>
+	access и refresh в JWT  - что это
+
 	<p><a href="https://www.youtube.com/playlist?list=PLAhg4XYCffEk-Sa5xxvpcpWpQFlckLIMy">YT курс Django REST + VUE</a></p>
 	
 
@@ -706,6 +710,9 @@ class Ticket(models.Model):
     # статус обращения (решён / не решен)
     is_resolved = models.BooleanField(default=False)
 
+    def __str__(self):
+        return '{}, {} вопрос решён?{}'.format(self.get_severity_display(), self.ticket_date, self.is_resolved)
+
 
 # таблица Ревью (рейтинг)
 class Review(models.Model):
@@ -795,13 +802,343 @@ Superuser created successfully.  # пользователь создан</pre>
 				<hr><h1 class="title_text">3. DJANGO SERIALIZERS: ПЕРЕВОД ДАННЫХ В JSON (serializers, views, urls)</h1><hr>
 				<ol>
 					<li>
-
+						Serializers, сериализатор - это вещь которая перегоняет данные из БД в JSON формат.
+						<br>
+						JSON формат - это тот формат с которым могут работать разные языки програмирования, будь то на ПК или Андройд IOS. В нашем случае мы перегоняем инфу в JSON - чтобы можно было обработать её уже на стороне клиента, на фронте (JavaScript, Vue.js)
+						<br>API
 					</li>
 					<li>
-
+						Создаю отдельный файл в каталоге приложения freelance
+						<br>в django_backend/django_freelance/freelance - создаю serializers.py
 					</li>
 					<li>
+						В serializers.py - импортирую сериалайзеры из DRF
+						<pre>from rest_framework import serializers</pre>
+					</li>
+					<li>
+						В serializers.py Пишу пример сериализатора, который похож просто на класс (этим пользоваться не будем, просто для примера)
+						<pre>
+# пример сериалайзера по типу моделей
+class User(serializers.Serializer):
+    # ниже поля которые будем передавать в JSON формате
+    user = serializers.CharField()
+    email = serializers.EmailField()</pre>
+					</li>
+					<li>
+						Предудуший сериализатор комментирую и создаю другие
+						<pre>
+from .models import *  # импортирую все модели
+from django.contrib.auth.models import User  # импорт стандартной модели User
 
+
+# # пример сериалайзера по типу моделей
+# class User(serializers.Serializer):
+#     # ниже поля которые будем передавать в JSON формате
+#     user = serializers.CharField()
+#     email = serializers.EmailField()
+
+
+# сериализатор пользователя, модель User
+class UserSerializer(serializers.ModelSerializer):
+    # класс мета, уточняем данные к модели
+    class Meta:
+        model = User  # привязываем модель к сериализатору
+        # какие поля модели нужно сериализовать
+        fields = ['username', 'email', 'first_name', 'last_name']
+
+
+# сериализатор модели исполнителя - Executor
+class ExecutorSerializer(serializers.ModelSerializer):
+    # создаём переменную в которой будет храниться вся информация о пользователе, а не только id
+    # т.е, переменная user = сериализатору UserSerializer
+    user = UserSerializer()
+
+    class Meta:  # уточняем данные
+        model = Executor  # привязываемся к модели Executor
+        fields = '__all__'  # все поля модели
+
+
+# сериализатор модели заказчика - Customer
+class CustomerSerializer(serializers.ModelSerializer):
+    # создаём переменную в которой будет храниться вся информация о пользователе, а не только id
+    # т.е, переменная user = сериализатору UserSerializer
+    user = UserSerializer()
+
+    class Meta:  # уточняем данные
+        model = Customer  # привязываемся к модели Customer
+        fields = '__all__'  # все поля модели
+
+
+# Делаю отдельный сериализатор для исполнителя, где не будет инфы о User
+# он нужен когда пользователь ещё не зарегистрирован, то есть при создании
+class CreateExecutorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Executor
+        fields = '__all__'
+
+
+# Делаю отдельный сериализатор для заказчика, где не будет инфы о User
+# он нужен когда пользователь ещё не зарегистрирован, то есть при создании
+class CreateCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
+
+# сериализатор для Услуги - модель Service
+# Модель Услуги (связь с исполнителем)
+class ServiceSerializer(serializers.ModelSerializer):
+    # JSON данные об исполнителе
+    executor = ExecutorSerializer()
+    <strong class="text-danger"># ВАЖНО - для отображения чойса, а не просто номера чойса - сразу в JSON формате</strong>
+    service_type = serializers.CharField(source='get_service_type_display')
+
+    class Meta:
+        model = Service
+        fields = '__all__'
+
+
+# сериализатор для Услуги - модель Service
+# при создании/корректировании услуги
+class CreateServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = '__all__'
+
+
+# сериализатор для Заказа - модель Order
+# Модель Услуги (связь с исполнителем)
+class OrderSerializer(serializers.ModelSerializer):
+    # JSON данные о заказчике
+    customer = CustomerSerializer()
+    <strong class="text-danger"># ВАЖНО - для отображения чойса, а не просто номера чойса - сразу в JSON формате</strong>
+    order_type = serializers.CharField(source='get_order_type_display')
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+# сериализатор для Заказа - модель Order
+# при создании/корректировании заказ
+class CreateOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+# сериализатор для тегов - модель Tag (связи услуги и заказа)
+# Модель Услуги (связь с исполнителем)
+class TagSerializer(serializers.ModelSerializer):
+    # JSON данные об услуге и заказе
+    service = ServiceSerializer()
+    order = OrderSerializer()
+
+    class Meta:
+        model = Tag
+        fields = '__all__'
+
+
+# сериализатор для Tag - модель Tag
+# при создании/корректировании Tag
+class CreateTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+# Сериализатор для модели Ordering - (Связи между исполнителем и заказчиком + заказом и услугой)
+# У модели 4 ForeignKey поля, 2 из них опциональные
+class OrderingSerializer(serializers.ModelSerializer):
+    # JSON данные об исполнителе и заказчике + услуге и заказе
+    service = ServiceSerializer()
+    order = OrderSerializer()
+    customer = CustomerSerializer()
+    executor = ExecutorSerializer()
+
+    class Meta:
+        model = Ordering
+        fields = '__all__'
+
+
+# Сериализатор для модели Ordering - (Связи между исполнителем и заказчиком + заказом и услугой)
+# При создании и редактировании
+class CreateOrderingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ordering
+        fields = '__all__'
+
+
+# Сериализатор для модели Message - (Сообщения)
+class MessageSerializer(serializers.ModelSerializer):
+    # JSON данные об исполнителе и заказчике
+    customer = CustomerSerializer()
+    executor = ExecutorSerializer()
+
+    class Meta:
+        model = Message
+        fields = '__all__'
+
+
+# Сериализатор для модели Message - (Сообщения)
+# При создании и редактировании
+class CreateMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = '__all__'
+
+
+# Сериализатор для модели Ticket - (для общения с техподдержной сайта)
+class TicketSerializer(serializers.ModelSerializer):
+    # JSON данные об исполнителе и заказчике
+    customer = CustomerSerializer()
+    executor = ExecutorSerializer()
+    <strong class="text-danger"># ВАЖНО - для отображения чойса, а не просто номера чойса - сразу в JSON формате</strong>
+    severity = serializers.CharField(source='get_severity_display')
+
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+
+# Сериализатор для модели Ticket - (для общения с техподдержной сайта)
+# При создании и редактировании
+class CreateTicketSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+
+# Сериализатор для модели Review - (оценки)
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+# Сериализатор для модели Authoring - (автора ревью)
+class AuthoringSerializer(serializers.ModelSerializer):
+    # JSON данные об исполнителе и заказчике, о пользователе, об оценке
+    customer = CustomerSerializer()
+    executor = ExecutorSerializer()
+    author = UserSerializer()
+    review = ReviewSerializer()
+
+    class Meta:
+        model = Authoring
+        fields = '__all__'
+
+
+# Сериализатор для модели Authoring - (автора ревью)
+# При создании и редактировании
+class CreateAuthoringSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Authoring
+        fields = '__all__'</pre>
+						<strong class="text-danger">Сериализаторы делаются с похожими именами, такими как и классы представления и модели</strong>
+						<br><strong class="text-danger">Обрати внимание на код - как сделать так чтобы отображились значение чойсов а не их номера</strong>
+					</li>
+					<li>
+						Пишем простое представление, View - для проверки работы
+						<br>freelance/views.py
+						<pre>
+# from django.shortcuts import render  # обычный render не используется в DRF
+
+from rest_framework.response import Response  # для создания ответа
+from rest_framework import generics
+
+# импорт всех моделей и сериализаторов
+from .models import *
+from .serializers import *
+
+
+# представление для тикетов
+# ListAPIView - базовый клас представления DRF
+class TicketListView(generics.ListAPIView):
+    queryset = Ticket.objects.all()  # все объекты модели
+    serializer_class = TicketSerializer  # сериализатор для модели</pre>
+					</li>
+					<li>
+						В каталоге приложения freelance - создаю собственный urls.py
+						<br>django_backend/django_freelance(source)/freelance - urls.py
+						<br>в freelance/urls.py прописываем
+						<pre>
+from django.urls import path  # стандартно - маршруты
+from django.urls import include  # для расширения маршрутов из других приложений
+from .views import *  # все представления из приложения
+
+# список маршрутов
+urlpatterns = [
+    # путь('url'/, класс_представления.as_view()/функция представления, name='имя_маршрута'),
+    path('tickets/all', TicketListView.as_view()),
+]</pre>
+					</li>
+					<li>
+						В главны й urls.py - django_freelance(source)/django_freelance/urls.py - подключем urls.py приложения freelance
+						<pre>
+from django.contrib import admin
+from django.urls import path
+<strong class="text-danger">from django.urls import include</strong>
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+
+    <strong class="text-danger"># маршруты приложения freelance
+    path('api/', include('freelance.urls')),</strong>
+]</pre>
+					</li>
+					<li>
+						На всякий случай создам и применю миграции (делал корректировки)
+						<pre>
+cd (venv_freelance) PS C:\Хранилище\IT\IT Разное\Обучение\David Dobryakov\DRF3+Vue2\freelance\django_backend\django_freelance></pre>
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						Запускаю сервер
+						<pre>python manage.py runserver</pre>
+						<br>Через админ панель, создаю исполнителя и создаю заказчика, после создаю тикет
+					</li>
+					<li>
+						В браузере переходим по маршруту
+						<pre>http://127.0.0.1:8000/api/tickets/all</pre>
+						Всё отлично работает! Получаем полный JSON всех тикетов
+						<pre>
+HTTP 200 OK
+Allow: GET, HEAD, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+[
+    {
+        "id": 1,
+        "customer": {
+            "id": 2,
+            "user": {
+                "username": "Mello",
+                "email": "elproject220@yandex.ru",
+                "first_name": "",
+                "last_name": ""
+            },
+            "phone": "89047777777"
+        },
+        "executor": {
+            "id": 1,
+            "user": {
+                "username": "Кеша",
+                "email": "",
+                "first_name": "",
+                "last_name": ""
+            },
+            "phone": "88007892132"
+        },
+        "severity": "Низкая",
+        "desc": "Кеша слишком много пиздит",
+        "ticket_date": "2023-03-04T17:03:02+03:00",
+        "is_resolved": false
+    }
+]</pre>
 					</li>
 				</ol>
 
@@ -816,13 +1153,954 @@ Superuser created successfully.  # пользователь создан</pre>
 				<hr><h1 class="title_text">4. DJANGO API VIEWS, GENERICS, FILTER (APIView, generics, гибкий filter)</h1><hr>
 				<ol>
 					<li>
+						Представления на основе классов, бывают высокоуровневые (generics), и есть нихкоуровневые
+						<br>Пример низкоуровневого представления API
+						<br>views.py
+						<pre>
+from rest_framework.views import APIView
 
+# пример низкоуровневого API view
+class TicketListView(APIView):
+    # самостоятельно указываем метод get
+    def get(self, request):
+        # самостоятельно указываем queryset (записи модели Ticket)
+        queryset = Ticket.objects.all()
+        # указываем сериализатор
+        # serializer_class = Сериализатор(данные_из_бд, в_модели_много_записей_т.е_список)
+        serializer_class = TicketSerializer(queryset, many=True)
+
+        # вернуть Ответ (данные сериализатора)
+        return Response({'tickers': serializer_class.data})</pre>
+        				По итогу, всё тоже самое, в том случае что и generic из предыдушего урока.
+        				<br>Здесь приходится расписывать APIView самостоятельно - и контролировать что происходит, Но высокоуровниевые API более предпочтительней, в плане скорости написания как минимум
+        				<br><br>Для сравнение API представление с помощью generics - высокоуровневое
+        				<pre>
+# # представление для тикетов (высокоуровневое API)
+# # ListAPIView - базовый клас представления DRF
+class TicketListView(generics.ListAPIView):
+    queryset = Ticket.objects.all()  # все объекты модели
+    serializer_class = TicketSerializer  # сериализатор для модели</pre>
+    					Результат тот же
+					</li>
+<hr>
+<h3 class="text-danger">API views и API endponts(маршруты для JSON)</h3>
+					<li>
+						Пишу представление для исполнителя, получаем по pk
+						<br>views.py
+						<pre>
+# API представление Исполнителя - получить по pk
+class ExecutorRetrieveView(generics.RetrieveAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = ExecutorSerializer</pre>
+    					Пишу маршут для представления
+    					<br>freelance(app) - uels.py
+    					<pre>
+<strong class="text-danger"># http://127.0.0.1:8000/api/executors/1  - получим исполнителя по pk/id = 1</strong>
+path('executors/&lt;int:pk>', ExecutorRetrieveView.as_view()),  # Получаем исполнителя по pk</pre>
 					</li>
 					<li>
+						Пишу API представления Исполнителя (получаем по pk), <strong class="text-danger">Обновление записи и добавление записи - в модель</strong>
+						<br>views.py
+						<pre>
+# API представление Исполнителя для <strong class="text-danger">обновления данных</strong> (по pk)
+class ExecutorUpdateView(generics.UpdateAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = CreateExecutorSerializer
 
+
+# API представление Исполнителя для <strong class="text-danger">создания записи</strong> (по pk)
+class ExecutorCreateView(generics.CreateAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = CreateExecutorSerializer</pre>
+    					Пишу маршруты представлений обновление и создание записей исполнителей
+    					<br>urls.py
+    					<pre>
+path('executors/update/&lt;int:pk>', ExecutorUpdateView.as_view()),  # Обновляем исполнителя по pk
+path('executors/new', ExecutorCreateView.as_view()),  # Создаём исполнителя</pre>
 					</li>
 					<li>
+						Пишу API представления Исполниетлей, т.е <strong class="text-danger">Получить весь список записей в модели</strong>
+						<br>views.py
+						<pre>
+# API представление для списка Исполнителей
+class ExecutorListView(generics.ListAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = ExecutorSerializer</pre>
+						Маршрут для списка Исполнителей urls.py
+						<pre>path('executors/all', ExecutorListView.as_view()),  # Получаем список исполнителей</pre>
+					</li>
+					<li>
+						<strong class="text-danger">Логика для всех эндпойнтов API, почти всех моделей будет идентичной вышеуказанным</strong>
+						<br>
+						<strong>
+							<ol>
+								<li>API - одной записи модели [RetrieveAPIView]</li>
+								<li>API - изменения одной записи модели [UpdateAPIView]</li>
+								<li>API - создания новой записи в модели [CreateAPIView]</li>
+								<li>API - списка всех записей модели [ListAPIView]</li>
+							</ol>
+						</strong>
+					</li>
+					<li>
+						Пишу аналогичные представления для модели заказчика (Customer)
+						<pre>
+# API представление Заказчика - получить по pk
+class CustomerRetrieveView(generics.RetrieveAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
 
+
+# API представление Заказчика для обновления данных (по pk)
+class CustomerUpdateView(generics.UpdateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CreateCustomerSerializer
+
+
+# API представление Заказчика для создания записи (по pk)
+class CustomerCreateView(generics.CreateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CreateCustomerSerializer
+
+
+# API представление для списка Заказчиков
+class CustomerListView(generics.ListAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer</pre>
+					</li>
+					<li>
+						Пишу маршруты для всех представлений Заказчика (Customer)
+						<pre>
+path('customers/&lt;int:pk>/', CustomerRetrieveView.as_view()),  # Получаем заказчика по pk
+path('customers/update/&lt;int:pk>/', CustomerUpdateView.as_view()),  # Обновляем заказчика по pk
+path('customers/new/', CustomerCreateView.as_view()),  # Создаём заказчика
+path('customers/all/', CustomerListView.as_view()),  # Получаем список заказчиков</pre>
+					</li>
+					<li>
+						Пишу представления по такому же шаблону для остальных моделей
+						<br>Order, Service, Tag, Ordering, Message, Ticket, Authoring
+						<br>views.py
+
+						<pre>
+# API представление Заказа - получить по pk
+class OrderRetrieveView(generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+
+# API представление Заказа для обновления данных (по pk)
+class OrderUpdateView(generics.UpdateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = CreateOrderSerializer
+
+
+# API представление Заказа для создания записи (по pk)
+class OrderCreateView(generics.CreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = CreateOrderSerializer
+
+
+# API представление для списка Заказов
+class OrderListView(generics.ListAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+
+# API представление Услуги - получить по pk
+class ServiceRetrieveView(generics.RetrieveAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+
+# API представление Услуги для обновления данных (по pk)
+class ServiceUpdateView(generics.UpdateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = CreateServiceSerializer
+
+
+# API представление Услуги для создания записи (по pk)
+class ServiceCreateView(generics.CreateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = CreateServiceSerializer
+
+
+# API представление для списка Услуг
+class ServiceListView(generics.ListAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+
+# API представление Тега - получить по pk
+class TagRetrieveView(generics.RetrieveAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
+# API представление Тега для обновления данных (по pk)
+class TagUpdateView(generics.UpdateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = CreateTagSerializer
+
+
+# API представление Тега для создания записи (по pk)
+class TagCreateView(generics.CreateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = CreateTagSerializer
+
+
+# API представление для списка Тегов
+class TagListView(generics.ListAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
+# API представление определённого заказа - получить по pk
+class OrderingRetrieveView(generics.RetrieveAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = OrderingSerializer
+
+
+# API представление определённого заказа для обновления данных (по pk)
+class OrderingUpdateView(generics.UpdateAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = CreateOrderingSerializer
+
+
+# API представление определённого заказа для создания записи (по pk)
+class OrderingCreateView(generics.CreateAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = CreateOrderingSerializer
+
+
+# API представление для списка определённого заказов
+class OrderingListView(generics.ListAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = OrderingSerializer
+
+
+# API представление Сообщения - получить по pk
+class MessageRetrieveView(generics.RetrieveAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+
+# API представление Сообщения для обновления данных (по pk)
+class MessageUpdateView(generics.UpdateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = CreateMessageSerializer
+
+
+# API представление Сообщения для создания записи (по pk)
+class MessageCreateView(generics.CreateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = CreateMessageSerializer
+
+
+# API представление для списка Сообщений
+class MessageListView(generics.ListAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+
+# API представление Тикета - получить по pk
+class TicketRetrieveView(generics.RetrieveAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+
+
+# API представление Тикета для обновления данных (по pk)
+class TicketUpdateView(generics.UpdateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = CreateTicketSerializer
+
+
+# API представление Тикета для создания записи (по pk)
+class TicketCreateView(generics.CreateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = CreateTicketSerializer
+
+
+# API представление для списка Тикетов
+class TicketListView(generics.ListAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+
+
+# API представление Автора_ревью - получить по pk
+class AuthoringRetrieveView(generics.RetrieveAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = AuthoringSerializer
+
+
+# API представление Автора_ревью для обновления данных (по pk)
+class AuthoringUpdateView(generics.UpdateAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = CreateAuthoringSerializer
+
+
+# API представление Автора_ревью для создания записи (по pk)
+class AuthoringCreateView(generics.CreateAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = CreateAuthoringSerializer
+
+
+# API представление для списка Авторов_ревью
+class AuthoringListView(generics.ListAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = AuthoringSerializer</pre>
+					</li>
+					<li>
+						Пишу маршруты по шаблону, для остальных представлений
+						<br>Order, Service, Tag, Ordering, Message, Ticket, Authoring
+						<br>views.py
+						<pre>
+path('orders/&lt;int:pk>/', OrderRetrieveView.as_view()),  # Получаем заказа по pk
+path('orders/update/&lt;int:pk>/', OrderUpdateView.as_view()),  # Обновляем заказ по pk
+path('orders/new/', OrderCreateView.as_view()),  # Создаём заказ
+path('orders/all/', OrderListView.as_view()),  # Получаем список заказов
+
+path('services/&lt;int:pk>/', ServiceRetrieveView.as_view()),  # Получаем услугу по pk
+path('services/update/&lt;int:pk>/', ServiceUpdateView.as_view()),  # Обновляем услугу по pk
+path('services/new/', ServiceCreateView.as_view()),  # Создаём услугу
+path('services/all/', ServiceListView.as_view()),  # Получаем список услуг
+
+path('tags/&lt;int:pk>/', TagRetrieveView.as_view()),  # Получаем тег по pk
+path('tags/update/&lt;int:pk>/', TagUpdateView.as_view()),  # Обновляем тег по pk
+path('tags/new/', TagCreateView.as_view()),  # Создаём тег
+path('tags/all/', TagListView.as_view()),  # Получаем список тегов
+
+path('orderings/&lt;int:pk>/', OrderingRetrieveView.as_view()),  # Получаем определённого заказа по pk
+path('orderings/update/&lt;int:pk>/', OrderingUpdateView.as_view()),  # Обновляем определённого заказа по pk
+path('orderings/new/', OrderingCreateView.as_view()),  # Создаём определённого заказа
+path('orderings/all/', OrderingListView.as_view()),  # Получаем список определённых заказов
+
+path('messages/&lt;int:pk>/', MessageRetrieveView.as_view()),  # Получаем Сообщение по pk
+path('messages/update/&lt;int:pk>/', MessageUpdateView.as_view()),  # Обновляем Сообщение по pk
+path('messages/new/', MessageCreateView.as_view()),  # Создаём Сообщение
+path('messages/all/', MessageListView.as_view()),  # Получаем список Сообщений
+
+path('tickets/&lt;int:pk>/', TicketRetrieveView.as_view()),  # Получаем Тикет по pk
+path('tickets/update/&lt;int:pk>/', TicketUpdateView.as_view()),  # Обновляем Тикет по pk
+path('tickets/new/', TicketCreateView.as_view()),  # Создаём Тикет
+path('tickets/all/', TicketListView.as_view()),  # Получаем список Тикетов
+
+path('authorings/&lt;int:pk>/', AuthoringRetrieveView.as_view()),  # Получаем Автора_ревью по pk
+path('authorings/update/&lt;int:pk>/', AuthoringUpdateView.as_view()),  # Обновляем Автора_ревью по pk
+path('authorings/new/', AuthoringCreateView.as_view()),  # Создаём Автора_ревью
+path('authorings/all/', AuthoringListView.as_view()),  # Получаем список Авторов_ревью</pre>
+					</li>
+					<li>
+						Представления для модели - Review - будет отличаться, у этой модели всего 1 сериализатор и будет 3 представления (получение и обновление будет совмещнено) - [generics.RetriveUpdateAPIView]
+						<br>views.py
+						<pre>
+# API - Ревью, получение по pk + обновление
+class ReviewRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    
+    
+# API - Ревью, создание
+class ReviewCreateView(generics.CreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+
+# API - список Ревью
+class ReviewListView(generics.ListAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer</pre>
+						Тем не менне маршрута(api endpoint) сделаем 4, как у всех остальных
+						<br><strong>Для получения и редактирования ревью, 2 разных эндпойнта но 1 общий класс представления</strong>
+						<pre>
+path('reviews/&lt;int:pk>/', ReviewRetrieveUpdateView.as_view()),  # Получаем Ревью по pk
+path('reviews/update/&lt;int:pk>/', ReviewRetrieveUpdateView.as_view()),  # Обновляем Ревью по pk
+path('reviews/new/', ReviewCreateView.as_view()),  # Создаём Ревью
+path('reviews/all/', ReviewListView.as_view()),  # Получаем список Ревью</pre>
+					</li>
+					<li>
+						В брайзере перейдём по url
+						<pre>http://127.0.0.1:8000/api/</pre>
+						Увидим все endpoints и маршурты, которые есть в списке urlpatterns
+						<pre>
+admin/
+api/ executors/&lt;int:pk>/
+api/ executors/update/&lt;int:pk>/
+api/ executors/new/
+api/ executors/all/
+api/ customers/&lt;int:pk>/
+api/ customers/update/&lt;int:pk>/
+api/ customers/new/
+api/ customers/all/
+api/ orders/&lt;int:pk>/
+api/ orders/update/&lt;int:pk>/
+api/ orders/new/
+api/ orders/all/
+api/ services/&lt;int:pk>/
+api/ services/update/&lt;int:pk>/
+api/ services/new/
+api/ services/all/
+api/ tags/&lt;int:pk>/
+api/ tags/update/&lt;int:pk>/
+api/ tags/new/
+api/ tags/all/
+api/ orderings/&lt;int:pk>/
+api/ orderings/update/&lt;int:pk>/
+api/ orderings/new/
+api/ orderings/all/
+api/ messages/&lt;int:pk>/
+api/ messages/update/&lt;int:pk>/
+api/ messages/new/
+api/ messages/all/
+api/ tickets/&lt;int:pk>/
+api/ tickets/update/&lt;int:pk>/
+api/ tickets/new/
+api/ tickets/all/
+api/ authorings/&lt;int:pk>/
+api/ authorings/update/&lt;int:pk>/
+api/ authorings/new/
+api/ authorings/all/
+api/ reviews/&lt;int:pk>/
+api/ reviews/update/&lt;int:pk>/
+api/ reviews/new/
+api/ reviews/all/</pre>
+					</li>
+<hr>
+<h3 class="text-danger">Фильтры в API Views</h3>
+					<li>
+						Добавлю пару записей в таблику Service - через админку
+					</li>
+					<li>
+						<strong class="text-danger">Пишу фильтры</strong> для услуг, представление ServiceListView.
+						<br>views.py ищменяю представление ServiceListView
+						<pre>
+# API представление для списка Услуг
+class ServiceListView(generics.ListAPIView):
+    # queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+    # переопределяю queryset (фильтр)
+    def get_queryset(self):
+        # изначально беру все записи, будут выводить если фильтры не используются
+        queryset = Service.objects.all()
+        <strong class="text-danger"># params - своя переменная. В неё запишем все параметры, что получаем из request</strong>
+        params = self.request.query_params
+
+        """ Буду фильтровать по полям service_type, price, executor"""
+        # к переменной service_type - присваиваем то, что написано в браузерной строке, то есть в гет запросе
+        # т.е. если в адресной строке будет написано service(это ключи)=значение, если ничего присвоим просто None
+        service_type = params.get('service', None)
+        price = params.get('price', None)
+        executor = params.get('executor', None)
+
+        # проверяем, написано ли что-то в адресной строке, связанное с service_type
+        if service_type:
+            # если написано, фильтруем по полю service_type) - изменяем queryset, добавив фильтр
+            <strong class="text-danger"># queryset.filter(поле_в_модели=переменная_в_текущем_представлении)</strong>
+            queryset = queryset.filter(service_type=service_type)
+
+        # фильтр по цене
+        if price:
+            # lte - это меньше или равно (<=)
+            <strong class="text-danger">queryset = queryset.filter(price__lte=price)</strong>
+
+        # фильтр по исполнителю
+        if executor:
+            # executor__id - это обращение к модели Executor к полю id, через текущую модель Service (ForeignKey)
+            <strong class="text-danger">queryset = queryset.filter(executor__id=executor)</strong>
+
+	        <strong class="text-danger"># обязательно возвращаем queryset</strong>
+	        return queryset</pre>
+	        			Для проверки фильтра в поле браузера пишем
+	        			<pre>
+# получаем <strong class="text-danger">весь список записей модели</strong>, без филтров
+http://127.0.0.1:8000/api/services/all/
+
+# получаем только <strong class="text-danger">записи исполнителя с pk/id = 2</strong>
+http://127.0.0.1:8000/api/services/all/<strong class="text-danger">?executor=2</strong>
+
+# записи <strong class="text-danger">исполнителя с id=2 + ценой услуги = 3000</strong>
+http://127.0.0.1:8000/api/services/all/<strong class="text-danger">?executor=2&price=3000</strong>
+
+# записи <strong class="text-danger">исполнителя с id=2 + ценой услуги = 3000 + вебразработка (чойс 1 в модели)</strong>
+# service = это переменная в классе представления, добавляли сами
+http://127.0.0.1:8000/api/services/all/<strong class="text-danger">?executor=2&price=3000&service=1</strong>
+</pre>
+					</li>
+					<li>
+						Аналогично пишем фильтры для модели Order (заказы), представление OrderListView
+						<pre>
+# API представление для списка Заказов
+class OrderListView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+
+    # переопределяю queryset (фильтр)
+    def get_queryset(self):
+        queryset = Order.objects.all()  # весь список
+        params = self.request.query_params  # параметры request
+
+        order_type = params.get('order', None)  # ?order=1
+        price = params.get('price', None)  # ?price=3000
+        customer = params.get('customer', None)  # ?customer=pk/id
+
+        # проверяем в адресной строке '?order=...'
+        if order_type:
+            # если записи есть применяем фильтр
+            # queryset.filter(поле_модели=вышеуказанная_переменная)
+            queryset = queryset.filter(order_type=order_type)
+
+        # фильтр по цене
+        if price:
+            # lte - это меньше или равно (<=)
+            queryset = queryset.filter(price__lte=price)
+
+        # фильтр по заказчику
+        if customer:
+            # executor__id - Service (ForeignKey) --> Customer ->pd/id
+            queryset = queryset.filter(customer__id=customer)
+
+        # обязательно возвращаем queryset
+        return queryset</pre>
+					</li>
+					<li>
+						Аналогично для модели Message
+						<br>Фильтры в представлении MessageListView
+						<pre>
+# API представление для списка Сообщений
+class MessageListView(generics.ListAPIView):
+    serializer_class = MessageSerializer
+
+    # переопределяю queryset (фильтр)
+    def get_queryset(self):
+        queryset = Message.objects.all()  # весь список
+
+        params = self.request.query_params
+
+        # None - это default=None
+        executor = params.get('executor', None)  # фильтр по исполнителю
+        customer = params.get('customer', None)  # фильтр по заказчику
+        from_date = params.get('from_date', None)  # фильтр по дате сообщений (от)
+        to_date = params.get('to_date', None)  # фильтр по дате сообщений (до)
+
+        # применяем фильтры, если в адресной строке есть совпадения
+        if executor:
+            queryset = queryset.filter(executor__id=executor)
+
+        if customer:
+            queryset = queryset.filter(customer__id=customer)
+
+        if from_date:
+            # msg_date - поле модели Message
+            # msg_date__gte - >=, т.е msg_date >= from_date (фильтр от даты)
+            queryset = queryset.filter(msg_date__gte=from_date)
+
+        if to_date:
+            # msg_date__lte - <=, т.е msg_date >= to_date (фильтр до даты)
+            queryset = queryset.filter(msg_gate__lte=to_date)
+
+        return queryset</pre>
+					</li>
+<hr>
+<h3 class="text-danger">Итог</h3>
+
+					<li>
+						Написал все endpoints и API views, для некоторых представлений добавлены фильтры
+						<br>
+						<br>
+						Полный views.py
+						<pre>
+# from django.shortcuts import render  # обычный render не используется в DRF
+
+from rest_framework.response import Response  # для создания ответа
+from rest_framework import generics
+
+# импорт всех моделей и сериализаторов
+from .models import *
+from .serializers import *
+
+from rest_framework.views import APIView
+
+
+#____________________________________________________________________________________________
+# API представление Исполнителя - получить по pk
+class ExecutorRetrieveView(generics.RetrieveAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = ExecutorSerializer
+
+
+# API представление Исполнителя для обновления данных (по pk)
+class ExecutorUpdateView(generics.UpdateAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = CreateExecutorSerializer
+
+
+# API представление Исполнителя для создания записи (по pk)
+class ExecutorCreateView(generics.CreateAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = CreateExecutorSerializer
+
+
+# API представление для списка Исполнителей
+class ExecutorListView(generics.ListAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = ExecutorSerializer
+#____________________________________________________________________________________________
+
+
+# API представление Заказчика - получить по pk
+class CustomerRetrieveView(generics.RetrieveAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+
+# API представление Заказчика для обновления данных (по pk)
+class CustomerUpdateView(generics.UpdateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CreateCustomerSerializer
+
+
+# API представление Заказчика для создания записи (по pk)
+class CustomerCreateView(generics.CreateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CreateCustomerSerializer
+
+
+# API представление для списка Заказчиков
+class CustomerListView(generics.ListAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+
+# API представление Заказа - получить по pk
+class OrderRetrieveView(generics.RetrieveAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+
+# API представление Заказа для обновления данных (по pk)
+class OrderUpdateView(generics.UpdateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = CreateOrderSerializer
+
+
+# API представление Заказа для создания записи (по pk)
+class OrderCreateView(generics.CreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = CreateOrderSerializer
+
+
+# API представление для списка Заказов
+class OrderListView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+
+    # переопределяю queryset (фильтр)
+    def get_queryset(self):
+        queryset = Order.objects.all()  # весь список
+        params = self.request.query_params  # параметры request
+
+        order_type = params.get('order', None)  # ?order=1
+        price = params.get('price', None)  # ?price=3000
+        customer = params.get('customer', None)  # ?customer=pk/id
+
+        # проверяем в адресной строке '?order=...'
+        if order_type:
+            # если записи есть применяем фильтр
+            # queryset.filter(поле_модели=вышеуказанная_переменная)
+            queryset = queryset.filter(order_type=order_type)
+
+        # фильтр по цене
+        if price:
+            # lte - это меньше или равно (<=)
+            queryset = queryset.filter(price__lte=price)
+
+        # фильтр по заказчику
+        if customer:
+            # executor__id - Service (ForeignKey) --> Customer ->pd/id
+            queryset = queryset.filter(customer__id=customer)
+
+        # обязательно возвращаем queryset
+        return queryset
+
+
+# API представление Услуги - получить по pk
+class ServiceRetrieveView(generics.RetrieveAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+
+# API представление Услуги для обновления данных (по pk)
+class ServiceUpdateView(generics.UpdateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = CreateServiceSerializer
+
+
+# API представление Услуги для создания записи (по pk)
+class ServiceCreateView(generics.CreateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = CreateServiceSerializer
+
+
+# API представление для списка Услуг
+class ServiceListView(generics.ListAPIView):
+    serializer_class = ServiceSerializer
+
+    # переопределяю queryset (фильтр)
+    def get_queryset(self):
+        # изначально беру все записи, будут выводить если фильтры не используются
+        queryset = Service.objects.all()
+        # params - своя переменная. В неё запишем все параметры, что получаем из request
+        params = self.request.query_params
+
+        # """ Буду фильтровать по полям service_type, price, executor"""
+        # Переменной service_type - присваиваем то, что написано в браузерной строке, то есть в гет запросе
+        # т.е. если в адресной строке будет написано service(это ключи)=значение, если ничего присвоим просто None
+        service_type = params.get('service', None)
+        price = params.get('price', None)
+        executor = params.get('executor', None)
+
+        # проверяем, написано ли что-то в адресной строке, связанное с service_type
+        if service_type:
+            # если написано, фильтруем по полю service_type - изменяем queryset, добавив фильтр
+            # queryset.filter(поле_в_модели=переменная_в_текущем_представлении)
+            queryset = queryset.filter(service_type=service_type)
+
+        # фильтр по цене
+        if price:
+            # lte - это меньше или равно (<=)
+            queryset = queryset.filter(price__lte=price)
+
+        # фильтр по исполнителю
+        if executor:
+            # executor__id - это обращение к модели Executor к полю id, через текущую модель Service (ForeignKey)
+            queryset = queryset.filter(executor__id=executor)
+
+        # обязательно возвращаем queryset
+        return queryset
+
+
+# API представление Тега - получить по pk
+class TagRetrieveView(generics.RetrieveAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
+# API представление Тега для обновления данных (по pk)
+class TagUpdateView(generics.UpdateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = CreateTagSerializer
+
+
+# API представление Тега для создания записи (по pk)
+class TagCreateView(generics.CreateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = CreateTagSerializer
+
+
+# API представление для списка Тегов
+class TagListView(generics.ListAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+
+# API представление определённого заказа - получить по pk
+class OrderingRetrieveView(generics.RetrieveAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = OrderingSerializer
+
+
+# API представление определённого заказа для обновления данных (по pk)
+class OrderingUpdateView(generics.UpdateAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = CreateOrderingSerializer
+
+
+# API представление определённого заказа для создания записи (по pk)
+class OrderingCreateView(generics.CreateAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = CreateOrderingSerializer
+
+
+# API представление для списка определённого заказов
+class OrderingListView(generics.ListAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = OrderingSerializer
+
+
+# API представление Сообщения - получить по pk
+class MessageRetrieveView(generics.RetrieveAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+
+# API представление Сообщения для обновления данных (по pk)
+class MessageUpdateView(generics.UpdateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = CreateMessageSerializer
+
+
+# API представление Сообщения для создания записи (по pk)
+class MessageCreateView(generics.CreateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = CreateMessageSerializer
+
+
+# API представление для списка Сообщений
+class MessageListView(generics.ListAPIView):
+    serializer_class = MessageSerializer
+
+    # переопределяю queryset (фильтр)
+    def get_queryset(self):
+        queryset = Message.objects.all()  # весь список
+
+        params = self.request.query_params
+
+        # None - это default=None
+        executor = params.get('executor', None)  # фильтр по исполнителю
+        customer = params.get('customer', None)  # фильтр по заказчику
+        from_date = params.get('from_date', None)  # фильтр по дате сообщений (от)
+        to_date = params.get('to_date', None)  # фильтр по дате сообщений (до)
+
+        # применяем фильтры, если в адресной строке есть совпадения
+        if executor:
+            queryset = queryset.filter(executor__id=executor)
+
+        if customer:
+            queryset = queryset.filter(customer__id=customer)
+
+        if from_date:
+            # msg_date - поле модели Message
+            # msg_date__gte - >=, т.е msg_date >= from_date (фильтр от даты)
+            queryset = queryset.filter(msg_date__gte=from_date)
+
+        if to_date:
+            # msg_date__lte - <=, т.е msg_date >= to_date (фильтр до даты)
+            queryset = queryset.filter(msg_gate__lte=to_date)
+
+        return queryset
+
+
+# API представление Тикета - получить по pk
+class TicketRetrieveView(generics.RetrieveAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+
+
+# API представление Тикета для обновления данных (по pk)
+class TicketUpdateView(generics.UpdateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = CreateTicketSerializer
+
+
+# API представление Тикета для создания записи (по pk)
+class TicketCreateView(generics.CreateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = CreateTicketSerializer
+
+
+# API представление для списка Тикетов
+class TicketListView(generics.ListAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+
+
+# API представление Автора_ревью - получить по pk
+class AuthoringRetrieveView(generics.RetrieveAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = AuthoringSerializer
+
+
+# API представление Автора_ревью для обновления данных (по pk)
+class AuthoringUpdateView(generics.UpdateAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = CreateAuthoringSerializer
+
+
+# API представление Автора_ревью для создания записи (по pk)
+class AuthoringCreateView(generics.CreateAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = CreateAuthoringSerializer
+
+
+# API представление для списка Авторов_ревью
+class AuthoringListView(generics.ListAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = AuthoringSerializer
+
+
+# API - Ревью, получение по pk + обновление
+class ReviewRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+
+# API - Ревью, создание
+class ReviewCreateView(generics.CreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+
+# API - список Ревью
+class ReviewListView(generics.ListAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer</pre>
+						Полный urls.py
+						<pre>
+from django.urls import path  # стандартно - маршруты
+from django.urls import include  # для расширения маршрутов из других приложений
+from .views import *  # все представления из приложения
+
+# список маршрутов
+urlpatterns = [
+    # путь('url'/, класс_представления.as_view()/функция представления, name='имя_маршрута'),
+    path('executors/&lt;int:pk>/', ExecutorRetrieveView.as_view()),  # Получаем исполнителя по pk
+    path('executors/update/&lt;int:pk>/', ExecutorUpdateView.as_view()),  # Обновляем исполнителя по pk
+    path('executors/new/', ExecutorCreateView.as_view()),  # Создаём исполнителя
+    path('executors/all/', ExecutorListView.as_view()),  # Получаем список исполнителей
+
+    path('customers/&lt;int:pk>/', CustomerRetrieveView.as_view()),  # Получаем заказчика по pk
+    path('customers/update/&lt;int:pk>/', CustomerUpdateView.as_view()),  # Обновляем заказчика по pk
+    path('customers/new/', CustomerCreateView.as_view()),  # Создаём заказчика
+    path('customers/all/', CustomerListView.as_view()),  # Получаем список заказчиков
+
+    path('orders/&lt;int:pk>/', OrderRetrieveView.as_view()),  # Получаем заказа по pk
+    path('orders/update/&lt;int:pk>/', OrderUpdateView.as_view()),  # Обновляем заказ по pk
+    path('orders/new/', OrderCreateView.as_view()),  # Создаём заказ
+    path('orders/all/', OrderListView.as_view()),  # Получаем список заказов
+
+    path('services/&lt;int:pk>/', ServiceRetrieveView.as_view()),  # Получаем услугу по pk
+    path('services/update/&lt;int:pk>/', ServiceUpdateView.as_view()),  # Обновляем услугу по pk
+    path('services/new/', ServiceCreateView.as_view()),  # Создаём услугу
+    path('services/all/', ServiceListView.as_view()),  # Получаем список услуг
+
+    path('tags/&lt;int:pk>/', TagRetrieveView.as_view()),  # Получаем тег по pk
+    path('tags/update/&lt;int:pk>/', TagUpdateView.as_view()),  # Обновляем тег по pk
+    path('tags/new/', TagCreateView.as_view()),  # Создаём тег
+    path('tags/all/', TagListView.as_view()),  # Получаем список тегов
+
+    path('orderings/&lt;int:pk>/', OrderingRetrieveView.as_view()),  # Получаем определённого заказа по pk
+    path('orderings/update/&lt;int:pk>/', OrderingUpdateView.as_view()),  # Обновляем определённого заказа по pk
+    path('orderings/new/', OrderingCreateView.as_view()),  # Создаём определённого заказа
+    path('orderings/all/', OrderingListView.as_view()),  # Получаем список определённых заказов
+
+    path('messages/&lt;int:pk>/', MessageRetrieveView.as_view()),  # Получаем Сообщение по pk
+    path('messages/update/&lt;int:pk>/', MessageUpdateView.as_view()),  # Обновляем Сообщение по pk
+    path('messages/new/', MessageCreateView.as_view()),  # Создаём Сообщение
+    path('messages/all/', MessageListView.as_view()),  # Получаем список Сообщений
+
+    path('tickets/&lt;int:pk>/', TicketRetrieveView.as_view()),  # Получаем Тикет по pk
+    path('tickets/update/&lt;int:pk>/', TicketUpdateView.as_view()),  # Обновляем Тикет по pk
+    path('tickets/new/', TicketCreateView.as_view()),  # Создаём Тикет
+    path('tickets/all/', TicketListView.as_view()),  # Получаем список Тикетов
+
+    path('authorings/&lt;int:pk>/', AuthoringRetrieveView.as_view()),  # Получаем Автора_ревью по pk
+    path('authorings/update/&lt;int:pk>/', AuthoringUpdateView.as_view()),  # Обновляем Автора_ревью по pk
+    path('authorings/new/', AuthoringCreateView.as_view()),  # Создаём Автора_ревью
+    path('authorings/all/', AuthoringListView.as_view()),  # Получаем список Авторов_ревью
+
+    path('reviews/&lt;int:pk>/', ReviewRetrieveUpdateView.as_view()),  # Получаем Ревью по pk
+    path('reviews/update/&lt;int:pk>/', ReviewRetrieveUpdateView.as_view()),  # Обновляем Ревью по pk
+    path('reviews/new/', ReviewCreateView.as_view()),  # Создаём Ревью
+    path('reviews/all/', ReviewListView.as_view()),  # Получаем список Ревью
+]
+</pre>
 					</li>
 				</ol>
 
@@ -837,16 +2115,494 @@ Superuser created successfully.  # пользователь создан</pre>
 				<hr><h1 class="title_text">5. DJANGO REST РЕГИСТРАЦИЯ + АВТОРИЗАЦИЯ / DJOSER, JWT (TOKENs, DRF, JWT)</h1><hr>
 				<ol>
 					<li>
+						Авторизация пользователя. Можно сделать с помощью джанги, на бэке (например djoser), или на фронте, с помощью JWT (JSON Web Token)
+					</li>
+<hr>
+<h3 class="text-danger">Авторизация Django + DRF + Djoser (на бекэнде)</h3>
+
+					<li>
+						В settings.py в INSTALLED_APPS - добавляю
+						<pre>
+INSTALLED_APPS = [
+	...
+    '...',  # DRF
+    'rest_framework.authtoken',  # для auth - с помощью джанги
+    '....',  # djoser
+    '...',  # corsheaders
+]</pre>
+					</li>
+					<li>
+						В freelance(app)/urls.py - импортирую obtain_auth_token
+						<pre>
+from rest_framework.authtoken.views import obtain_auth_token  # для аутентификации</pre>
+					</li>
+					<li>
+						В urlpatterns добавляю 2 маршрута
+						<pre>
+urlpatterns = [
+    # маршруты для получения токенов аутентификации
+    path('auth/', include('djoser.urls')),  # здесь urls джосера, для регистрации и авторизации
+    path('auth/token', obtain_auth_token, name='token'),
+
+    ...
+    ...
+]</pre>
+						<strong>По факту по auth/token - будеи получать сам токен</strong>
+					</li>
+					<li>
+						Во views.py - импортирую пермигены и статусы ответов
+						<pre>
+# проверка авторизованности
+# статусы выполнения 200/404 и ид
+from rest_framework import permissions, status  # проверка авторизованности</pre>
 
 					</li>
 					<li>
+						Пишу представление для Logout. 
+						<br>views.py
+						<pre>
+# представление Logout
+class Logout(APIView):
+    """ Будем получать пользователя, и из его данных удаляем токен, возвращаем статус 200"""
+    def get(self, request, format=None):
+        request.user.auth_token.delete()  # удаляем токен
+        return Response(status=status.HTTP_200_OK)  # Отвечаем - 200 OK</pre>
+        				Пишу представление для Logout - views.py
+        				<pre>path('auth/logout', Logout.as_view()),  # выйти</pre>
+					</li>
+					<li>
+						Во views.py - 'защитим' все представления, которые только для авторизованных пользователей.
+						<br>Добавлю пермишены, для представлений (Update and Create) - кроме Create Executor and Customer - так как нелогично, запрещать создавать нового пользователя
+						<pre>
+# API представление Исполнителя для обновления данных (по pk)
+class ExecutorUpdateView(generics.UpdateAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = CreateExecutorSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Исполнителя для создания записи (по pk)
+class ExecutorCreateView(generics.CreateAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = CreateExecutorSerializer
+
+
+
+# API представление Заказчика для обновления данных (по pk)
+class CustomerUpdateView(generics.UpdateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CreateCustomerSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Заказчика для создания записи (по pk)
+class CustomerCreateView(generics.CreateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CreateCustomerSerializer
+
+    
+
+# API представление Заказа для обновления данных (по pk)
+class OrderUpdateView(generics.UpdateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = CreateOrderSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Заказа для создания записи (по pk)
+class OrderCreateView(generics.CreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = CreateOrderSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+
+# API представление Услуги для обновления данных (по pk)
+class ServiceUpdateView(generics.UpdateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = CreateServiceSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Услуги для создания записи (по pk)
+class ServiceCreateView(generics.CreateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = CreateServiceSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+
+# API представление Тега для обновления данных (по pk)
+class TagUpdateView(generics.UpdateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = CreateTagSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Тега для создания записи (по pk)
+class TagCreateView(generics.CreateAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = CreateTagSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+
+# API представление определённого заказа для обновления данных (по pk)
+class OrderingUpdateView(generics.UpdateAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = CreateOrderingSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление определённого заказа для создания записи (по pk)
+class OrderingCreateView(generics.CreateAPIView):
+    queryset = Ordering.objects.all()
+    serializer_class = CreateOrderingSerializer
+    # тип пользователя - авторизован или только для чтения
+    
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Сообщения для обновления данных (по pk)
+class MessageUpdateView(generics.UpdateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = CreateMessageSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+# API представление Сообщения для создания записи (по pk)
+class MessageCreateView(generics.CreateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = CreateMessageSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+
+# API представление Тикета для обновления данных (по pk)
+class TicketUpdateView(generics.UpdateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = CreateTicketSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Тикета для создания записи (по pk)
+class TicketCreateView(generics.CreateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = CreateTicketSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+
+# API представление Автора_ревью для обновления данных (по pk)
+class AuthoringUpdateView(generics.UpdateAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = CreateAuthoringSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API представление Автора_ревью для создания записи (по pk)
+class AuthoringCreateView(generics.CreateAPIView):
+    queryset = Authoring.objects.all()
+    serializer_class = CreateAuthoringSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API - Ревью, получение по pk + обновление
+class ReviewRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+
+
+# API - Ревью, создание
+class ReviewCreateView(generics.CreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    # тип пользователя - авторизован или только для чтения
+    <span class='text-danger'>permission_class = permissions.IsAuthenticatedOrReadOnly</span>
+					</li>
+<hr>
+<h3 class="text-danger">Проверка пермишенов в Postman</h3>
+					<li>
+						Создаю и применяю миграции
+						<pre>
+python manage.py makemigrations
+python manage.py migrate</pre>
+					</li>
+					<li>
+						Запускаю сервер
+					</li>
+					<li>
+						В Postman - перехожу по урлу
+						<pre>127.0.0.1:8000/api/auth/users/</pre>
+						<ul>
+							<li>POST - запрос</li>
+							<li>Body</li>
+							<li>form-data</li>
+						</ul>
+						Пишет что username and password - обязательные поля
+						<br>По вышеуказанным параметрам (url body и тд) добавляю два поля (придумываю значения сам) 
+						<br> <strong class="text-danger">Здесь мы регистрируем пользователя через Postman</strong>
+						<ul>
+							<li>Key - username; Value - alex</li>
+							<li>Key - password; Value - aLEx1234aLEx</li>
+						</ul>
+						<br>
+						<strong>И отправляю запрос в postman</strong>
+						<br>
+						postman я так понимаю создал пользователя
+						<pre>
+{
+    "email": "",
+    "username": "alex",
+    "id": 7
+}</pre>
+					</li>
+					<li>
+						Пробую <strong class="text-danger">Залогинится через постман</strong>
+						<br>Postman - новый запрос
+						<ul>
+							<li><pre>127.0.0.1:8000/api/auth/token</pre></li>
+							<li>POST - запрос</li>
+							<li>Body</li>
+							<li>form-data</li>
+							<li>Key - username; Value - alex</li>
+							<li>Key - password; Value - aLEx1234aLEx</li>
+						</ul>
+						<br>Выполняю запрос - SEND
+						<br>Postman отдаёт токен
+						<pre>
+{
+    "token": "349dfb7dfe23889347ea551dbe68a6234b88f6d0"
+}</pre>
+						Этот токен будем использовать, для доступа к views - где писали permissions
+					</li>
+					<li>
+						Пробую через браузер, получить доступ к permissons view
+						<pre>http://127.0.0.1:8000/api/executors/update/1/</pre>
+						Выдаст JSON
+						<pre>
+<strong class="text-danger">HTTP 405 Method Not Allowed</strong>
+Allow: PUT, PATCH, OPTIONS
+Content-Type: application/json
+Vary: Accept
+
+{
+    "detail": "Метод \"GET\" не разрешен."
+}</pre>
+					HTTP 405 Method Not Allowed - означает что метод неразрешён, так как это представление тольно для залогиненных пользователей
+					</li>
+					<li>
+						В Postman - пробую изменить данные пользователя.
+						<ul>
+							<li><pre>http://127.0.0.1:8000/api/executors/update/1/</pre></li>
+							<li>PATCH - запрос</li>
+							<li>Body</li>
+							<li>form-data</li>
+							<li>Key - phone; Value - 89999990000</li>
+						</ul>
+						Получаю запрет - т.к неавторизован
+						<pre>
+{
+    "detail": "Учетные данные не были предоставлены."
+}</pre>
+					</li>
+					<li>
+						В Postman - изменяю данные, добавив токен
+						<ol>
+							<li><pre>http://127.0.0.1:8000/api/executors/update/1/</pre></li>
+							<li>PATCH - запрос</li>
+							<li>Headers: Key - Authorization; Value - Token 349dfb7dfe23889347ea551dbe68a6234b88f6d0</li>
+							<li>Body</li>
+							<li>form-data</li>
+							<li>Key - phone; Value - 89999990000</li>
+						</ol>
+						<strong>Данные изменились!</strong>
+						<br>Можно убедится в браузере
+						<pre>http://127.0.0.1:8000/api/executors/all/</pre>
+					</li>
+<hr>
+<h3 class="text-danger">Авторизация Djoser + JWT (на фронтэнде)</h3>
+					<li>
+						<strong class="text-danger">Устанавливаю библиотеку, который отвечает за модуль JWT - для django rest framework</strong>
+						<pre>pip install djangorestframework_simplejwt</pre>
+					</li>
+					<li>
+						В settings.py, в INSTALLED_APPS - комментирую,
+						<pre># 'rest_framework.authtoken',  # для auth - с помощью джанги</pre>
+					</li>
+					<li>
+						В settings.py - после CORL_ALLOW_METHODS - добавлю настройки, для того чтобы заработал JSON TOKEN (JWT)
+						<pre>
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        # "rest_framework_social_oauth2.authentication.SocialAuthentication",
+    ],
+}</pre>
+					</li>
+					<li>
+						В urls.py (freelance app) - коментирую obtain_token, маршруты токена и Logout
+						<pre>
+# from rest_framework.authtoken.views import obtain_auth_token  # для аутентификации (django token)
+
+# path('auth/token', obtain_auth_token, name='token'),  # django token
+# path('auth/logout', Logout.as_view()),  # выйти</pre>
+					</li>
+					<li>
+						В urls.py импортирую необходимые модули для JWT, пишу маршрут JWT токена
+						<pre>
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView  # JWT токен
+
+# JWT токен
+path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),</pre>
+					</li>
+					<li>
+						views.py - необходим импорт permissions (уже есть), импортируем exceptions.PermissionDenied
+						<pre>
+from rest_framework.exceptions import PermissionDenied  # для JWT</pre>
+					</li>
+					<li>
+						Пишу пермишен для исполнители и заказчика
+						<br><span>Permissions классы - желательно делать в отдельном файле</span>, но в рамках курса, пишем в views.py
+						<pre>
+# permission для Исполнителя
+class IsExecutor(permissions.BasePermission):
+    """ Проверяет есть ли у Исполнителя доступ """
+    def has_object_permission(self, request, view, obj):
+        return obj.user == request.user</pre>
+        				Меняю permission - для ExecutorUpdateView, и так же переопрелеляю get_queryset
+        				<pre>
+# API представление Исполнителя для обновления данных (по pk)
+class ExecutorUpdateView(generics.UpdateAPIView):
+    queryset = Executor.objects.all()
+    serializer_class = CreateExecutorSerializer
+    <strong class="text-danger"># разрешено только исполнителю
+    permission_classes = (IsExecutor,)</strong>
+
+    # переопределяю queryset
+    def get_queryset(self):
+        # пользователь = текущий пользователь из request
+        user = self.request.user
+
+        # если пользователь авторизован
+        if user.is_authenticated:
+            # возвращаем инфу именно по авторизованному пользователю
+            return Executor.objects.filter(user=user)
+        # отработка исключения - "В доступе отказано"
+        raise PermissionDenied()</pre>
+					</li>
+					<li>
+						Пробую получить токен в postman
+						<ol>
+							<li>url <pre>http://127.0.0.1:8000/api/token/</pre></li>
+							<li>Body</li>
+							<li>raw</li>
+							<li>JSON</li>
+							<li><pre>{"username":"alex", "password":"aLEx1234aLEx"}</pre></li>
+						</ol>
+						<br>Получили ответ с refresh и access токенами:
+						<pre>
+{
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY3ODYzNjA2MiwianRpIjoiNWJhYzc4ZjQxZTZhNGI0NGE0NGE1YjMwNmE4ZWE1Y2QiLCJ1c2VyX2lkIjo3fQ.39zwRwswVpLZ8uNMT6dLlrjG-Qwy9XKAQy3of71dJGE",
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc4NTQ5OTYyLCJqdGkiOiJhNWYwMDI5ZDUyMzY0MWQwOWViNTNhZDE2ZjAwNWI3ZiIsInVzZXJfaWQiOjd9.QAfyv94MJfmwyswXnpF876zIXe2_Y9CDMn4vW2rY6dw"
+}</pre>
 
 					</li>
 					<li>
-
+						Пробую изменить данные исполнителя через postman
+						<ol>
+							<li>url <pre>http://127.0.0.1:8000/api/executors/update/2/</pre></li>
+							<li>PATCH</li>
+							<li>Headers - KEY: Authorization, VALUE: (access токен)_</li>
+							<li>Body</li>
+							<li>raw</li>
+							<li>JSON</li>
+							<li><pre>{
+    "phone": "80001112233"
+}</pre>
+							</li>
+						</ol>
+						Запрос будет отклонён, так как пользователь alex не является исполнителем в целом, и не является исполнителем с id = 3
+					</li>
+<hr>
+<h3 class="text-danger">Получаю токен нужного исполнителя и меняю данные в postman</h3>
+					<li>
+						Получаю токен
+						<ol>
+							<li>url <pre>http://127.0.0.1:8000/api/token/</pre></li>
+							<li>Body</li>
+							<li>raw</li>
+							<li>JSON</li>
+							<li><pre>{"username":"Исполнитель2", "password":"blog1234"}</pre>
+							Это executor с pk/id = 3
+							</li>
+						</ol>
+					</li>
+					<li>
+						Копирую access token - которые получили в ответе postman
+					</li>
+					<li>
+						Меняю данные
+						<ol>
+							<li>url <pre>http://127.0.0.1:8000/api/executors/update/2/</pre></li>
+							<li>PATCH</li>
+							<li>Headers - KEY: Authorization, VALUE: (access_токен_без кавычек)</li>
+							<li>Body</li>
+							<li>raw</li>
+							<li>JSON</li>
+							<li><pre>{
+    "phone": "80008880088"
+}</pre>
+							</li>
+						</ol>
+						<strong>Данные успешно изменились!</strong>
+						<br>Можно перепроверить в браузере, то что данные изменились
+						<pre>http://127.0.0.1:8000/api/executors/3/</pre>
+					</li>
+<hr>
+<h3 class="text-danger">Главное оличие использование стандартного токена django или JWT</h3>					
+					<li>
+						<ul>
+							<li>При использованиее токена django - в VALUE используем заголовок<strong class="text-danger"> Token (токен_django)</strong>
+							<pre>
+Headers
+KEY: Authorization
+VALUE: Token 349dfb7dfe23889347ea551dbe68a6234b88f6d0</pre>
+							</li>
+							<li>При использованиее токена JWT (access) - в VALUE используем заголовок<strong class="text-danger"> Bearer (токен_JWT_access)</strong>
+							<pre>
+Headers
+KEY: Authorization
+VALUE: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjc4NTUxNjI0LCJqdGkiOiJkOTJlMzhiNWVhN2I0ZWM1OWQ1NTA1ZjZlMTEyYjA4ZiIsInVzZXJfaWQiOjR9.uCx7XraMZbm8g8Q__bm9U4hEl7j4R6bJ-3RM--kMKRE</pre>
+							</li>
+						</ul>
 					</li>
 				</ol>
-
 			</li>
 
 &lt;
@@ -857,6 +2613,136 @@ Superuser created successfully.  # пользователь создан</pre>
 			<li>
 				<hr><h1 class="title_text">6. DJANGO OAUTH2, АВТОРИЗАЦИЯ ЧЕРЕЗ СОЦ. СЕТИ (DRF, Social auth, VK)</h1><hr>
 				<ol>
+					<li>
+						В vk.com - создам приложение.
+						<pre>https://vk.com/editapp?act=create</pre>
+						<ol>
+							<li>vk.com</li>
+							<li>Разработчикам</li>
+							<li>Создать приложение</li>
+							<li>Название: vk auth freelance</li>
+							<li>Платформа: сайт</li>
+							<li>Адрес сайта: http://127.0.0.1:8000/</li>
+							<li>Базовый домен: http://127.0.0.1:8000/</li>
+						</ol>
+						Далее в настройках, сохрани данные - будут необходимы в settings
+						<pre>
+ID приложения	51578596
+Oa1Y28B9MVGhh7Wik5z8</pre>
+					</li>
+					<li>
+						Далее в настройках приложения vk - копируем id и защищённый ключ
+					</li>
+<hr>
+<h3>Инструкция Social_oauth - для django 4 - другая, откатил проект до предыдущего урока, всё что ниже, не актуально на данный момент, сделай самомстоятельно, с помощью официальной документации pypi.org</h3>					
+					<li>
+						В вируатльне окружение устанавливаю - social-oauth2
+						<pre>pip install drf_social_oauth2</pre>
+					</li>
+					<li>
+						Настраиваю settings.py
+						<br>Первым делом добавляю несолько приложений в INSTALLED_APPS
+						<pre>
+# соц сети
+'oauth2_provider',
+'social_django',
+'drf_social_oauth2',</pre>
+				</li>
+					<li>
+						В settings.py меняю настройки REST_FRAMEWORK
+						<pre>
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+    	# JWT токены
+        <span class="text-danger"># "rest_framework.authentication.SessionAuthentication",
+        # "rest_framework_simplejwt.authentication.JWTAuthentication",</span>
+
+        # аутентификация social_auth2 - vk
+        <span class="text-primary">"oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "rest_framework_social_oauth2.authentication.SocialAuthentication",</span>
+    ],</pre>
+    					С JWT - аутентификации, пока что настроить не получилось, при работе со встроенным джанго токеном, проблем нет
+					</li>
+					<li>
+						Продолжаю настройку settings.py
+						<br>Ниже добавляю - инфу конктетно для VK
+						<pre>
+# Для аутентификации через VK. social_auth2
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.vk.VKOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# ID приложения VK, Ниже сервисный ключ доступа
+SOCIAL_AUTH_VK_OAUTH2_KEY = '51578596'
+SOCIAL_AUTH_VK_OAUTH2_SECRET = 'Oa1Y28B9MVGhh7Wik5z8'</pre>
+					</li>
+					<li>
+						в urls.py (app) Добавляю 1 маршрут (просто инклюдим маршруты social_oauth2)
+						<pre>
+							
+						</pre>
+					</li>
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+					<li>
+						
+					</li>
+
+					<li>
+						Создам и сдкелаю миграции
+						<br><strong class="text-danger">Когда что то добавляю в INSTALLEN_APPS - делай миграции</strong>, т.к у проиложений есть свои таблицы/модели, и иех необходимо добавить в базу данных.
+						<pre>
+python manage.py makemigrations							
+python manage.py migrate</pre>
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
+					<li>
+
+					</li>
 					<li>
 
 					</li>
